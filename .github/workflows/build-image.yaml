@@ -18,8 +18,8 @@ jobs:
           path: ./core20
       - name: Install build dependencies
         run: |
-          sudo apt install -y squashfs-tools dosfstools mtools xz-utils
-          sudo snap instal --classic ubuntu-image
+          sudo apt install -y make squashfs-tools dosfstools mtools xz-utils
+          sudo snap install --classic ubuntu-image
       - name: Build image
         run: make BASE_SNAP=${{ steps.snapcraft.outputs.snap }}
       - uses: actions/upload-artifact@v2
