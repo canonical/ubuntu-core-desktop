@@ -1,0 +1,4 @@
+[submodule "core20"]
+	path = core20
+	url = git@github.com:jhenstridge/core20.git
+	branch = core20-gdm
