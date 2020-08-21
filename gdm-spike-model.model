@@ -1,0 +1,39 @@
+type: model
+authority-id: PhMj3TyWXsKJda10Fah6d6selJIw1xCI
+series: 16
+brand-id: PhMj3TyWXsKJda10Fah6d6selJIw1xCI
+model: ubuntu-core-20-gdm-amd64
+architecture: amd64
+base: core20-gdm
+display-name: Ubuntu Core 20 (amd64) with GDM
+grade: dangerous
+snaps:
+  -
+    name: pc-gdm
+    type: gadget
+  -
+    default-channel: 20/beta
+    id: pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza
+    name: pc-kernel
+    type: kernel
+  -
+    default-channel: latest/stable
+    id: PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4
+    name: snapd
+    type: snapd
+  -
+    name: core20-gdm
+    type: base
+timestamp: 2020-07-17T12:14:00+08:00
+sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
+
+AcLBXAQAAQoABgUCXxGsYgAKCRCvw06CDUbKhrMaEACRdloqZq02KRvh6IkLEPJRI9BlMsXFUhOW
+UZYYxlhVCZQso2qAZ8OQeUPQK51pGCsDyamxPCJXLR2b4xpi5qOVoEirb/tiQ9TGawlc+kb693g1
+wqAs3RU2f2lCSjcgLCqa1NuA31H4LD7u1ahmeab+rW2Gvckd2qoz70oW+yVHte2GsGuwRwcjtNOB
+ISENdmWzWMOdIeNRevAdRm0OjDgXAwWm/AEygYeTnlcrmQvRr9H6ajpniKjxj4IVIAQfk3AhWi7Z
+gpB9VUUwglhnhHOxyrg6Qn25oLwEkqxlaqSYXTSYF6Azub91bKWFdXgXPczaAKs6gzx125fOCk4t
+tNWibmpOYxYVEF36tcFahFFx4eYcFZodD7xCsfrIbHRg4XqBMPxNnxfrOWbQFjxlmrrqqA+Au2ED
+X8/pa/Week2QNnwSEfklBWG39i9Kd0KkCW3jwGrJpKbqbYEeMOdTYuFLvaHdLALsEU4HaoMxOha4
+9tgBwAnzyJXZlluTJpE4Vt6K5PkGjs7Ur2kQnwVwo5AlJD02zwuBZZmML27NRlsS4v6UIssoIQXm
+3ynE8OMOfWZkf8eA1l1y/ghqIkQAr0E03fzA4G08FXN5Krd41LeUTUETJoDCyEdUwZNH8TBBAGj+
+KxSlrZQS5ryiu6UDG3Uzn/SRAbmi4L7YjGZF1Fe9CA==

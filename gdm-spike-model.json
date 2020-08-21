@@ -1,0 +1,34 @@
+{
+    "type": "model",
+    "authority-id": "PhMj3TyWXsKJda10Fah6d6selJIw1xCI",
+    "brand-id": "PhMj3TyWXsKJda10Fah6d6selJIw1xCI",
+    "series": "16",
+    "model": "ubuntu-core-20-gdm-amd64",
+    "display-name":"Ubuntu Core 20 (amd64) with GDM",
+    "architecture": "amd64",
+    "grade": "dangerous",
+    "base": "core20-gdm",
+    "snaps": [
+        {
+            "name": "pc-gdm",
+            "type": "gadget"
+        },
+        {
+            "name": "pc-kernel",
+            "default-channel": "20/beta",
+            "type": "kernel",
+            "id": "pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza"
+        },
+        {
+            "name": "snapd",
+            "default-channel": "latest/stable",
+            "type": "snapd",
+            "id": "PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4"
+        },
+        {
+            "name": "core20-gdm",
+            "type": "base"
+        }
+    ],
+    "timestamp": "2020-07-17T12:14:00+08:00"
+}

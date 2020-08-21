@@ -1,0 +1,13 @@
+{
+  "type": "system-user",
+  "authority-id": "PhMj3TyWXsKJda10Fah6d6selJIw1xCI",
+  "brand-id": "PhMj3TyWXsKJda10Fah6d6selJIw1xCI",
+  "series": ["16"],
+  "models": ["ubuntu-core-20-gdm-amd64"],
+  "name": "Default Test User",
+  "username": "ubuntu",
+  "email": "ubuntu@localhost",
+  "password": "$6$aI1yTa47ja/S0mOz$l.UXH1eenatuEF5EiSF6Bh1mhu3/1tcmtge2H4MA5kpPx0Y1hBmrIc/yXX4hEnbbQUudOZJgUeUHSOwRDdLd3/",
+  "since": "2020-07-17T18:02:00+08:00",
+  "until": "2025-07-17T18:02:00+08:00"
+}
