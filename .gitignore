@@ -1,0 +1,5 @@
+*.snap
+*.img
+*.xz
+*~
+/pc-gdm
