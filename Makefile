@@ -1,6 +1,8 @@
 
 BASE_SNAP = core20-gdm.snap
 
+all: pc.img.xz assertions.img.xz
+
 # Patch the official PC gadget snap to use core20-gdm as a base
 pc-gdm.snap:
 	snap download --channel=20/stable --basename=pc pc
@@ -31,3 +33,5 @@ gdm-spike-model.model: gdm-spike-model.json
 
 %.img.xz: %.img
 	xz --keep $<
+
+.PHONY: all

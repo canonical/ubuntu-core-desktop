@@ -1,0 +1,30 @@
+name: build-image
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: snapcore/action-build@v1
+        id: snapcraft
+        with:
+          path: ./core20
+      - name: Install build dependencies
+        run: |
+          sudo apt install -y squashfs-tools dosfstools mtools xz-utils
+          sudo snap instal --classic ubuntu-image
+      - name: Build image
+        run: make BASE_SNAP=${{ steps.snapcraft.outputs.snap }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: image
+          path: |
+            README.md
+            *.img.xz
