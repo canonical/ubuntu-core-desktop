@@ -4,7 +4,16 @@ build-base: core20
 passthrough:
   base: core20-gdm
 summary: A strict confined Ubuntu desktop session
-description: ...
+description: |
+  An attempt to strictly confine the standard Ubuntu desktop session.
+  A work in progress.
+
+  To add the session to the GDM greeter, run the following:
+
+      sudo /snap/confined-desktop/current/setup.sh
+
+  This will connect various plugs and copy a desktop file to
+  /usr/share/wayland-sessions.
 
 grade: devel
 confinement: strict
@@ -23,6 +32,7 @@ apps:
       - network-observe
       - opengl
       - system-observe
+      - shutdown
     slots:
       - wayland
       - x11
