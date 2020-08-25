@@ -9,20 +9,28 @@ jobs:
   image:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout source
+        uses: actions/checkout@v2
         with:
           submodules: true
-      - uses: snapcore/action-build@v1
-        id: snapcraft
+      - name: Build core20-gdm
+        uses: snapcore/action-build@v1
+        id: snapcraft_base
         with:
           path: ./core20
+      - name: Build confined-desktop
+        uses: snapcore/action-build@v1
+        id: snapcraft_session
+        with:
+          path: ./confined-desktop
       - name: Install build dependencies
         run: |
           sudo apt install -y make squashfs-tools dosfstools mtools xz-utils
           sudo snap install --classic ubuntu-image
       - name: Build image
-        run: make BASE_SNAP=${{ steps.snapcraft.outputs.snap }}
-      - uses: actions/upload-artifact@v2
+        run: make BASE_SNAP=${{ steps.snapcraft_base.outputs.snap }} SESSION_SNAP=${{ steps.snapcraft_session.outputs.snap }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
         with:
           name: image
           path: |

@@ -12,7 +12,7 @@ snaps:
     name: pc-gdm
     type: gadget
   -
-    default-channel: 20/beta
+    default-channel: 20/stable
     id: pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza
     name: pc-kernel
     type: kernel
@@ -24,16 +24,19 @@ snaps:
   -
     name: core20-gdm
     type: base
-timestamp: 2020-07-17T12:14:00+08:00
+  -
+    name: confined-desktop
+    type: app
+timestamp: 2020-08-25T17:08:51+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBXAQAAQoABgUCXxGsYgAKCRCvw06CDUbKhrMaEACRdloqZq02KRvh6IkLEPJRI9BlMsXFUhOW
-UZYYxlhVCZQso2qAZ8OQeUPQK51pGCsDyamxPCJXLR2b4xpi5qOVoEirb/tiQ9TGawlc+kb693g1
-wqAs3RU2f2lCSjcgLCqa1NuA31H4LD7u1ahmeab+rW2Gvckd2qoz70oW+yVHte2GsGuwRwcjtNOB
-ISENdmWzWMOdIeNRevAdRm0OjDgXAwWm/AEygYeTnlcrmQvRr9H6ajpniKjxj4IVIAQfk3AhWi7Z
-gpB9VUUwglhnhHOxyrg6Qn25oLwEkqxlaqSYXTSYF6Azub91bKWFdXgXPczaAKs6gzx125fOCk4t
-tNWibmpOYxYVEF36tcFahFFx4eYcFZodD7xCsfrIbHRg4XqBMPxNnxfrOWbQFjxlmrrqqA+Au2ED
-X8/pa/Week2QNnwSEfklBWG39i9Kd0KkCW3jwGrJpKbqbYEeMOdTYuFLvaHdLALsEU4HaoMxOha4
-9tgBwAnzyJXZlluTJpE4Vt6K5PkGjs7Ur2kQnwVwo5AlJD02zwuBZZmML27NRlsS4v6UIssoIQXm
-3ynE8OMOfWZkf8eA1l1y/ghqIkQAr0E03fzA4G08FXN5Krd41LeUTUETJoDCyEdUwZNH8TBBAGj+
-KxSlrZQS5ryiu6UDG3Uzn/SRAbmi4L7YjGZF1Fe9CA==
+AcLBXAQAAQoABgUCX0TVYQAKCRCvw06CDUbKhvbCD/90MMrlGP9rlB7cVeCDexYn4tKORW8JNxMG
+3yXZh89zM8S4VGJoZdDBoTqsAgKv01D+kov7sV0LnVHRhqUI2tFqJszC5M0yTTg6YVaGC8GfAE+w
+z3EVoMd8cJZQXZSAqiFM6mjcf/iRJ18sci49SCm8rpXPiT1FeqrpmZ7K9FKbdohsF+rcaQUckESs
+aO+iqS6b7pcbcQDDdP3AeTRdhdmkYirL5s6/2kceeKPqVCzqVQRccXiIPYj5vak1Lh6Kdoo4pWcZ
+LgCLNMe0MA4PfDbSlWvwHhQkIrxRs6xWr6pik+QsDXwSNfdKH9gXRKNqsWPzk0VCuM8sAr3RioYC
+/+gI/MoDPZYcJeX9JAFTRMO8iVuqekvJRn3+hdAVpfCDx1iQ0EZcFmhr8IhMifvaiuSdJDo2HU3C
+mr1DWK+/13EpYqZf+avihjeJjeDmTaFaopN+nWYgxR2UaeH3xZR+Hzo4V8NL0iwuu3xR9a8aVi+F
+v2VjHpGV82XKRIW5bDjPraXE+BoypO0+lAF7VaAXfTy7f5q0Ito7A98TjGE13xuoPVHvYeNM8b7g
+8O3wJlx/cXshhogITHH6jmRHW3YeJRLmwGG66PSRUUuDTMekoB40uPd0ZnIpxrBV2R9ax03JlRvY
+afwnLxtNIyhhKq+zDlXfOcF5znZi47QK/yV6Ex2Nzg==

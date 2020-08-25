@@ -15,7 +15,7 @@
         },
         {
             "name": "pc-kernel",
-            "default-channel": "20/beta",
+            "default-channel": "20/stable",
             "type": "kernel",
             "id": "pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza"
         },
@@ -28,7 +28,11 @@
         {
             "name": "core20-gdm",
             "type": "base"
+        },
+        {
+            "name": "confined-desktop",
+            "type": "app"
         }
     ],
-    "timestamp": "2020-07-17T12:14:00+08:00"
+    "timestamp": "2020-08-25T17:08:51+08:00"
 }
