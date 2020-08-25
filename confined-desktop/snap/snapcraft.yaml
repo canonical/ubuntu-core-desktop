@@ -1,0 +1,208 @@
+name: confined-desktop
+version: '1'
+build-base: core20
+passthrough:
+  base: core20-gdm
+summary: A strict confined Ubuntu desktop session
+description: ...
+
+grade: devel
+confinement: strict
+
+apps:
+  confined-desktop:
+    command: run-session.sh
+    plugs:
+      - hardware-observe
+      - home
+      - login-session-observe
+      - login-session-control
+      - mount-observe
+      - network-bind
+      - network-control
+      - network-observe
+      - opengl
+      - system-observe
+    slots:
+      - wayland
+      - x11
+
+plugs:
+  shell-config-files:
+    interface: system-files
+    read:
+      - /etc/fonts
+      - /etc/glvnd
+      - /etc/gnome/defaults.list
+      - /etc/gtk-3.0
+      - /etc/pulse
+      - /etc/shells
+      - /etc/xdg/autostart
+      - /run/udev/tags/seat
+
+slots:
+  dbus-canonical-unity:
+    interface: dbus
+    bus: session
+    name: com.canonical.Unity
+  dbus-freedesktop-impl-portal:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.impl.portal.desktop.gnome
+  dbus-freedesktop-screensaver:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.ScreenSaver
+  dbus-freedesktop-secrets:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.secrets
+  dbus-gnome-keyring:
+    interface: dbus
+    bus: session
+    name: org.gnome.keyring
+  dbus-gnome-keyring-sysprompter:
+    interface: dbus
+    bus: session
+    name: org.gnome.keyring.SystemPrompter
+  dbus-gnome-magnifier:
+    interface: dbus
+    bus: session
+    name: org.gnome.Magnifier
+  dbus-gnome-mutter-displayconfig:
+    interface: dbus
+    bus: session
+    name: org.gnome.Mutter.DisplayConfig
+  dbus-gnome-mutter-idlemonitor:
+    interface: dbus
+    bus: session
+    name: org.gnome.Mutter.IdleMonitor
+  dbus-gnome-panel:
+    interface: dbus
+    bus: session
+    name: org.gnome.Panel
+  dbus-gnome-screensaver:
+    interface: dbus
+    bus: session
+    name: org.gnome.ScreenSaver
+  dbus-gnome-sessionmanager:
+    interface: dbus
+    bus: session
+    name: org.gnome.SessionManager
+  dbus-gsd:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon
+  dbus-gsd-a11ysettings:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.A11ySettings
+  dbus-gsd-color:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.Color
+  dbus-gsd-datetime:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.Datetime
+  dbus-gsd-housekeeping:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.Housekeeping
+  dbus-gsd-keyboard:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.Keyboard
+  dbus-gsd-mediakeys:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.MediaKeys
+  dbus-gsd-power:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.Power
+  dbus-gsd-printnotifications:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.PrintNotifications
+  dbus-gsd-rfkill:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.Rfkill
+  dbus-gsd-screensaverproxy:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.ScreensaverProxy
+  dbus-gsd-sharing:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.Sharing
+  dbus-gsd-smartcard:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.Smartcard
+  dbus-gsd-sound:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.Sound
+  dbus-gsd-usbprotection:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.UsbProtection
+  dbus-gsd-wacom:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.Wacom
+  dbus-gsd-wwan:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.Wwan
+  dbus-gsd-xsettings:
+    interface: dbus
+    bus: session
+    name: org.gnome.SettingsDaemon.XSettings
+  dbus-gnome-shell:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell
+  dbus-gnome-shell-audio:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.AudioDeviceSelection
+  dbus-gnome-shell-introspect:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.Introspect
+  dbus-gnome-shell-screencast:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.Screencast
+  dbus-gnome-shell-screenshot:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.Screenshot
+  dbus-gnome-shell-wacom:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.Wacom.PadOsd
+  dbus-gtk-mountoperationhandler:
+    interface: dbus
+    bus: session
+    name: org.gtk.MountOperationHandler
+  dbus-gtk-notifications:
+    interface: dbus
+    bus: session
+    name: org.gtk.Notifications
+  dbus-gtk-settings:
+    interface: dbus
+    bus: session
+    name: org.gtk.Settings
+  dbus-kde-statusnotifier:
+    interface: dbus
+    bus: session
+    name: org.kde.StatusNotifierWatcher
+
+parts:
+  scripts:
+    plugin: dump
+    source: ./scripts
