@@ -8,7 +8,7 @@ in a Qemu virtual machine by following these instructions:
    same directory.
 
 2. Start a virtual machine with the following command:
-
+```
     qemu-system-x86_64 -smp 2 -m 2048 -machine accel=kvm \
       -device virtio-vga,virgl=on -display gtk,gl=on \
       -net nic,model=virtio -net user,hostfwd=tcp::8022-:22 \
@@ -18,7 +18,7 @@ in a Qemu virtual machine by following these instructions:
       -device virtio-blk-pci,drive=main,bootindex=1 \
       -device nec-usb-xhci,id=xhci \
       -device usb-storage,bus=xhci.0,removable=on,drive=assertions
-
+```
 3. Let the VM boot and and automatically restart once as part of the
    seeding process.  The GDM greeter will appear during this process,
    but you won't be able to log in.
