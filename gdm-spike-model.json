@@ -32,6 +32,10 @@
         {
             "name": "confined-desktop",
             "type": "app"
+        },
+        {
+            "name": "network-manager",
+            "type": "app"
         }
     ],
     "timestamp": "2020-08-25T17:08:51+08:00"
