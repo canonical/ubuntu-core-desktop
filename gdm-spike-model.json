@@ -35,6 +35,7 @@
         },
         {
             "name": "network-manager",
+            "default-channel": "20/beta",
             "type": "app"
         }
     ],
