@@ -27,10 +27,14 @@ assertions.img: auto-import.assert
 
 # Rules to resign assertions
 auto-import.assert: ubuntu-user.json
-	snap sign $< > $@
+	if snap keys | grep -q default; then \
+	  snap sign $< > $@ \
+	fi
 
 gdm-spike-model.model: gdm-spike-model.json
-	snap sign $< > $@
+	if snap keys | grep -q default; then \
+	  snap sign $< > $@ \
+	fi
 
 %.img.xz: %.img
 	xz --keep $<
