@@ -32,6 +32,18 @@
         {
             "name": "confined-desktop",
             "type": "app"
+        },
+        {
+            "name": "core20",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q"
+        },
+        {
+            "name": "network-manager",
+            "default-channel": "20/beta",
+            "type": "app",
+            "id": "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy"
         }
     ],
     "timestamp": "2020-08-25T17:08:51+08:00"

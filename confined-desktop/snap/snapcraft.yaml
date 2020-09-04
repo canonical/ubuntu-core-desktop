@@ -30,6 +30,7 @@ apps:
       - network-bind
       - network-control
       - network-observe
+      - network-manager
       - opengl
       - system-observe
       - shutdown
