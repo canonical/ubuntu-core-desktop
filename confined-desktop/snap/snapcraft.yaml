@@ -68,6 +68,14 @@ slots:
     interface: dbus
     bus: session
     name: org.freedesktop.secrets
+  dbus-gnome-cc:
+    interface: dbus
+    bus: session
+    name: org.gnome.ControlCenter
+  dbus-gnome-cc-search:
+    interface: dbus
+    bus: session
+    name: org.gnome.ControlCenter.SearchProvider
   dbus-gnome-keyring:
     interface: dbus
     bus: session
