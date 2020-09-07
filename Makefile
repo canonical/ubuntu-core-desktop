@@ -25,16 +25,14 @@ assertions.img: auto-import.assert
 	mkfs.vfat $@
 	mcopy -i $@ $^ ::
 
-# Rules to resign assertions
+# Rules to resign assertions: only enable if we have a default signing key
+ifneq (,$(findstring default,$(shell snap keys)))
 auto-import.assert: ubuntu-user.json
-	if snap keys | grep -q default; then \
-	  snap sign $< > $@ \
-	fi
+	snap sign $< > $@
 
 gdm-spike-model.model: gdm-spike-model.json
-	if snap keys | grep -q default; then \
-	  snap sign $< > $@ \
-	fi
+	snap sign $< > $@
+endif
 
 %.img.xz: %.img
 	xz --keep $<
