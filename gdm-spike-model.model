@@ -27,16 +27,26 @@ snaps:
   -
     name: confined-desktop
     type: app
-timestamp: 2020-09-04T17:27:44+08:00
+  -
+    default-channel: latest/stable
+    id: DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q
+    name: core20
+    type: base
+  -
+    default-channel: 20/beta
+    id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
+    name: network-manager
+    type: app
+timestamp: 2020-09-18T16:08:01+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBXAQAAQoABgUCX1IItgAKCRCvw06CDUbKhv/aD/4vDy1n0R3aLwgCLrFB0mG3lEUxgmkZCFU9
-W9LhaCX6bYWV4bRSYmpNUWL4LDLyl6sHPeoYqL1kL6QVoj3ZaNqSl+GNA4JjmQ4FUDV5VHu1JDxl
-Kg2VN/y3i7TgegrAYnZ/s602mhd21IUMgnWy9InkLmsDlHFQBFUrE/VKAejA2vQmRKXV6Pk2OBD7
-Veh3cShpN0fP2gyiO6MPdLlnDrCXG4Du8YJMAXHxhJjJfnN6AWSUDjlW0KVqy70BEBaXmsgnvxcI
-0ZKeye1JEORpcOFBqyJsFim3QwH8zWiEoRtaFl+tbMOmQeS+q7GYH4ATuQgq7GC+Nz0ya2zu50Km
-R7vd92CqHk1VcrabHtPzukYlNI8GKPn7NZuQmGd+4E3GqWEOlApuTL0yaFtrCN3d6egKCkhyqEcj
-3zEeOJnDsu2efRYHCU7vkQTe/AlEZOdCzutVrpd7G/h8vCEsVu0uh1/VUN6zaaKDcA7fjleGyqMe
-7LctFrCk99jXC5WdUSPSQ4S7BYtVYSaQZ/LwLwquPEdepxUNBfTLVVvhDV1kQBOvTH2U3MwLXQn5
-NA/o+NgiHgpDZ8s24S1wzDdEmyVy5rauMBAXNOYq9aGcFuOy8PQXA+Vtb2fvZxZy5iEjqEFqYPH7
-YFHBJT77lz4IuEU0PB2LUb41dbTySj5lfOauVLy8+g==
+AcLBXAQAAQoABgUCX2Rq9gAKCRCvw06CDUbKhnuCEACrpIP3OH82rrdWx5Cp7LboxG40BKLhg1v1
+gXKs619LP54MlJXrpDj3WSI6jpGE10eHvRteEqkkxU+1C8SStVfGRDbIVIM4wCcRv+rwzsqDInCf
+IjfSPEaogGHkyNqKXTUDZxcling9AEArPmnrGl/KJKhLh6gFvF9Al01MTwLNsfY8VjolDU/y3hq9
+w83oOLJcGpma3KWDfovwmKFtAIkPcYFBbQbwZNVCjlOTz9JkVMVuNVlhzqXxbh5Fkk28TxjUvGAu
+38OOx6D3Su9uI4Vq6g1agON592dgfgmKKSzH03BoTkJba7ugvcsFT6ytpq6Qnzvpm8bfsDINLSB5
+3zB8w7pyuqQar3RalrTqjoY0ML2NZzGgFiAIbOU7gLdXoU1aaE7FBUaUjZAyM++uEaKqp5Pcay1P
+xGa8E+nJ09YIJMmoqWyM4XvkUpDPWquzZdXO9AC25XEx9IsqdcaESJ7PoqJDJcKFy1zTrqQRTcVO
+7hB5V0itOvsVhtpwXGDxmtbmXjqC5vXfb2cyLW9aENl7sHI678nx1ycNzoSDo6m4u5K2fsO1w1BS
+9d6E2/54NhtpFobSyjD1g3aAbc8W7cuoLcTinvLhXdPg68Bi8Eaw5xtdGwEcn9G8BsUrj7d/ryBb
+EwbjSYoT/HiPO8mSejf9+b/3idhKCNqrBfd56X7UVQ==
