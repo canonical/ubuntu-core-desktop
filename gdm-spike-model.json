@@ -15,13 +15,13 @@
         },
         {
             "name": "pc-kernel",
-            "default-channel": "20/stable",
+            "default-channel": "20/beta",
             "type": "kernel",
             "id": "pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza"
         },
         {
             "name": "snapd",
-            "default-channel": "latest/edge",
+            "default-channel": "latest/stable",
             "type": "snapd",
             "id": "PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4"
         },
@@ -46,5 +46,5 @@
             "id": "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy"
         }
     ],
-    "timestamp": "2020-09-18T17:04:01+08:00"
+    "timestamp": "2020-09-25T12:45:14+08:00"
 }
