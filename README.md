@@ -7,34 +7,38 @@ in a Qemu virtual machine by following these instructions:
 1. Download and decompress the two image files and place them in the
    same directory.
 
-2. Start a virtual machine with the following command:
+2. Add an image as a VM launchable from GNOME Boxes or virt-manager:
+    ```
+    virt-install --connect qemu:///session --name core-desktop \
+      --memory 2048 --vcpus 2 --boot uefi --os-variant ubuntu20.04 \
+      --video virtio,accel3d=yes --graphics spice \
+      --import --disk path=$(pwd)/pc.img,format=raw
+    ```
+    (We use the virt-install because the GNOME Boxes seems to create a
+    legacy BIOS VM when adding the image).
+
+3. Let the VM boot and and automatically restart once as part of the
+   setup process.  Once it settles, you can close the virt-viewer
+   window and manage the VM with GNOME Boxes.
+
+4. Follow the `gnome-initial-setup` wizard to create a user, and
+   you'll be dropped into an unconfined desktop session.
+
+At present, the wizard fails to make the created user an
+administrator, limiting what is possible.  For now, I've left the root
+account open with a blank password as a stop-gap measure.
+
+It is also possible to launch the image outside of GNOME Boxes or
+virt-manager with a command like the following:
+
 ```
     qemu-system-x86_64 -smp 2 -m 2048 -machine accel=kvm \
       -device virtio-vga,virgl=on -display gtk,gl=on \
       -net nic,model=virtio -net user,hostfwd=tcp::8022-:22 \
       -drive file=/usr/share/OVMF/OVMF_CODE.fd,if=pflash,format=raw,unit=0,readonly=on \
       -drive file=pc.img,cache=none,format=raw,id=main,if=none \
-      -drive file=assertions.img,format=raw,id=assertions,if=none,readonly=on \
-      -device virtio-blk-pci,drive=main,bootindex=1 \
-      -device nec-usb-xhci,id=xhci \
-      -device usb-storage,bus=xhci.0,removable=on,drive=assertions
+      -device virtio-blk-pci,drive=main,bootindex=1
 ```
-3. Let the VM boot and and automatically restart once as part of the
-   seeding process.  The GDM greeter will appear during this process,
-   but you won't be able to log in.
-
-4. After the reboot, wait for the GDM login screen to appear again.
-   Try logging in with the username "ubuntu" and password "ubuntu".
-   If it fails, wait 30 seconds and try again (it is loading the user
-   account from the assertions image).
-
-This will dump you in a minimal X session with an xterm.  A user
-instance of systemd will be running, along with a D-Bus session bus
-managed by that instance.
-
-The "/usr/share/wayland-sessions" directory is writable, and should
-allow the launch of a fully confined desktop session from the display
-manager.
 
 ## Testing a confined desktop session
 
