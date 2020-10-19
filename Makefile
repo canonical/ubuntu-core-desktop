@@ -13,10 +13,13 @@ pc-gdm.snap:
 	       -e 's/^base:.*$$/base: core20-gdm/' pc-gdm/meta/snap.yaml
 	snap pack --filename=$@ pc-gdm
 
-pc.img: gdm-spike-model.model $(BASE_SNAP) $(SESSION_SNAP) pc-gdm.snap
+snapd.snap:
+	snap download --channel=latest/stable --basename=snapd snapd
+
+pc.img: gdm-spike-model.model $(BASE_SNAP) $(SESSION_SNAP) pc-gdm.snap snapd.snap
 	rm -rf img/
 	ubuntu-image snap --output-dir img --image-size 4G \
-	  --snap pc-gdm.snap --snap $(BASE_SNAP) --snap $(SESSION_SNAP) $<
+	  --snap pc-gdm.snap --snap $(BASE_SNAP) --snap $(SESSION_SNAP) --snap snapd.snap $<
 	mv img/pc.img .
 
 # Build assertions image
