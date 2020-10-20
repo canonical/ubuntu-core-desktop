@@ -15,7 +15,8 @@ pc-gdm.snap:
 	snap pack --filename=$@ pc-gdm
 
 snapd.snap:
-	snap download --channel=latest/stable --basename=snapd snapd
+	snap download --channel=latest/edge --basename=snapd snapd
+	rm snapd.assert
 
 pc.img: gdm-spike-model.model $(BASE_SNAP) $(SESSION_SNAP) pc-gdm.snap snapd.snap
 	rm -rf img/
