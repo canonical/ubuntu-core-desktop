@@ -1,0 +1,18 @@
+# Enable user daemons and dbus activation
+defaults:
+  system:
+    experimental.user-daemons: true
+    experimental.dbus-activation: true
+
+# Connect confined-desktop
+#connections:
+#  - plug: <snap-id>:hardware-observe
+#  - plug: <snap-id>:home
+#  - plug: <snap-id>:login-session-observe
+#  - plug: <snap-id>:login-session-control
+#  - plug: <snap-id>:mount-observe
+#  - plug: <snap-id>:network-control
+#  - plug: <snap-id>:network-observe
+#  - plug: <snap-id>:system-observe
+#  - plug: <snap-id>:shutdown
+#  - plug: <snap-id>:shell-config-files

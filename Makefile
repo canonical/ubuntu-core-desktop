@@ -11,6 +11,7 @@ pc-gdm.snap:
 	unsquashfs -d pc-gdm pc.snap
 	sed -i -e 's/^name:.*$$/name: pc-gdm/' \
 	       -e 's/^base:.*$$/base: core20-gdm/' pc-gdm/meta/snap.yaml
+	cat extra-gadget.yaml >> pc-gdm/meta/gadget.yaml
 	snap pack --filename=$@ pc-gdm
 
 snapd.snap:
