@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Ubuntu (confined)
 Comment=This session logs you into Ubuntu
-Exec=/snap/bin/confined-desktop
-TryExec=/snap/bin/confined-desktop
+Exec=/snap/bin/ubuntu-desktop-session
+TryExec=/snap/bin/ubuntu-desktop-session
 Type=Application
 DesktopNames=ubuntu:GNOME
 X-GDM-SessionRegisters=true

@@ -1,7 +1,5 @@
 
-BASE_SNAP = core20-gdm.snap
-SESSION_SNAP = confined-desktop.snap
-SNAPD_SNAP = snapd.snap
+EXTRA_SNAPS = core20-gdm.snap ubuntu-desktop-session.snap
 
 all: pc.img.xz assertions.img.xz
 
@@ -15,14 +13,10 @@ pc-gdm.snap:
 	cat extra-gadget.yaml >> pc-gdm/meta/gadget.yaml
 	snap pack --filename=$@ pc-gdm
 
-snapd.snap:
-	snap download --channel=latest/edge --basename=snapd snapd
-	rm snapd.assert
-
-pc.img: gdm-spike-model.model pc-gdm.snap $(BASE_SNAP) $(SESSION_SNAP) $(SNAPD_SNAP)
+pc.img: gdm-spike-model.model pc-gdm.snap $(EXTRA_SNAPS)
 	rm -rf img/
 	ubuntu-image snap --output-dir img --image-size 4G \
-	  --snap pc-gdm.snap --snap $(BASE_SNAP) --snap $(SESSION_SNAP) --snap $(SNAPD_SNAP) $<
+	  --snap pc-gdm.snap $(foreach snap,$(EXTRA_SNAPS),--snap $(snap)) $<
 	mv img/pc.img .
 
 # Build assertions image

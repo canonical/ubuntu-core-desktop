@@ -4,15 +4,16 @@ defaults:
     experimental.user-daemons: true
     experimental.dbus-activation: true
 
-# Connect confined-desktop
-#connections:
-#  - plug: <snap-id>:hardware-observe
-#  - plug: <snap-id>:home
-#  - plug: <snap-id>:login-session-observe
-#  - plug: <snap-id>:login-session-control
-#  - plug: <snap-id>:mount-observe
-#  - plug: <snap-id>:network-control
-#  - plug: <snap-id>:network-observe
-#  - plug: <snap-id>:system-observe
-#  - plug: <snap-id>:shutdown
-#  - plug: <snap-id>:shell-config-files
+# Connect ubuntu-desktop-session
+connections:
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:hardware-observe
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:home
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:login-session-observe
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:login-session-control
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:mount-observe
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:network-control
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:network-observe
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:shutdown
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:snapd-control
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:system-observe
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:shell-config-files

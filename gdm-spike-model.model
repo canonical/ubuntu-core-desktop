@@ -25,7 +25,9 @@ snaps:
     name: core20-gdm
     type: base
   -
-    name: confined-desktop
+    default-channel: latest/edge
+    id: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN
+    name: ubuntu-desktop-session
     type: app
   -
     default-channel: latest/stable
@@ -37,16 +39,16 @@ snaps:
     id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
     name: network-manager
     type: app
-timestamp: 2020-10-20T18:21:09+08:00
+timestamp: 2020-10-23T15:11:20+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBXAQAAQoABgUCX466JgAKCRCvw06CDUbKhsK2D/0XHRKAn7ZKyOLNXNW4GN2kDriW3bT27OmD
-MBqb5WSaBX8lXY2v2CK3T5E52UWKG2u5jJz/fulH9ZTP04fNKHbOyziK/xyf5jkIUcrYmHsRKdcD
-b3HoeYuLKskqI6hTCePg75jOboM+LFo9cDJWqF9nnv8ZX7srlARlLbC31IO8zZ8tQq3vLy8n6Le+
-jyvtne51wMnBvBS8ZDaK/EZ38ibkRjtijbxezQV70atYE3OSS2n7vCuJygPvLURpPhF0GrOQWqca
-fzcISo0y3fe3LFlG+4Y/qpDRWc79hg2w+cXfPBIXb/uhV//cpXQQ9xCtZNFnTCZKX309AUf1TwP6
-sI7jPPaXczTQb4LeNGXk6qNkJIfmkjGfPfUvHYM6jkwDot7jaSnQyx3tuy4d8icfeDTtmgfz6cWp
-2EBIUxspXqrab1G6CtyncX2bL0DhiXP2L4JOFtRE6ZpkIQJKpYKb2dSHmLv0ONkIpq7Eceu9b83t
-7GZSdthEheQ7jsSritQvGTKI3VeWLYWmKz+ZLpzMyKT3fo7ZoO3cF3zxg0xwaAtjxHZ0sSVJIGt4
-mDCgWlN8EWtzbJPlK9UDRTIOBofcA6rgnhNJwrcZ1YLVDISNOX6R/dwGrShiRVXXq2qiwII8xLdC
-iFRDLJsRGo6a8HydvNXwr9jOLBe6/SK3B6r4aqkQQg==
+AcLBXAQAAQoABgUCX5KCVwAKCRCvw06CDUbKhoqYD/9bmY4Z45NM0L58lNLEwKNVOXBe/3QiPk17
+OwDFQad8oFS1EOrjoo79UxHnhiulDzUXcdEoy4vlHsVJot/oETJfyar2PWvucZpot5surwAUux7k
+cHZCEFni3NVlydrDmr6APG/CTCguI3+yzrSVPZCZTA6BhKV/1NrtEbyR2+FahAQgSeN8srJu4PA1
+3QS05dTmBDPHH+uKXKl2r3I3hWpwqHrHxKZfOYRcUWEF/cufT8EDDyDV+xEmZg5w3QdTRzx/RMX7
+G2IUVNNa9ZSv7Cg7Hf7PuNfiRpSStTlyE+ye0bTVfcdavbC3cGlXQtVsRPt6gdga0V6Jf3Jq4lu/
+5FzglTWNk+XN1JkHR/kTM3Nkpe4YJCo8LuGi2ETs4Lb5qVuR2BDhnLxq6eEqkCQ8QTM30KmmAMxK
+4XL4d1IjoCHd1MwwRUTRcs/VYH8T+CCwUrrx+aswGOwB/Njj38qSLcL0QenPm1KEX1y2hJnnFrv1
+yZNcatGK8v7ZVZY89jxlihmInFiY1Ueefh8yVPXk95574miXSPbIind7MuWAYQiy6tKcVtxMvXAm
+ESaHZUOdsg0+SpTvqEkZ4j20aHvYJIJD33iyrjQogrDkjiJK/uDGVq+NHV6ZBbyLiZG/44OEF2V9
+oty/5I3SLjjRgpPyAUssxFnkyVtgwtt9WF73vy89aQ==

@@ -18,11 +18,11 @@ jobs:
         id: snapcraft_base
         with:
           path: ./core20
-      - name: Build confined-desktop
+      - name: Build ubuntu-desktop-session
         uses: snapcore/action-build@v1
         id: snapcraft_session
         with:
-          path: ./confined-desktop
+          path: ./ubuntu-desktop-session
       - name: Checkout snapd
         uses: actions/checkout@v2
         with:
@@ -40,7 +40,7 @@ jobs:
           sudo snap install snapd
           sudo snap install --classic ubuntu-image
       - name: Build image
-        run: make BASE_SNAP=${{ steps.snapcraft_base.outputs.snap }} SESSION_SNAP=${{ steps.snapcraft_session.outputs.snap }} SNAPD_SNAP=${{ steps.snapcraft_snapd.outputs.snap }}
+        run: make EXTRA_SNAPS="${{ steps.snapcraft_base.outputs.snap }} ${{ steps.snapcraft_session.outputs.snap }} ${{ steps.snapcraft_snapd.outputs.snap }}"
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
