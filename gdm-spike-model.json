@@ -21,7 +21,7 @@
         },
         {
             "name": "snapd",
-            "default-channel": "no-such-track/stable",
+            "default-channel": "latest/edge",
             "type": "snapd",
             "id": "PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4"
         },
@@ -48,5 +48,5 @@
             "id": "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy"
         }
     ],
-    "timestamp": "2020-10-23T15:11:20+08:00"
+    "timestamp": "2020-12-01T11:58:05+08:00"
 }

@@ -23,24 +23,24 @@ jobs:
         id: snapcraft_session
         with:
           path: ./ubuntu-desktop-session
-      - name: Checkout snapd
-        uses: actions/checkout@v2
-        with:
-          repository: jhenstridge/snapd
-          ref: dbus-activation-wrappers
-          path: snapd
-      - name: Build snapd
-        uses: snapcore/action-build@v1
-        id: snapcraft_snapd
-        with:
-          path: ./snapd
+      #- name: Checkout snapd
+      #  uses: actions/checkout@v2
+      #  with:
+      #    repository: jhenstridge/snapd
+      #    ref: dbus-activation-wrappers
+      #    path: snapd
+      #- name: Build snapd
+      #  uses: snapcore/action-build@v1
+      #  id: snapcraft_snapd
+      #  with:
+      #    path: ./snapd
       - name: Install build dependencies
         run: |
           sudo apt install -y make squashfs-tools dosfstools mtools xz-utils
           sudo snap install snapd
           sudo snap install --classic ubuntu-image
       - name: Build image
-        run: make EXTRA_SNAPS="${{ steps.snapcraft_base.outputs.snap }} ${{ steps.snapcraft_session.outputs.snap }} ${{ steps.snapcraft_snapd.outputs.snap }}"
+        run: make EXTRA_SNAPS="${{ steps.snapcraft_base.outputs.snap }} ${{ steps.snapcraft_session.outputs.snap }}"
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
