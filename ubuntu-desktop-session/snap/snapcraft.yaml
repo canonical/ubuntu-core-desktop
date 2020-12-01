@@ -23,25 +23,32 @@ architectures:
 apps:
   ubuntu-desktop-session:
     command: run-session.sh
-    plugs:
-      - hardware-observe
-      - home
-      - login-session-observe
-      - login-session-control
-      - mount-observe
-      - network-bind
-      - network-control
-      - network-observe
-      - network-manager
-      - opengl
-      - shutdown
-      - snapd-control
-      - system-observe
     slots:
       - wayland
       - x11
 
+  gnome-terminal-server:
+    command: gnome-terminal-server.sh
+    daemon: dbus
+    passthrough:
+      daemon-scope: user
+      activates-on:
+        - dbus-gnome-terminal
+
 plugs:
+  hardware-observe: null
+  home: null
+  login-session-observe: null
+  login-session-control: null
+  mount-observe: null
+  network-bind: null
+  network-control: null
+  network-observe: null
+  network-manager: null
+  opengl: null
+  shutdown: null
+  snapd-control: null
+  system-observe: null
   shell-config-files:
     interface: system-files
     read:
@@ -207,6 +214,10 @@ slots:
     interface: dbus
     bus: session
     name: org.gnome.Shell.Wacom.PadOsd
+  dbus-gnome-terminal:
+    interface: dbus
+    bus: session
+    name: org.gnome.Terminal
   dbus-gtk-mountoperationhandler:
     interface: dbus
     bus: session
