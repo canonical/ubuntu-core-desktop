@@ -9,6 +9,8 @@ in a Qemu virtual machine by following these instructions:
 
 2. Add an image as a VM launchable from GNOME Boxes or virt-manager:
     ```
+    # Delete VM if already registered
+    virsh --connect qemu:///session undefine --nvram core-desktop
     virt-install --connect qemu:///session --name core-desktop \
       --memory 2048 --vcpus 2 --boot uefi --os-variant ubuntu20.04 \
       --video virtio,accel3d=yes --graphics spice \
