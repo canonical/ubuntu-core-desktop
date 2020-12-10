@@ -1,0 +1,29 @@
+diff --git a/features/features.go b/features/features.go
+index 5833f983a3..7e8ff4e92c 100644
+--- a/features/features.go
++++ b/features/features.go
+@@ -101,6 +101,9 @@ var featuresEnabledWhenUnset = map[SnapdFeature]bool{
+ 	Layouts:                       true,
+ 	RobustMountNamespaceUpdates:   true,
+ 	ClassicPreservesXdgRuntimeDir: true,
++
++	UserDaemons:    true,
++	DbusActivation: true,
+ }
+ 
+ // featuresExported contains a set of features that are exported outside of snapd.
+diff --git a/features/features_test.go b/features/features_test.go
+index 71b9eb3e89..010a3381b1 100644
+--- a/features/features_test.go
++++ b/features/features_test.go
+@@ -110,8 +110,8 @@ func (*featureSuite) TestIsEnabledWhenUnset(c *C) {
+ 	c.Check(features.RefreshAppAwareness.IsEnabledWhenUnset(), Equals, false)
+ 	c.Check(features.ClassicPreservesXdgRuntimeDir.IsEnabledWhenUnset(), Equals, true)
+ 	c.Check(features.RobustMountNamespaceUpdates.IsEnabledWhenUnset(), Equals, true)
+-	c.Check(features.UserDaemons.IsEnabledWhenUnset(), Equals, false)
+-	c.Check(features.DbusActivation.IsEnabledWhenUnset(), Equals, false)
++	c.Check(features.UserDaemons.IsEnabledWhenUnset(), Equals, true)
++	c.Check(features.DbusActivation.IsEnabledWhenUnset(), Equals, true)
+ 	c.Check(features.HiddenSnapFolder.IsEnabledWhenUnset(), Equals, false)
+ 	c.Check(features.CheckDiskSpaceInstall.IsEnabledWhenUnset(), Equals, false)
+ 	c.Check(features.CheckDiskSpaceRefresh.IsEnabledWhenUnset(), Equals, false)
