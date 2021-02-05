@@ -26,8 +26,8 @@ jobs:
       - name: Checkout snapd
         uses: actions/checkout@v2
         with:
-          repository: snapcore/snapd
-          ref: master
+          repository: jhenstridge/snapd
+          ref: desktop-mega-merge
           path: snapd
       - name: Enale snapd experimental features
         run: |

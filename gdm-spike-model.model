@@ -17,7 +17,7 @@ snaps:
     name: pc-kernel
     type: kernel
   -
-    default-channel: latest/edge
+    default-channel: no-such-track/edge
     id: PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4
     name: snapd
     type: snapd
@@ -39,16 +39,16 @@ snaps:
     id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
     name: network-manager
     type: app
-timestamp: 2020-12-01T11:58:05+08:00
+timestamp: 2021-02-05T16:22:38+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBXAQAAQoABgUCX8W/ZwAKCRCvw06CDUbKhoImD/9WCrjfmj9+6gWMVbRZnJTG1/HGzBjk8kaX
-c8eFQk5sVi6VimWO0joYKOD74HZ8eKGiwWLgL+8evqBAmhXaICCoPp3pQY67bbiXkCgGpUFd0ez1
-iUqzjYQZdOAUIzUUqe0i94MvB2id2OgJXZn6dEPWilPr1N2pFSjPiPp0jmB0uufX94LpJLdftFmn
-T/bWwLhwusEbsaoOsN3v/LBbCDPxALhWVKr8lkqUs5VOxAkcjC4Sqjdxp/XjuN0V3mLtLWqZ37Kf
-vsFTBc7NjKNXZIcnQI+ui+iklxtw1n4xH3y2X6qNkQ5W8iXCA0lTiPGHBMO4xxsPv1iZu4+Dj2RR
-3vXqTDSDFGRfl5BiKV480t/bo27CxKa1y4Khap2Po5o6BvyEdstXOdH00N0NzfT2jZ8KV1dDCG6X
-xrrPZmLPYjnGVN3ZRb2HwZ8qJazMuMiZDxFiUcH9QauGHVWMRDW+uSKeyx7uSBa0Z0+RGIVDo34e
-wSwz+wYtsNXXKUCySeOchVdtrnmZV2+0IVX16Qr666He2HVh78Qv5SYtWYp8j1A+ZLvaQe0dPUJe
-wFB3hevX+kKlC8WkhfC7JJjik6wMIDFIVC57P6oYxKEMShklnTQFvOVFD+vfbrZsbiyJIP+NUFdd
-Ah1sV8XOgwAW4VbeJM7b8DC9it3BWZI0lWhGmVZEkw==
+AcLBXAQAAQoABgUCYB0AfQAKCRCvw06CDUbKhijuEACltf1EX4DwgfCXqOwwC+sE+xLS1nOIDvjL
+FhzZwpYXNHS2fCPuZnH0a6NUPjLIamuXdNDUHa1trMbqAfxI8u1gLPBNR3916dTmI9dOttwq5C1S
+ShHqEIhU/HaAoBu5tIcYU2Vde6/wCn2Bf3/zGKtF5zvtrVGoux+xzmGGzk2SVVGZr5SXmJ231A9o
+eS+2+aHJ1wZZkSoRofmsaUKFwVRd91DhrfXgixYhkSzT8OtPs4FYsEIVjsP+uBWNiz5dmqVSN0J4
+Zj1QUisQ2C0nuIfbk5OOfyQCe9Wjeh4l3+QRV1YwOcNfgwXvJcfjhKfXx5AaRjB5Mf3mX3D4f1C3
+zpc+4aS9Ecs3X9W4rpptFjaplURT2hf+xCRw4UYiaW1ZfJ5CS50RW4CNKQbxaL0tjRtPzJtPJARz
+T8WCgAm+eY/1ianGnD8OQbNIK/HVketfbPOyhe64c7/uo3aliWjAclvcTq3mY7m9VGQFEmu+QE6O
+ns5ihsWiO/CRMOgeVZU9AKIIL6TMjkz+v1U/rRyf3B9LOQISEy/lc2LtGD+Eg4NkQ1a4NNRn/sDb
+h9bi9yyX/DozOVfJXtro8tDWGOU/l+WS0eDt7G17DtIyvOunKMFTKezZ8wgEmSGDA8ixN0HxaerE
+JmodeYoY6+VPEbmKUjbl9j9fbwD+UwW/aNp26JpARg==
