@@ -190,6 +190,10 @@ slots:
     interface: dbus
     bus: session
     name: org.gnome.SettingsDaemon.XSettings
+  dbus-gnome-nautilus:
+    interface: dbus
+    bus: session
+    name: org.gnome.Nautilus
   dbus-gnome-shell:
     interface: dbus
     bus: session
