@@ -12,6 +12,7 @@ pc-gdm.snap:
 	       -e 's/^base:.*$$/base: core20-gdm/' pc-gdm/meta/snap.yaml
 	cat extra-gadget.yaml >> pc-gdm/meta/gadget.yaml
 	cp cloud.conf pc-gdm/cloud.conf
+	cp setup.sh pc-gdm/setup.sh
 	snap pack --filename=$@ pc-gdm
 
 pc.img: gdm-spike-model.model pc-gdm.snap $(EXTRA_SNAPS)
