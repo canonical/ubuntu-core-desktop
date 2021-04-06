@@ -36,6 +36,7 @@ apps:
         - dbus-gnome-terminal
 
 plugs:
+  desktop-launch: null
   hardware-observe: null
   home: null
   login-session-observe: null

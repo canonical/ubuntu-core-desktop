@@ -15,4 +15,6 @@ for plug in hardware-observe home login-session-observe login-session-control \
 done
 snap connect ubuntu-desktop-session:network-manager network-manager:service
 
+snap connect ubuntu-desktop-session:desktop-launch || true
+
 cp /snap/ubuntu-desktop-session/current/ubuntu-desktop-session.desktop /usr/share/wayland-sessions/
