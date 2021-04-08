@@ -35,6 +35,14 @@ apps:
       activates-on:
         - dbus-gnome-terminal
 
+  nautilus-service:
+    command: nautilus-service.sh
+    daemon: dbus
+    passthrough:
+      daemon-scope: user
+      activates-on:
+        - dbus-gnome-nautilus
+
 plugs:
   desktop-launch: null
   hardware-observe: null
