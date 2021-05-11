@@ -71,6 +71,7 @@ plugs:
       - /run/udev/tags/seat
 
 slots:
+  desktop:
   dbus-canonical-unity:
     interface: dbus
     bus: session
