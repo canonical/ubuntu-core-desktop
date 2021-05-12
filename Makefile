@@ -37,6 +37,6 @@ gdm-spike-model.model: gdm-spike-model.json
 endif
 
 %.img.xz: %.img
-	xz --keep $<
+	xz --keep -T0 $<
 
 .PHONY: all
