@@ -17,7 +17,7 @@ pc-gdm.snap:
 
 pc.img: gdm-spike-model.model pc-gdm.snap $(EXTRA_SNAPS)
 	rm -rf img/
-	ubuntu-image snap --output-dir img --image-size 4G \
+	ubuntu-image snap --output-dir img --image-size 6G \
 	  --snap pc-gdm.snap $(foreach snap,$(EXTRA_SNAPS),--snap $(snap)) $<
 	mv img/pc.img .
 
