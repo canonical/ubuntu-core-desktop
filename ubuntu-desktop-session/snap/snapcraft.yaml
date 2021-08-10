@@ -82,13 +82,12 @@ plugs:
   login-session-observe: null
   login-session-control: null
   mount-observe: null
-  # netlink-audit needed by polkit-agent-helper-1
-  netlink-audit: null
   network-bind: null
   network-control: null
   network-observe: null
   network-manager: null
   opengl: null
+  polkit-agent: null
   shutdown: null
   snapd-control: null
   system-observe: null
