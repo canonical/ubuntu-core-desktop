@@ -38,6 +38,7 @@ jobs:
         id: snapcraft_snapd
         with:
           path: ./snapd
+          snapcraft-channel: 4.x/stable
       - name: Install build dependencies
         run: |
           sudo apt install -y make squashfs-tools dosfstools mtools xz-utils
