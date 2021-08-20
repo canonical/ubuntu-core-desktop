@@ -39,16 +39,31 @@ snaps:
     id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
     name: network-manager
     type: app
-timestamp: 2021-02-05T16:22:38+08:00
+  -
+    default-channel: latest/stable
+    id: jZLfBRzf1cYlYysIjD2bwSzNtngY0qit
+    name: gtk-common-themes
+    type: app
+  -
+    default-channel: latest/stable
+    id: rw36mkAjdIKl13dzfwyxP87cejpyIcct
+    name: gnome-3-38-2004
+    type: app
+  -
+    default-channel: latest/edge
+    id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
+    name: snap-store
+    type: app
+timestamp: 2021-08-20T11:10:32+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBXAQAAQoABgUCYB0AfQAKCRCvw06CDUbKhijuEACltf1EX4DwgfCXqOwwC+sE+xLS1nOIDvjL
-FhzZwpYXNHS2fCPuZnH0a6NUPjLIamuXdNDUHa1trMbqAfxI8u1gLPBNR3916dTmI9dOttwq5C1S
-ShHqEIhU/HaAoBu5tIcYU2Vde6/wCn2Bf3/zGKtF5zvtrVGoux+xzmGGzk2SVVGZr5SXmJ231A9o
-eS+2+aHJ1wZZkSoRofmsaUKFwVRd91DhrfXgixYhkSzT8OtPs4FYsEIVjsP+uBWNiz5dmqVSN0J4
-Zj1QUisQ2C0nuIfbk5OOfyQCe9Wjeh4l3+QRV1YwOcNfgwXvJcfjhKfXx5AaRjB5Mf3mX3D4f1C3
-zpc+4aS9Ecs3X9W4rpptFjaplURT2hf+xCRw4UYiaW1ZfJ5CS50RW4CNKQbxaL0tjRtPzJtPJARz
-T8WCgAm+eY/1ianGnD8OQbNIK/HVketfbPOyhe64c7/uo3aliWjAclvcTq3mY7m9VGQFEmu+QE6O
-ns5ihsWiO/CRMOgeVZU9AKIIL6TMjkz+v1U/rRyf3B9LOQISEy/lc2LtGD+Eg4NkQ1a4NNRn/sDb
-h9bi9yyX/DozOVfJXtro8tDWGOU/l+WS0eDt7G17DtIyvOunKMFTKezZ8wgEmSGDA8ixN0HxaerE
-JmodeYoY6+VPEbmKUjbl9j9fbwD+UwW/aNp26JpARg==
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJhHx07AAoJEK/DToINRsqGyNQP/0/P
+RHCh8lD1ZdHPalLRr8Y4If6GlRQcEiZjY2koUWdwmYMIOiQv3hr1TJhhc7Ox+tOUN7yzd/HtoWI3
+e1bM12t9cqaAp4zpLRXQqAqdJFmenzW4R5/6tgmkfDVUnuNafSPccD/s+evjFY2ZZE0sGhrkZ1d3
+9ocDsKnnP/fcBubarQMjJymdQl0olWCGWiHMZTK/prMPZ2FvG1k2X7qyDkd59PDcEsC10ktqr/AJ
+eiS/qYh45W0V5wkbOhaP+6gjaj32dQb+/TxS7OTh6X0WXupJr9epGMgwlkX7KpKYvXGm6Z2wNCDs
+n+n3/4ZcmGS+iqMsxiYpsg1h6ckqdE5xKU+//tUXF5hXF/7+P1+FfWsySmBSo0h+/Zp2ilKzPNfH
+k5ampYaBO4XGge+P6kk3oMXMh9v7he8OFhEup3RBLDIlGj6IaB/Be9RaVAnSZhTqj0pfIi8XHcJ6
+V7pjFL1XVTxGk2x0KCn14K4BjIE+2nFJMr85xYVMto3orrpZfj+AbcJ5iHBh7zfh81VMYpsI8acr
+CXunRq0HkPCd3FAZ1Oi7FOzTMOtcIaxVIuEKTkUzbifITlEbQO9XsrnfFOcLY4yel8IzsHWkjkd5
+2wCO1slB+qAK6yMVVtv7Qm/NEvMGZjXD86jYu7PBxt1qj4dKHpLUWKRyOXZjcQhgCpAew57J
