@@ -15,7 +15,7 @@
         },
         {
             "name": "pc-kernel",
-            "default-channel": "20/beta",
+            "default-channel": "20/stable",
             "type": "kernel",
             "id": "pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza"
         },
@@ -43,9 +43,15 @@
         },
         {
             "name": "network-manager",
-            "default-channel": "20/beta",
+            "default-channel": "20/stable",
             "type": "app",
             "id": "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy"
+        },
+        {
+            "name": "core18",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "CSO04Jhav2yK0uz97cr0ipQRyqg0qQL6"
         },
         {
             "name": "gtk-common-themes",

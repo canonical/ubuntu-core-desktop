@@ -12,7 +12,7 @@ snaps:
     name: pc-gdm
     type: gadget
   -
-    default-channel: 20/beta
+    default-channel: 20/stable
     id: pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza
     name: pc-kernel
     type: kernel
@@ -35,10 +35,15 @@ snaps:
     name: core20
     type: base
   -
-    default-channel: 20/beta
+    default-channel: 20/stable
     id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
     name: network-manager
     type: app
+  -
+    default-channel: latest/stable
+    id: CSO04Jhav2yK0uz97cr0ipQRyqg0qQL6
+    name: core18
+    type: base
   -
     default-channel: latest/stable
     id: jZLfBRzf1cYlYysIjD2bwSzNtngY0qit
@@ -57,13 +62,13 @@ snaps:
 timestamp: 2021-08-20T11:10:32+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJhHx07AAoJEK/DToINRsqGyNQP/0/P
-RHCh8lD1ZdHPalLRr8Y4If6GlRQcEiZjY2koUWdwmYMIOiQv3hr1TJhhc7Ox+tOUN7yzd/HtoWI3
-e1bM12t9cqaAp4zpLRXQqAqdJFmenzW4R5/6tgmkfDVUnuNafSPccD/s+evjFY2ZZE0sGhrkZ1d3
-9ocDsKnnP/fcBubarQMjJymdQl0olWCGWiHMZTK/prMPZ2FvG1k2X7qyDkd59PDcEsC10ktqr/AJ
-eiS/qYh45W0V5wkbOhaP+6gjaj32dQb+/TxS7OTh6X0WXupJr9epGMgwlkX7KpKYvXGm6Z2wNCDs
-n+n3/4ZcmGS+iqMsxiYpsg1h6ckqdE5xKU+//tUXF5hXF/7+P1+FfWsySmBSo0h+/Zp2ilKzPNfH
-k5ampYaBO4XGge+P6kk3oMXMh9v7he8OFhEup3RBLDIlGj6IaB/Be9RaVAnSZhTqj0pfIi8XHcJ6
-V7pjFL1XVTxGk2x0KCn14K4BjIE+2nFJMr85xYVMto3orrpZfj+AbcJ5iHBh7zfh81VMYpsI8acr
-CXunRq0HkPCd3FAZ1Oi7FOzTMOtcIaxVIuEKTkUzbifITlEbQO9XsrnfFOcLY4yel8IzsHWkjkd5
-2wCO1slB+qAK6yMVVtv7Qm/NEvMGZjXD86jYu7PBxt1qj4dKHpLUWKRyOXZjcQhgCpAew57J
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJhHy1aAAoJEK/DToINRsqGveEP/jaX
+tExSZ5CNDOkV4K9j6UqUELG/XXvvqYugV32aLUCj45PKI5Z5qsW+uT6C7I2aqIB8ZjLwNl2jhBls
+R8i3FyCsG89WArdLx/4spMDlA0mB52bzIb0444816JKa7ovWAR7FsfwZ7HHrc2xnsA11Ul1eqv/d
+p87h0Z/NNjIrebEANOF4aHTGpzot3BFLNhDkS4BZ+NqW72FwmtQxKc40Eomq0zZGjRHgRTMNLPwV
+uUm4QbcT/mqAu9bJhUlJxxWl2O2k9B2fB5j/OsKneKz+qSDzooYF4n3ogEBZ8XjVurqoKNZ2HH8J
+2hp1LEBIwhlVCbjOrBsDGPZUO2WDtlkc74MGn6qy26ttXMEQGQsnrE1Snh1X1mgfhaatQnLavPdF
+xlf/29HIezYhJAUnlQCkbpZVqBwhNykOtT3T6drD7yCQQybfPs59y/TTQ9u1A9+qE+PVjIYwBX2f
+mR4ybp9zLhXFQ+qU25uOSApY6VYMgVDNZlePaxE/9PSydi1GlBvMOXYb93tehiXraAQ0M0giWu0z
+TWE5andP7rsb/em6TFwjDl6KSNSgKElHkhMF1CDDoMMHMQ8y7GzSWF3GBvDqJ7eQs2BQNNPld3kh
+k65gc4x7aJ+CruG46NP/lMoWDd7+mRoBV3/F99xJ8axcjO8DL1HuGqDSZJWOrUWgv3CW9e+l
