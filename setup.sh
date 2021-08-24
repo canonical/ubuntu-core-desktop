@@ -17,4 +17,7 @@ snap connect ubuntu-desktop-session:network-manager network-manager:service
 
 snap connect ubuntu-desktop-session:desktop-launch || true
 
+snap connect snap-store:x11 ubuntu-desktop-session:x11
+snap connect snap-store:desktop ubuntu-desktop-session:desktop
+
 cp /snap/ubuntu-desktop-session/current/ubuntu-desktop-session.desktop /usr/share/wayland-sessions/
