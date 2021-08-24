@@ -9,7 +9,9 @@ pc-gdm.snap:
 	rm -rf pc-gdm/
 	unsquashfs -d pc-gdm pc.snap
 	sed -i -e 's/^name:.*$$/name: pc-gdm/' \
-	       -e 's/^base:.*$$/base: core20-gdm/' pc-gdm/meta/snap.yaml
+	       -e 's/^base:.*$$/base: core20-gdm/' \
+               -e '/role: system-seed/,/size:/ s/size:.*$$/size: 2048M/' \
+               pc-gdm/meta/snap.yaml
 	cat extra-gadget.yaml >> pc-gdm/meta/gadget.yaml
 	cp cloud.conf pc-gdm/cloud.conf
 	cp setup.sh pc-gdm/setup.sh
