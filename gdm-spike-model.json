@@ -54,6 +54,12 @@
             "id": "CSO04Jhav2yK0uz97cr0ipQRyqg0qQL6"
         },
         {
+            "name": "bare",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "EISPgh06mRh1vordZY9OZ34QHdd7OrdR"
+        },
+        {
             "name": "gtk-common-themes",
             "default-channel": "latest/stable",
             "type": "app",
