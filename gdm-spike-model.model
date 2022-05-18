@@ -46,6 +46,11 @@ snaps:
     type: base
   -
     default-channel: latest/stable
+    id: EISPgh06mRh1vordZY9OZ34QHdd7OrdR
+    name: bare
+    type: base
+  -
+    default-channel: latest/stable
     id: jZLfBRzf1cYlYysIjD2bwSzNtngY0qit
     name: gtk-common-themes
     type: app
