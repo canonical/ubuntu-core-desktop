@@ -41,11 +41,6 @@ snaps:
     type: app
   -
     default-channel: latest/stable
-    id: CSO04Jhav2yK0uz97cr0ipQRyqg0qQL6
-    name: core18
-    type: base
-  -
-    default-channel: latest/stable
     id: EISPgh06mRh1vordZY9OZ34QHdd7OrdR
     name: bare
     type: base
@@ -67,13 +62,13 @@ snaps:
 timestamp: 2021-08-20T11:10:32+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJihGfRAAoJEK/DToINRsqGjvIP/2Hf
-/nM2M4F1BcG/y54WXOfaMMARKQblKURrQnURzvbgXZbUWIXixOaL/0Kzz1hHpiqubCAVRjz8+CAX
-VMKupPbUwX3i8xicHGpjnQ8n8oLzJWOXgQOrfezAD8L/+tPjZZA2bKQlB4af/fxUCxLgmMftpir4
-qIH4d78AF6pkBp6HufGuqfGb6vn6dW3yZ4T56Eu5aVNHJeetdLtZw+fFpCDQfj4tNIdjNYoyRFGH
-WrF57WAN8HLP45BLr+BZjGxnmqi91UcviMpoo7kHRBRoXMnzlO5DStn/E55yCJB+gZN/sqHm8w5E
-DsdJxYMhiMkQ52jRIfrrzxCCKInlQk/lO7KpgWq9E0mzP5t7ecmiGsvPjkzLz4FMlvWZzM62R+WZ
-NU11eFNzpnn6pl4Uhg85re4Jtz3Rk0aUaZ0BPBArJjBisJ/hHfR/kIwXcc/OJGOXHyrusnGKdXMD
-o5yrN7SMyBh5iX9PeME5s+ul/GGqd2uRzVv8hKWCu7yETHx2QET5pq1LEkU6Q8BwxVpvjMkxboTg
-HwCcViHiF9up1Hn7oxFz8Vx/xaOosFEUbaMFOmORL+BgjWuLrRKXq6sJrIg2/YtHjexZZMWLLiEj
-ADu2uS51KMPzYTx7tNQwZR9s05qUcTrlnBqnj0VZ4Z4Z2EZs7IkyK3X3afsVR5wde4ql/JWb
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJii2ozAAoJEK/DToINRsqGAZIP/iRc
+kUKhzT9edrKy0nkn5upuZpbBdopTEDnfHgKnhE8hVpNNcDbiIYZCVyBK4eEJJy/lbiD6AhjZRLdL
+6ZXxnYqlBn6Z71xVb4YU8GTmbGdWP29+4JaXXafDcRPtey21ei+17QT7IP5SNDvspbBzg3M/H9UC
+47Idj0ayHkgoqRVOd03wGYKPkXG9+FHs53f6NEIoBXgNNQM41eFAS7NRYuec/7CxMaT3pdqb6BR1
+kKuWhPVfZ8qfp8zFy8YJy1uu7e+GJpss8xmO6uFjDg1pcJ8pF38IEQVrxR5wDmIFpGCAhgeYMswu
+UuGLMcf24NqroXafDe6gfBCUeAfaVQAOoeLj3VZsik24qNtM4PJNxDwAvIx11UhyS9U+qont0QbC
+dvocZB2bTQZHbuUjdxJvTDxBGjj2k4URxm12gOfdtwxJs2Nk/nMe+2r8xYRiOxmPAH9CSwhsi4WT
+xi/EsPMgYCNK+3Se4TXQxB6RqtPRQn0SuJkhbRM0GbfN/6siabU2YjiIVRV7gPxR1gS9B+cF6ckI
+QutiN8sWHGrrD1aaFLNzarBJk33ebw8yxZnGEFyzD4l+b6lSlpcL86FbhsPoCijwz5+opDrptUzw
+rNV7TKPPSYQ9jMjJP+DuGhsTvL6LOSPLH9XeR/esL/cPg5N7ddgo+h0X0iRUXnjAlE+jpNMl

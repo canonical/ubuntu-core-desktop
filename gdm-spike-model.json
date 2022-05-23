@@ -48,12 +48,6 @@
             "id": "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy"
         },
         {
-            "name": "core18",
-            "default-channel": "latest/stable",
-            "type": "base",
-            "id": "CSO04Jhav2yK0uz97cr0ipQRyqg0qQL6"
-        },
-        {
             "name": "bare",
             "default-channel": "latest/stable",
             "type": "base",
