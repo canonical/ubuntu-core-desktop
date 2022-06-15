@@ -3,11 +3,11 @@
     "authority-id": "PhMj3TyWXsKJda10Fah6d6selJIw1xCI",
     "brand-id": "PhMj3TyWXsKJda10Fah6d6selJIw1xCI",
     "series": "16",
-    "model": "ubuntu-core-20-gdm-amd64",
-    "display-name":"Ubuntu Core 20 (amd64) with GDM",
+    "model": "ubuntu-core-22-gdm-amd64",
+    "display-name":"Ubuntu Core 22 (amd64) with GDM",
     "architecture": "amd64",
     "grade": "dangerous",
-    "base": "core20-gdm",
+    "base": "core22-gdm",
     "snaps": [
         {
             "name": "pc-gdm",
@@ -15,7 +15,7 @@
         },
         {
             "name": "pc-kernel",
-            "default-channel": "20/stable",
+            "default-channel": "22/stable",
             "type": "kernel",
             "id": "pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza"
         },
@@ -26,7 +26,7 @@
             "id": "PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4"
         },
         {
-            "name": "core20-gdm",
+            "name": "core22-gdm",
             "type": "base"
         },
         {
@@ -42,8 +42,14 @@
             "id": "DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q"
         },
         {
+            "name": "core22",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "amcUKQILKXHHTlmSa7NMdnXSx02dNeeT"
+        },
+        {
             "name": "network-manager",
-            "default-channel": "20/stable",
+            "default-channel": "22/stable",
             "type": "app",
             "id": "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy"
         },
@@ -72,5 +78,5 @@
             "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
         }
     ],
-    "timestamp": "2021-08-20T11:10:32+08:00"
+    "timestamp": "2022-06-15T14:22:49+08:00"
 }

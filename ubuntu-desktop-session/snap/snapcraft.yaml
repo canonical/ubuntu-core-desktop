@@ -2,7 +2,7 @@ name: ubuntu-desktop-session
 version: '0'
 build-base: core20
 passthrough:
-  base: core20-gdm
+  base: core22-gdm
 summary: Ubuntu Desktop Session for the Ubuntu Core Desktop
 description: |
   An attempt to strictly confine the standard Ubuntu desktop session.

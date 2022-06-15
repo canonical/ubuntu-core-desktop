@@ -13,11 +13,11 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: true
-      - name: Build core20-gdm
+      - name: Build core22-gdm
         uses: snapcore/action-build@v1
         id: snapcraft_base
         with:
-          path: ./core20
+          path: ./core22
       - name: Build ubuntu-desktop-session
         uses: snapcore/action-build@v1
         id: snapcraft_session

@@ -2,17 +2,17 @@ type: model
 authority-id: PhMj3TyWXsKJda10Fah6d6selJIw1xCI
 series: 16
 brand-id: PhMj3TyWXsKJda10Fah6d6selJIw1xCI
-model: ubuntu-core-20-gdm-amd64
+model: ubuntu-core-22-gdm-amd64
 architecture: amd64
-base: core20-gdm
-display-name: Ubuntu Core 20 (amd64) with GDM
+base: core22-gdm
+display-name: Ubuntu Core 22 (amd64) with GDM
 grade: dangerous
 snaps:
   -
     name: pc-gdm
     type: gadget
   -
-    default-channel: 20/stable
+    default-channel: 22/stable
     id: pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza
     name: pc-kernel
     type: kernel
@@ -22,7 +22,7 @@ snaps:
     name: snapd
     type: snapd
   -
-    name: core20-gdm
+    name: core22-gdm
     type: base
   -
     default-channel: latest/edge
@@ -35,7 +35,12 @@ snaps:
     name: core20
     type: base
   -
-    default-channel: 20/stable
+    default-channel: latest/stable
+    id: amcUKQILKXHHTlmSa7NMdnXSx02dNeeT
+    name: core22
+    type: base
+  -
+    default-channel: 22/stable
     id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
     name: network-manager
     type: app
@@ -59,16 +64,16 @@ snaps:
     id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
     name: snap-store
     type: app
-timestamp: 2021-08-20T11:10:32+08:00
+timestamp: 2022-06-15T14:22:49+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJii2ozAAoJEK/DToINRsqGAZIP/iRc
-kUKhzT9edrKy0nkn5upuZpbBdopTEDnfHgKnhE8hVpNNcDbiIYZCVyBK4eEJJy/lbiD6AhjZRLdL
-6ZXxnYqlBn6Z71xVb4YU8GTmbGdWP29+4JaXXafDcRPtey21ei+17QT7IP5SNDvspbBzg3M/H9UC
-47Idj0ayHkgoqRVOd03wGYKPkXG9+FHs53f6NEIoBXgNNQM41eFAS7NRYuec/7CxMaT3pdqb6BR1
-kKuWhPVfZ8qfp8zFy8YJy1uu7e+GJpss8xmO6uFjDg1pcJ8pF38IEQVrxR5wDmIFpGCAhgeYMswu
-UuGLMcf24NqroXafDe6gfBCUeAfaVQAOoeLj3VZsik24qNtM4PJNxDwAvIx11UhyS9U+qont0QbC
-dvocZB2bTQZHbuUjdxJvTDxBGjj2k4URxm12gOfdtwxJs2Nk/nMe+2r8xYRiOxmPAH9CSwhsi4WT
-xi/EsPMgYCNK+3Se4TXQxB6RqtPRQn0SuJkhbRM0GbfN/6siabU2YjiIVRV7gPxR1gS9B+cF6ckI
-QutiN8sWHGrrD1aaFLNzarBJk33ebw8yxZnGEFyzD4l+b6lSlpcL86FbhsPoCijwz5+opDrptUzw
-rNV7TKPPSYQ9jMjJP+DuGhsTvL6LOSPLH9XeR/esL/cPg5N7ddgo+h0X0iRUXnjAlE+jpNMl
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJiqXrJAAoJEK/DToINRsqGIaUP/1ng
+eWhYdUaXTHgi44t3iR67+1gXNxzgqNKFS2utEuSzZ4z9hDCeMa26TuPscxcRyvlS4IdxKLz5uw4t
+NHPMGX2UgV69wj67l1bfMaIz7IYUKRa39iIx11WlEJEc0i3M2ASrBFd+6KNdJDB1JU1SbX8cxTsw
+mFE0uFD3gSmTOJ2TmQzewn+hYDS3/TPTrwCXkBtMvhZA+UuNuz3eiBxFKuQJ4T1QVJqP176+e5bN
+WOQmSOiQFAMkFYTkS5AWrDnXQIT1APncDxGMX57ZoPJc52BJfJPUG+WuvlSamnK3CAodwK/4sgkK
+dvpKYIAYixjroE+MOANmUmFH0u9OBi1dLcfULAmr+nF37B+d/qDEmXNzo3fVoZQKCpRl05C7xdOw
+Sf3I7xDx4he2DjtmW41tfKODb4/Bsd1Ehx36MAlgizeG9D3Kwg5uCwyzp9UTu0Ed3j2OvxJeRsWG
+Xe8zYzreQoFd+bAFOl/GpdtUkNQHIsnTCOwL8ShwZFUfPyiW7hGSzYOQO5b9oq0QeLaCfQ2Wy/xl
+/nxHqZLCxXAGpbuQ1QeovwBisPzbRw+j0eFTnVlxx1ZvCWJ9uQtNFfypiyg5AIfh8MXv5AHWeztH
++ME6EXoQ59mqn9A/W5NNL0oYC3C1rc4ZQEaTHi3ePEjHuDuDMkAhYaqQfZVweXCVoIRo3AYm

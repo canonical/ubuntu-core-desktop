@@ -9,7 +9,7 @@ pc-gdm.snap:
 	rm -rf pc-gdm/
 	unsquashfs -d pc-gdm pc.snap
 	sed -i -e 's/^name:.*$$/name: pc-gdm/' \
-	       -e 's/^base:.*$$/base: core20-gdm/' pc-gdm/meta/snap.yaml
+	       -e 's/^base:.*$$/base: core22-gdm/' pc-gdm/meta/snap.yaml
 	sed -i -e '/role: system-seed/,/size:/ s/size:.*$$/size: 2000M/' \
 	       pc-gdm/meta/gadget.yaml
 	cat extra-gadget.yaml >> pc-gdm/meta/gadget.yaml
