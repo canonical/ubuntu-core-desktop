@@ -10,7 +10,8 @@ fi
 
 for plug in hardware-observe home login-session-observe login-session-control \
             mount-observe network-control network-observe polkit-agent \
-            system-observe shutdown shell-config-files snapd-control; do
+            process-control system-observe shutdown shell-config-files \
+            snapd-control; do
     snap connect "ubuntu-desktop-session:$plug"
 done
 snap connect ubuntu-desktop-session:network-manager network-manager:service
