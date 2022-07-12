@@ -36,12 +36,6 @@
             "id": "LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN"
         },
         {
-            "name": "core20",
-            "default-channel": "latest/stable",
-            "type": "base",
-            "id": "DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q"
-        },
-        {
             "name": "core22",
             "default-channel": "latest/stable",
             "type": "base",
@@ -66,17 +60,17 @@
             "id": "jZLfBRzf1cYlYysIjD2bwSzNtngY0qit"
         },
         {
-            "name": "gnome-3-38-2004",
+            "name": "gnome-42-2204",
             "default-channel": "latest/stable",
             "type": "app",
-            "id": "rw36mkAjdIKl13dzfwyxP87cejpyIcct"
+            "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
         },
         {
             "name": "snap-store",
-            "default-channel": "latest/edge",
+            "default-channel": "latest/edge/core22",
             "type": "app",
             "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
         }
     ],
-    "timestamp": "2022-06-15T14:22:49+08:00"
+    "timestamp": "2022-07-12T16:36:29+08:00"
 }

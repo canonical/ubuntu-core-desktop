@@ -31,11 +31,6 @@ snaps:
     type: app
   -
     default-channel: latest/stable
-    id: DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q
-    name: core20
-    type: base
-  -
-    default-channel: latest/stable
     id: amcUKQILKXHHTlmSa7NMdnXSx02dNeeT
     name: core22
     type: base
@@ -56,24 +51,24 @@ snaps:
     type: app
   -
     default-channel: latest/stable
-    id: rw36mkAjdIKl13dzfwyxP87cejpyIcct
-    name: gnome-3-38-2004
+    id: lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3
+    name: gnome-42-2204
     type: app
   -
-    default-channel: latest/edge
+    default-channel: latest/edge/core22
     id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
     name: snap-store
     type: app
-timestamp: 2022-06-15T14:22:49+08:00
+timestamp: 2022-07-12T16:36:29+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJiqXrJAAoJEK/DToINRsqGIaUP/1ng
-eWhYdUaXTHgi44t3iR67+1gXNxzgqNKFS2utEuSzZ4z9hDCeMa26TuPscxcRyvlS4IdxKLz5uw4t
-NHPMGX2UgV69wj67l1bfMaIz7IYUKRa39iIx11WlEJEc0i3M2ASrBFd+6KNdJDB1JU1SbX8cxTsw
-mFE0uFD3gSmTOJ2TmQzewn+hYDS3/TPTrwCXkBtMvhZA+UuNuz3eiBxFKuQJ4T1QVJqP176+e5bN
-WOQmSOiQFAMkFYTkS5AWrDnXQIT1APncDxGMX57ZoPJc52BJfJPUG+WuvlSamnK3CAodwK/4sgkK
-dvpKYIAYixjroE+MOANmUmFH0u9OBi1dLcfULAmr+nF37B+d/qDEmXNzo3fVoZQKCpRl05C7xdOw
-Sf3I7xDx4he2DjtmW41tfKODb4/Bsd1Ehx36MAlgizeG9D3Kwg5uCwyzp9UTu0Ed3j2OvxJeRsWG
-Xe8zYzreQoFd+bAFOl/GpdtUkNQHIsnTCOwL8ShwZFUfPyiW7hGSzYOQO5b9oq0QeLaCfQ2Wy/xl
-/nxHqZLCxXAGpbuQ1QeovwBisPzbRw+j0eFTnVlxx1ZvCWJ9uQtNFfypiyg5AIfh8MXv5AHWeztH
-+ME6EXoQ59mqn9A/W5NNL0oYC3C1rc4ZQEaTHi3ePEjHuDuDMkAhYaqQfZVweXCVoIRo3AYm
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJizTKnAAoJEK/DToINRsqGqUMP/RQC
+N9TDqxd9DAuVrDtmcEn+wBSvTmuZvIuOGf6/UlLQMP8aL9rQ79bEKtLwOlVuYYPnHsLME5nuDvQ8
+uKYsWGcrWA2+PMrYZBQlESI1ocsKla1BN05VCeMNRnCGggNqCC4tW8OKx//Sxpind57SBWZLvrzx
+ZRxeMZ0gOPeW308gDLdtehAdYV9D/baT16C0ILrhg/5w4ELvWfetCu9YqFWurZ4Phnr4z42Uskli
+kPuHownd3JawRBf7MZLQvSeYj8NHzXFrNpQiSbJ9r37x5vd5Mdp+d5HyMPlhXxu9AYQVydartz8P
+TKspVe6Cw9hOYNpcoUkxgn7dn3bPAM7TyUv2rHN9wVSdX/BSv/At/104BEx/6L/DcI6A6rt/sMbx
+/dIOaA6Yv1wSyC8AIP7kpGcDItCyykzqhA627+qNdLchudW5FmWn+r62rs0UIh18tPVZKGdG/oJf
+uWsuTXM0F3OJjhZwIIqYj24q4+XKYCMxvzRDUDQ51xD15C9jkWZeNg5DBG8UG4DNVpsEGHfdkM+6
+B63jDieDFkszk6EKLl7FQbwW9obf8h6nOfDO9DxI4iLaeOmD8Q7ST5UKBBLgWw+arE+bHGUp8H5c
+9pipgxMWRomaVHWBWhpiYEDVghlF6sw9OzJH7iyca8GkfyaB1VhiK9op7pjHDRe2xdxJEuD5
