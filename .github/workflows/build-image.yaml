@@ -18,6 +18,8 @@ jobs:
         id: snapcraft_base
         with:
           path: ./core22
+          # XXX: remove this when manifest generation works for base snaps again
+          build-info: false
       - name: Build ubuntu-desktop-session
         uses: snapcore/action-build@v1
         id: snapcraft_session
