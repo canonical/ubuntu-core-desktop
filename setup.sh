@@ -8,6 +8,8 @@ auth-polkit=false
 EOF
 fi
 
+cp /snap/ubuntu-desktop-session/current/ubuntu-desktop-session.desktop /usr/share/wayland-sessions/
+
 for plug in hardware-observe home login-session-observe login-session-control \
             mount-observe network-control network-observe polkit-agent \
             process-control system-observe shutdown shell-config-files \
@@ -20,5 +22,3 @@ snap connect ubuntu-desktop-session:desktop-launch || true
 
 snap connect snap-store:x11 ubuntu-desktop-session:x11
 snap connect snap-store:desktop ubuntu-desktop-session:desktop
-
-cp /snap/ubuntu-desktop-session/current/ubuntu-desktop-session.desktop /usr/share/wayland-sessions/
