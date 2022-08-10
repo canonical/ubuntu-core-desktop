@@ -1,5 +1,6 @@
 
-EXTRA_SNAPS = core20-gdm.snap ubuntu-desktop-session.snap
+EXTRA_SNAPS = core22-gdm.snap ubuntu-desktop-session.snap
+ALL_SNAPS = $(EXTRA_SNAPS) core20 lxd workshops
 
 all: pc.img.xz assertions.img.xz
 
@@ -10,7 +11,7 @@ pc-gdm.snap:
 	unsquashfs -d pc-gdm pc.snap
 	sed -i -e 's/^name:.*$$/name: pc-gdm/' \
 	       -e 's/^base:.*$$/base: core22-gdm/' pc-gdm/meta/snap.yaml
-	sed -i -e '/role: system-seed/,/size:/ s/size:.*$$/size: 2100M/' \
+	sed -i -e '/role: system-seed/,/size:/ s/size:.*$$/size: 2500M/' \
 	       pc-gdm/meta/gadget.yaml
 	cat extra-gadget.yaml >> pc-gdm/meta/gadget.yaml
 	cp cloud.conf pc-gdm/cloud.conf
@@ -20,7 +21,7 @@ pc-gdm.snap:
 pc.img: gdm-spike-model.model pc-gdm.snap $(EXTRA_SNAPS)
 	rm -rf img/
 	ubuntu-image snap --output-dir img --image-size 8G \
-	  --snap pc-gdm.snap $(foreach snap,$(EXTRA_SNAPS),--snap $(snap)) $<
+	  --snap pc-gdm.snap $(foreach snap,$(ALL_SNAPS),--snap $(snap)) $<
 	mv img/pc.img .
 
 # Build assertions image

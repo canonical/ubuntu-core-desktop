@@ -1,6 +1,6 @@
 # GDM on Ubuntu Core
 
-This directory contains an image of Ubuntu Core 20 with the GDM
+This directory contains an image of Ubuntu Core 22 with the GDM
 display manager loaded into the boot file system.  It can be launched
 in a Qemu virtual machine by following these instructions:
 
@@ -12,8 +12,8 @@ in a Qemu virtual machine by following these instructions:
     # Delete VM if already registered
     virsh --connect qemu:///session undefine --nvram core-desktop
     virt-install --connect qemu:///session --name core-desktop \
-      --memory 2048 --vcpus 2 --boot uefi --os-variant ubuntu20.04 \
-      --video virtio,accel3d=yes --graphics spice \
+      --memory 2048 --vcpus 2 --boot uefi --os-variant ubuntu22.04 \
+      --video virtio,accel3d=no --graphics spice \
       --import --disk path=$(pwd)/pc.img,format=raw
     ```
     (We use the virt-install because the GNOME Boxes seems to create a
