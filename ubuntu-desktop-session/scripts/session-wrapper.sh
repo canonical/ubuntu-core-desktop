@@ -38,7 +38,7 @@ function link_wayland_socket() {
     public_socket=/run/user/$(id -u)/wayland-0
     while :; do
         sleep 1s
-        if [ -f "$private_socket" ]; then
+        if [ -S "$private_socket" ]; then
             ln -f "$private_socket" "$public_socket"
             return
         fi
