@@ -59,16 +59,31 @@ snaps:
     id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
     name: snap-store
     type: app
-timestamp: 2022-07-12T16:36:29+08:00
+  -
+    default-channel: latest/stable
+    id: DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q
+    name: core20
+    type: base
+  -
+    default-channel: latest/stable
+    id: J60k4JY0HppjwOjW8dZdYc8obXKxujRu
+    name: lxd
+    type: app
+  -
+    default-channel: latest/stable
+    id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
+    name: workshops
+    type: app
+timestamp: 2022-08-22T11:31:47+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJizTKnAAoJEK/DToINRsqGqUMP/RQC
-N9TDqxd9DAuVrDtmcEn+wBSvTmuZvIuOGf6/UlLQMP8aL9rQ79bEKtLwOlVuYYPnHsLME5nuDvQ8
-uKYsWGcrWA2+PMrYZBQlESI1ocsKla1BN05VCeMNRnCGggNqCC4tW8OKx//Sxpind57SBWZLvrzx
-ZRxeMZ0gOPeW308gDLdtehAdYV9D/baT16C0ILrhg/5w4ELvWfetCu9YqFWurZ4Phnr4z42Uskli
-kPuHownd3JawRBf7MZLQvSeYj8NHzXFrNpQiSbJ9r37x5vd5Mdp+d5HyMPlhXxu9AYQVydartz8P
-TKspVe6Cw9hOYNpcoUkxgn7dn3bPAM7TyUv2rHN9wVSdX/BSv/At/104BEx/6L/DcI6A6rt/sMbx
-/dIOaA6Yv1wSyC8AIP7kpGcDItCyykzqhA627+qNdLchudW5FmWn+r62rs0UIh18tPVZKGdG/oJf
-uWsuTXM0F3OJjhZwIIqYj24q4+XKYCMxvzRDUDQ51xD15C9jkWZeNg5DBG8UG4DNVpsEGHfdkM+6
-B63jDieDFkszk6EKLl7FQbwW9obf8h6nOfDO9DxI4iLaeOmD8Q7ST5UKBBLgWw+arE+bHGUp8H5c
-9pipgxMWRomaVHWBWhpiYEDVghlF6sw9OzJH7iyca8GkfyaB1VhiK9op7pjHDRe2xdxJEuD5
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjAvi5AAoJEK/DToINRsqGWUoQAI7G
+1xHEzc0ie+QLJOxoFDuIm6v7ipV28OqKNHzAK0FzzqZlCWHxjR8HW8D/LKHqV3RSa6ZL0FXEvRTm
+wTEOmSH1LHjNT07aXAiTYlXdXsdogYiVpSNoG6h6H9ZqJ2BdXx/j6OVkzoPwzWTphyzr+lpDIdaB
+FAP7AMR0bCpqpQOhoVlfUk+01ezoCXc8qxBCGjpqqKMGFau0e24biYuloSGZP39aKpCbM7xue2mC
+L/7bYgH+vKBnHMlp6GNr8wzBxks9VfWPaaF65hYoaVxo1YpfxJBKr/HvN+wG6IXHcCCLdr2sETIx
+zcwvNypW1h/qJsP8roTKaPNEhAHWwsxTIRJh8RtvV94/1x4OUkJgJk0hu2g48AdEvHCAjvq+wX1b
+1ijT3KEcCjkxYSkhpGDDbQFgGZNfxBjt3Unu4geEBjklS88cpwzyQwv3PwPUDRpSaKqHsGRC/yny
+f5URqzxJV4JcxF0aUlHouzn678c7bZudJshpSVjzqz8J9P9KwedgqKc9ZU4UvIsvhPas9Y/Udsz5
+3XLd/xN7l9ozVZyugfqQPnmRN/Jz7HgmT4+cHVpf8FDBJDTuZ50Zo0oyYcAdnIcXcjvVsXdvEIkm
+pgFMrPaJwIGqwcwmViPMKw0Gnd4eDgDxlBQM6skCLWbck2T9hFHbY2v7RS9LTGtf7BdvCKok

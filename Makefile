@@ -1,6 +1,6 @@
 
 EXTRA_SNAPS = core22-gdm.snap ubuntu-desktop-session.snap
-ALL_SNAPS = $(EXTRA_SNAPS) core20 lxd workshops
+ALL_SNAPS = $(EXTRA_SNAPS)
 
 all: pc.img.xz assertions.img.xz
 

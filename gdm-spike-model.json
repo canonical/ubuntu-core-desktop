@@ -70,7 +70,25 @@
             "default-channel": "latest/edge/core22",
             "type": "app",
             "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
+        },
+        {
+            "name": "core20",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q"
+        },
+        {
+            "name": "lxd",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "J60k4JY0HppjwOjW8dZdYc8obXKxujRu"
+        },
+        {
+            "name": "workshops",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2022-07-12T16:36:29+08:00"
+    "timestamp": "2022-08-22T11:31:47+08:00"
 }
