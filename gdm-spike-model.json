@@ -82,12 +82,6 @@
             "default-channel": "latest/stable",
             "type": "app",
             "id": "J60k4JY0HppjwOjW8dZdYc8obXKxujRu"
-        },
-        {
-            "name": "workshops",
-            "default-channel": "latest/stable",
-            "type": "app",
-            "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
     "timestamp": "2022-08-22T11:31:47+08:00"
