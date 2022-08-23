@@ -21,5 +21,9 @@ snap connect ubuntu-desktop-session:network-manager network-manager:service
 snap connect ubuntu-desktop-session:desktop-launch || true
 
 snap connect snap-store:x11 ubuntu-desktop-session:x11
-snap connect snap-store:x11 ubuntu-desktop-session:wayland
+snap connect snap-store:wayland ubuntu-desktop-session:wayland
 snap connect snap-store:desktop ubuntu-desktop-session:desktop
+
+snap connect workshops:x11 ubuntu-desktop-session:x11
+snap connect workshops:wayland ubuntu-desktop-session:wayland
+snap connect workshops:desktop ubuntu-desktop-session:desktop

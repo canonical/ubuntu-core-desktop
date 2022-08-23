@@ -69,16 +69,21 @@ snaps:
     id: J60k4JY0HppjwOjW8dZdYc8obXKxujRu
     name: lxd
     type: app
-timestamp: 2022-08-22T11:31:47+08:00
+  -
+    default-channel: latest/stable
+    id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
+    name: workshops
+    type: app
+timestamp: 2022-08-23T13:09:29+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjAyDDAAoJEK/DToINRsqG6yAQAIGN
-eW1cuxVLdP4BQmNO4RfoKE1vueS/MlbCF7J209LxevLNgoUE7bfGiSFbE7TL+kce0Qzgm80DLvAA
-jDEEmvV7sPdPSwdcGXGRrdkeLi0uCW1qFSyoNl2XLv98i2NpSC3P8C46rkMb+NOqolXJf9Iivkw8
-nzNUIcqOtFGJiLZdFUN+ezolnvKUWV7XsQTyXvYQHimD/Bza/sfYcBwvaPeyotWw++bXaxbFOPOG
-PuprROSdFCScQAJhBxcvqW92fhg4BlIc2vggKshmaaxFlxzFlNyfN5nUiJP2kwzcjay9+Uh+gTQx
-jewXZo+oHpK739A7xxTrTggWmP2m62no2lM/3s/4pFHhOUoeZKwnuGXNKh+wyP4vFcAPsex9yzVL
-ooy3VwGz/mKLaZC9sI/DpwfKrQo+Pe3IVUTyhVFbuB6E7YmjaMQUB/fQPfoUuw1GUdhEnn/rMkyL
-lJj6cYO1SUwRgxH3Nci5Mf7ShbNmvKETxtfZfbcWngjIhH+Q1M3L7nK9uvU1GLh3G+26JnpxYrFW
-mx/DqxiSosFOxWZr1C9Q1Y8ST49XA44Nf3i+hl45bp5tplJLyl5hUxCsYJ1dnjG1V0TrPWBryvhC
-h3AkMGo1QAaIUu6o7kKNRqHhvF/iu3X/LkTQLgSRdJ+GLeTCrEmwuMZ/SiCRgOVUi8jA/96s
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjBGEhAAoJEK/DToINRsqGVpMP/3Fb
+4/pJ8tC0l8XecNauMVMxLEheZVP0VE+XqPj4oecvXoADeTC0/1eSvC7k7eJJPjcDp/Ap8xmUqtll
+GUo/5aNmcpm3fka78w+v+cG3G9KgwwywNAOjXqxOjS6b6YRIrerjfKqzmxIQ1YJceZzg72R6g5UO
+ZF1jQBCKmzblGcvmvyszgA2YhupoLMK+SXJpiVlHbp1eiZWdh+txmnQARo9aEZzc7E0OgrAXdoUj
+2dzV67hsqgBXj1KMbo3egh3yt4D2/pxxmxnaQogGdw8zzUpabXBdb2b3xN+Krd4xFWLKnkWdkSs8
+AySu1G2SPzRraEp4XMK0h+dvpAc3e06QeLhrrqzUSsnvraDPLFdtYDZV2ltjztIX5Xq2lC2OfuEv
+tjjj0dzn6JajdLOtft31svWAeMKrije4uMz2H4t92yyvrG0fSQjmX9w40uuuQCv69B9eJ87M1o1b
+UGcZS/mDn9tLIbT1zaYLmsN80nyIJn3fZyR7u+kB8EhlX0TIXxs7YGvviH0Veo7iWHf6VRZmP0wS
+AtFTb1X6xKIWv+LfRVsFEkOQc4YLQNN4wyyGNj2U9S9YNyppo1N9H67/K6ErfpD8FmTRloo/jAF7
+evKObSpG6Zq8nMHuvhdZdZYoh0YmZqrba2CgR3j2XekuFootAd2txx5Fip8gvzHZJq2anNnF
