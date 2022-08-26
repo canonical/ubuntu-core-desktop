@@ -13,9 +13,20 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: true
+      - name: Get core22-gdm revision
+        id: core22-get-rev
+        run: |
+          cd core22
+          echo "::set-output name=cache_key::$(git rev-parse HEAD)"
+      - name: Cache core22-gdm
+        id: cache-core22-gdm
+        uses: actions/cache@v3
+        with:
+          path: ./core22/*.snap
+          key: ${{ steps.core22-get-rev.outputs.cache_key }}
       - name: Build core22-gdm
+        if: steps.cache-core22-gdm.outputs.cache-hit != 'true'
         uses: snapcore/action-build@v1
-        id: snapcraft_base
         with:
           path: ./core22
           # XXX: remove this when manifest generation works for base snaps again
@@ -31,13 +42,24 @@ jobs:
           repository: jhenstridge/snapd
           ref: desktop-mega-merge
           path: snapd
+      - name: Get snapd revision
+        id: snapd-get-rev
+        run: |
+          cd snapd
+          echo "::set-output name=cache_key::$(git rev-parse HEAD)"
+      - name: Cache snapd
+        id: cache-snapd
+        uses: actions/cache@v3
+        with:
+          path: ./snapd/*.snap
+          key: ${{ steps.snapd-get-rev.outputs.cache_key }}
       #- name: Enale snapd experimental features
       #  run: |
       #    cd snapd
       #    patch -p1 < ../snapd-enable-features.patch
       - name: Build snapd
+        if: steps.cache-snapd.outputs.cache-hit != 'true'
         uses: snapcore/action-build@v1
-        id: snapcraft_snapd
         with:
           path: ./snapd
           snapcraft-channel: 4.x/stable
@@ -47,7 +69,10 @@ jobs:
           sudo snap refresh --edge snapd
           sudo snap install --classic ubuntu-image
       - name: Build image
-        run: make EXTRA_SNAPS="${{ steps.snapcraft_base.outputs.snap }} ${{ steps.snapcraft_session.outputs.snap }} ${{ steps.snapcraft_snapd.outputs.snap }}"
+        run: |
+          core22_snap=$(ls core22/core22-gdm_*.snap)
+          snapd_snap=$(ls snapd/snapd_*.snap)
+          make EXTRA_SNAPS="$core22_snap ${{ steps.snapcraft_session.outputs.snap }} $snapd_snap"
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
