@@ -65,7 +65,7 @@ jobs:
           snapcraft-channel: 4.x/stable
       - name: Install build dependencies
         run: |
-          sudo apt install -y make squashfs-tools dosfstools mtools xz-utils
+          sudo apt install -y make squashfs-tools dosfstools mtools
           sudo snap refresh --edge snapd
           sudo snap install --classic ubuntu-image
       - name: Build image
@@ -79,4 +79,4 @@ jobs:
           name: image
           path: |
             README.md
-            *.img.xz
+            *.img.gz
