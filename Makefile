@@ -2,7 +2,7 @@
 EXTRA_SNAPS = core22-gdm.snap ubuntu-desktop-session.snap
 ALL_SNAPS = $(EXTRA_SNAPS)
 
-all: pc.img.xz assertions.img.xz
+all: pc.img.gz assertions.img.gz
 
 # Patch the official PC gadget snap to use core20-gdm as a base
 pc-gdm.snap:
@@ -39,7 +39,7 @@ gdm-spike-model.model: gdm-spike-model.json
 	snap sign $< > $@
 endif
 
-%.img.xz: %.img
-	xz --keep -T0 $<
+%.img.gz: %.img
+	gzip --keep $<
 
 .PHONY: all
