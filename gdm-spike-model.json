@@ -66,22 +66,64 @@
             "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
         },
         {
-            "name": "snap-store",
-            "default-channel": "preview/edge",
-            "type": "app",
-            "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
-        },
-        {
             "name": "core20",
             "default-channel": "latest/stable",
             "type": "base",
             "id": "DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q"
         },
         {
+            "name": "evince",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "EDFg87ESUg9sAIlm0Vm5Wmr0LjiEonSm"
+        },
+        {
+            "name": "gnome-calculator",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "J8OcDPQ0JM8dbvk29HRqpWVI9kBw0atG"
+        },
+        {
+            "name": "gnome-characters",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "qJcS3UjpF9AMJKWAiKwA5EWbm0y6Uduw"
+        },
+        {
+            "name": "gnome-clocks",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "8NtSF2nXW6krsxbXBYydy1j985k6ZsVK"
+        },
+        {
+            "name": "gnome-font-viewer",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "BzJuWXmCIpyjUKotXPWU2psnl8gEh4hm"
+        },
+        {
+            "name": "gnome-text-editor",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "PZj2sEabMQrVUV1HKZmmmXSk3E6wKC9i"
+        },
+        {
+            "name": "gnome-weather",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "LhzK7p8214jufMYx1kz43QkWhFnOKdbr"
+        },
+        {
             "name": "lxd",
             "default-channel": "latest/stable",
             "type": "app",
             "id": "J60k4JY0HppjwOjW8dZdYc8obXKxujRu"
+        },
+        {
+            "name": "snap-store",
+            "default-channel": "latest/edge/core22",
+            "type": "app",
+            "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
         },
         {
             "name": "workshops",
