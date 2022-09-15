@@ -1,27 +1,27 @@
 
-EXTRA_SNAPS = core22-gdm.snap ubuntu-desktop-session.snap
+EXTRA_SNAPS = core22-desktop.snap ubuntu-desktop-session.snap
 ALL_SNAPS = $(EXTRA_SNAPS)
 
 all: pc.img.gz assertions.img.gz
 
-# Patch the official PC gadget snap to use core20-gdm as a base
-pc-gdm.snap:
+# Patch the official PC gadget snap to use core20-desktop as a base
+pc-desktop.snap:
 	snap download --channel=20/stable --basename=pc pc
-	rm -rf pc-gdm/
-	unsquashfs -d pc-gdm pc.snap
-	sed -i -e 's/^name:.*$$/name: pc-gdm/' \
-	       -e 's/^base:.*$$/base: core22-gdm/' pc-gdm/meta/snap.yaml
+	rm -rf pc-desktop/
+	unsquashfs -d pc-desktop pc.snap
+	sed -i -e 's/^name:.*$$/name: pc-desktop/' \
+	       -e 's/^base:.*$$/base: core22-desktop/' pc-desktop/meta/snap.yaml
 	sed -i -e '/role: system-seed/,/size:/ s/size:.*$$/size: 2500M/' \
-	       pc-gdm/meta/gadget.yaml
-	cat extra-gadget.yaml >> pc-gdm/meta/gadget.yaml
-	cp cloud.conf pc-gdm/cloud.conf
-	cp setup.sh pc-gdm/setup.sh
-	snap pack --filename=$@ pc-gdm
+	       pc-desktop/meta/gadget.yaml
+	cat extra-gadget.yaml >> pc-desktop/meta/gadget.yaml
+	cp cloud.conf pc-desktop/cloud.conf
+	cp setup.sh pc-desktop/setup.sh
+	snap pack --filename=$@ pc-desktop
 
-pc.img: gdm-spike-model.model pc-gdm.snap $(EXTRA_SNAPS)
+pc.img: gdm-spike-model.model pc-desktop.snap $(EXTRA_SNAPS)
 	rm -rf img/
 	ubuntu-image snap --output-dir img --image-size 8G \
-	  --snap pc-gdm.snap $(foreach snap,$(ALL_SNAPS),--snap $(snap)) $<
+	  --snap pc-desktop.snap $(foreach snap,$(ALL_SNAPS),--snap $(snap)) $<
 	mv img/pc.img .
 
 # Build assertions image

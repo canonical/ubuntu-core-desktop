@@ -7,10 +7,10 @@
     "display-name":"Ubuntu Core 22 (amd64) with GDM",
     "architecture": "amd64",
     "grade": "dangerous",
-    "base": "core22-gdm",
+    "base": "core22-desktop",
     "snaps": [
         {
-            "name": "pc-gdm",
+            "name": "pc-desktop",
             "type": "gadget"
         },
         {
@@ -26,7 +26,7 @@
             "id": "PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4"
         },
         {
-            "name": "core22-gdm",
+            "name": "core22-desktop",
             "type": "base"
         },
         {
@@ -90,5 +90,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2022-08-23T13:09:29+08:00"
+    "timestamp": "2022-09-15T09:15:36+08:00"
 }
