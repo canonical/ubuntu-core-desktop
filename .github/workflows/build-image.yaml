@@ -13,19 +13,19 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: true
-      - name: Get core22-gdm revision
+      - name: Get core22-desktop revision
         id: core22-get-rev
         run: |
           cd core22
           echo "::set-output name=cache_key::$(git rev-parse HEAD)"
-      - name: Cache core22-gdm
-        id: cache-core22-gdm
+      - name: Cache core22-desktop
+        id: cache-core22-desktop
         uses: actions/cache@v3
         with:
           path: ./core22/*.snap
           key: ${{ steps.core22-get-rev.outputs.cache_key }}
-      - name: Build core22-gdm
-        if: steps.cache-core22-gdm.outputs.cache-hit != 'true'
+      - name: Build core22-desktop
+        if: steps.cache-core22-desktop.outputs.cache-hit != 'true'
         uses: snapcore/action-build@v1
         with:
           path: ./core22
@@ -70,7 +70,7 @@ jobs:
           sudo snap install --classic ubuntu-image
       - name: Build image
         run: |
-          core22_snap=$(ls core22/core22-gdm_*.snap)
+          core22_snap=$(ls core22/core22-desktop_*.snap)
           snapd_snap=$(ls snapd/snapd_*.snap)
           make EXTRA_SNAPS="$core22_snap ${{ steps.snapcraft_session.outputs.snap }} $snapd_snap"
       - name: Upload artifacts
