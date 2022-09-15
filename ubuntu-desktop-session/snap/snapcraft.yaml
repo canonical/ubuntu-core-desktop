@@ -298,6 +298,10 @@ slots:
     interface: dbus
     bus: session
     name: org.kde.StatusNotifierWatcher
+  dbus-desktop-icons:
+    interface: dbus
+    bus: session
+    name: com.rastersoft.ding
   dbus-desktop-icons-extension:
     interface: dbus
     bus: session
