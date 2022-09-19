@@ -1,4 +1,4 @@
 [submodule "core22"]
 	path = core22
-	url = git@github.com:jhenstridge/core20.git
-	branch = core22-gdm
+	url = git@github.com:canonical/core-base-desktop.git
+	branch = main
