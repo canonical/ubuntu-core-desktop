@@ -166,6 +166,14 @@ slots:
     interface: dbus
     bus: session
     name: org.gnome.Mutter.IdleMonitor
+  dbus-gnome-mutter-remotedesktop:
+    interface: dbus
+    bus: session
+    name: org.gnome.Mutter.RemoteDesktop
+  dbus-gnome-mutter-screencast:
+    interface: dbus
+    bus: session
+    name: org.gnome.Mutter.ScreenCast
   dbus-gnome-panel:
     interface: dbus
     bus: session
