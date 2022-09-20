@@ -55,7 +55,7 @@ snaps:
     name: gnome-42-2204
     type: app
   -
-    default-channel: latest/edge/core22
+    default-channel: preview/edge
     id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
     name: snap-store
     type: app
@@ -74,16 +74,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2022-09-15T09:15:36+08:00
+timestamp: 2022-09-20T10:43:59+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjInzQAAoJEK/DToINRsqG63wQAKik
-bXHPrYMoRUcPsJ5WThUVo9Ag8Nk4lAvF6ittIp70MrNK/YMS1kSOOnH/QoRNQ06lqUqYqWYkpRcS
-3wd4xcJlyTyBOYuVXd7ohYdv0vcgL+jny24WOs+CNWgbz3hjspE4nVwkN2Tf7ghvoj6HoHM0pD2n
-adtahYDH/sKgHoDiJchEkOOPCwnudNfmPA8R0Qm5pgO1YDjvO9xq2OhEo7APac3p0yT0w/NDukA+
-3dT69Hp8ZcjUu6i44RNUFMiQPjZKndkelQMVmtpT8irU84RJUQA2f2W0q9LFAxk1voR2jiKyOPwL
-+ZLuFB0teBc4G2YpaROdCeEnxbyXTgA32N/Ze0hydlQZyGsoff2X/vDR11k9375H/f/CQgAtIyuD
-tXlpgEsmoas324iElCv2EuJEJhjiz/EFqhJM6ALFhIzTYOp9REVQG5EfPLacoDqB39HGVtVNMyKU
-VH5ECjtGgf1p5P8glKAfOpQ9QH1Ii+wJ0ptJnT0hJPJaW+bWSFZFsLGYs/Sap3WzuQaJ78if5VJE
-SKeYOpgMoD3AguvTWHya6LxGLnngwZvf9dnVCzB4lgEAjwKZSyDIcGpiaY8mim96t+79YNGI5Ick
-LbM/+XFh9F+/pzUz7S2Ho4DWz/uy7srUvvDM3mEfm3uK8BdQQym4KBhbz+Qwv3oNtEn9edOr
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjKSkBAAoJEK/DToINRsqGgDQQAIES
+yFiOvjOvLIyABgIkRIWX5HDx+s+sk3aUp2TQkCm0vSUoCz3OI42+NVsGEkAsNP9jur42GS/Idz0R
+8fFHWz9kuG+87JnOWkIfxscbbi2Va4HEwoDqs9pr9/kkC3ZHeoWMHsqBrF0bGpbaHx/iOkKjAsQE
+wePF4cAw9XZHtYekUkSSqgag/pogyGxYZi1tGObhptuEvT6llEnJuQxWsi0ZfQbHZUwiLcEtKpQR
+AmOti5tRHQacA5e7BDdjuORDyvIlmvgXjc78YnSf4gySZX/kljtRQRxghjpjRUGJ7UCH6dZM5fYn
+6praEJZuHIZP6winEyQ7oHBOIcl+hJKuFLiTq5ro+cLaSWBTfDtAXPAqrgKVvzH9Lcf2XhhZDiql
+K0wVhjECJ/INPmG+hilemr1eaScWyKDHJQ3C0qhBW3CbJLunRDrKLFCUEQ0MXJop5bWj4v7dn5kB
+AbAvcRO9246IOO3LVOR687gYxhxL9J7Bu6KSzmrGG1W41WH22qVbYHr/Qksa3DlatR0yoWeaHVg6
+piL17J9J9XA273kcGiAN3kZpqmZqimMea2GeSFed37obaQ4vH4Tv0Qyx+McQLMiLixm13QrNjqF8
+LUg4euYQzNT8njPXfymyinGG41wxl6ZvWwNiHXbvhVG0jUqlon9u0/gjC0M8+vel4bOL0zsU

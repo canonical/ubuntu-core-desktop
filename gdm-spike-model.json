@@ -67,7 +67,7 @@
         },
         {
             "name": "snap-store",
-            "default-channel": "latest/edge/core22",
+            "default-channel": "preview/edge",
             "type": "app",
             "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
         },
@@ -90,5 +90,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2022-09-15T09:15:36+08:00"
+    "timestamp": "2022-09-20T10:43:59+08:00"
 }
