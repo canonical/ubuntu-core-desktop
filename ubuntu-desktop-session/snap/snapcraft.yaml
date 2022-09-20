@@ -103,6 +103,7 @@ plugs:
       - /etc/shells
       - /etc/xdg/autostart
       - /run/udev/tags/seat
+  upower-observe: null
 
 slots:
   desktop:
