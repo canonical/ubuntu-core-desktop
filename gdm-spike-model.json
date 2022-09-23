@@ -128,7 +128,7 @@
         },
         {
             "name": "snap-store",
-            "default-channel": "latest/edge/core22",
+            "default-channel": "preview/edge",
             "type": "app",
             "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
         },
