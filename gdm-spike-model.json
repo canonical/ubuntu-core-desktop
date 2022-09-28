@@ -42,12 +42,6 @@
             "id": "amcUKQILKXHHTlmSa7NMdnXSx02dNeeT"
         },
         {
-            "name": "gnome-3-38-2004",
-            "default-channel": "latest/stable",
-            "type": "base",
-            "id": "rw36mkAjdIKl13dzfwyxP87cejpyIcct"
-        },
-        {
             "name": "network-manager",
             "default-channel": "22/stable",
             "type": "app",
@@ -64,6 +58,12 @@
             "default-channel": "latest/stable",
             "type": "app",
             "id": "jZLfBRzf1cYlYysIjD2bwSzNtngY0qit"
+        },
+        {
+            "name": "gnome-3-38-2004",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "rw36mkAjdIKl13dzfwyxP87cejpyIcct"
         },
         {
             "name": "gnome-42-2204",
