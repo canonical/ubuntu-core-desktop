@@ -35,11 +35,6 @@ snaps:
     name: core22
     type: base
   -
-    default-channel: latest/stable
-    id: rw36mkAjdIKl13dzfwyxP87cejpyIcct
-    name: gnome-3-38-2004
-    type: base
-  -
     default-channel: 22/stable
     id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
     name: network-manager
@@ -53,6 +48,11 @@ snaps:
     default-channel: latest/stable
     id: jZLfBRzf1cYlYysIjD2bwSzNtngY0qit
     name: gtk-common-themes
+    type: app
+  -
+    default-channel: latest/stable
+    id: rw36mkAjdIKl13dzfwyxP87cejpyIcct
+    name: gnome-3-38-2004
     type: app
   -
     default-channel: latest/stable
@@ -124,13 +124,13 @@ snaps:
 timestamp: 2022-09-28T16:34:35+13:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjM8HEAAoJEK/DToINRsqGOGAP/jiz
-4HuC7XrEKh90GoSEb7HT4E8dC/IyYue7C+i9AA1SruSDfShoGoP0T8dhm2sDPuD1pFQOZx76cRoY
-eiqo7PT8Ed+5fC3vy3CCro5nV4P4GRLqkC+cyT8oRt4rq2MMQ9zyeU/HGIpkZvvm2Lu6zNqwgHCW
-V/GpES5BU8NCDIZsP4yWeSPaNofbDuE1yAZhLTgMykURMIynbnftFYpDESQoNyLB4NH9YDBlMrOl
-R7Tbj8AYCiDZ3izYZs3b+NT16Jdds1txCLpHtVJ4uiH68DmgPc6fqY4TRWseAOmy0gQF/zmDmhaY
-G5eTh/6ZbMOw8b1EIpZ5iSNlQkT7pWlra23+D/XPgrcTTA5GLQ7i6tnzxQ0aoXjX+0X6ElsY7zq1
-0ToogOSDkbss5uasaZKrEF4MC/FqvVjI7PQ7UMmBPteuweGxXfLGgGuUqwWxmbpcxIkiBlVWvu5d
-s0UutuGnsvpPp31p8HmT2zmzWXth66FnVfZFKTwzD0WNK9rA9rdKHl3V05KKR6lf9cudkE4Y/ADf
-r51eXHKubtp0/E37h8iYEioL0F+Ot8P0KYyitPyzuGYjHaNlR8ueGExteb8WZFpXmcHJNHIVx8ux
-+KYbCJVchHyTU2jIHjA66ud4ZFwrNX7PozVpezo7k2uzV2OzQ5+yupXikEwc88RUGZR7MCVT
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjM8PIAAoJEK/DToINRsqGpaMP/jG+
+PAxgnrVligHasyMeACqNkjDC4W3izif1CMgoE31tkeeeqBSQg8Dmd2T32D4bnBK/OPfBJNJOlaKT
+61vrVBpIGN7H82Uk5du0sEr+H9HcIFba60/1WuDCbVbr2xbx2KjO3bFX6fYejP5/j4cIbH0hn9Pu
+gQ5Aux7LdI4H6LJzL8OuiR+y629uD1T6BmPf0Bb7iS3yDLVb0s/nwg2HolB4JToLvOLDUC28GljX
+rglH2gUOUTNFRfn2SO4FaaPfl2iaBT2HzpZyMJy/kt6YeKIE1gL89GLRWbjnYZJmcaRQj7Kd8+GL
+aNvICttZ7+9B0pTXRAGGDPzil6GYinuZqGVNh5wKkvvoqAlGHPFLjlM5QuWZxTNqXRTEcxNhS4Jq
+oGqRtLfP4cT1qOMcrpoZ5WRWYCe2/e4zRxP+HDnryvVjVQvzTx2jsqDy6cY+aWjzFz+FQynlPrUq
+1DlsuPoMx2qHC+sqfz/WQMNnb0n4JXexWP1y7gZk1x3surBR9rqv4/6rY3Vx13Pe6ah8EvS9lPhR
+bhnPXyiIiJs0jxWB6DFgGKmV8H6oLb4cnvZIjNoAcUzLMXSpvLZ+gwnFu2Bxr0hXh+n7c4kT3i0e
+wz6erMJshqccB4idttRZcEnjE2HnMwG0OIMKJ6uC/pO+VixVXznF6s1KfxKtn0qSSetpxEGM
