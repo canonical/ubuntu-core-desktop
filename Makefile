@@ -12,7 +12,7 @@ pc-desktop.snap:
 	unsquashfs -d pc-desktop pc.snap
 	sed -i -e 's/^name:.*$$/name: pc-desktop/' \
 	       -e 's/^base:.*$$/base: core22-desktop/' pc-desktop/meta/snap.yaml
-	sed -i -e '/role: system-seed/,/size:/ s/size:.*$$/size: 2500M/' \
+	sed -i -e '/role: system-seed/,/size:/ s/size:.*$$/size: 3000M/' \
 	       pc-desktop/meta/gadget.yaml
 	cat extra-gadget.yaml >> pc-desktop/meta/gadget.yaml
 	cp cloud.conf pc-desktop/cloud.conf
