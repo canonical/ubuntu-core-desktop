@@ -1,7 +1,6 @@
 
 EXTRA_SNAPS = core22-desktop.snap ubuntu-desktop-session.snap
-ALL_SNAPS = $(EXTRA_SNAPS) gnome-calculator gnome-characters gnome-clocks gnome-font-viewer gnome-text-editor gnome-weather
-# Dropped for now: evince
+ALL_SNAPS = $(EXTRA_SNAPS) evince gnome-calculator gnome-characters gnome-clocks gnome-font-viewer gnome-text-editor gnome-weather
 
 all: pc.img.gz assertions.img.gz
 

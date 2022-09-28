@@ -42,6 +42,12 @@
             "id": "amcUKQILKXHHTlmSa7NMdnXSx02dNeeT"
         },
         {
+            "name": "gnome-3-38-2004",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "rw36mkAjdIKl13dzfwyxP87cejpyIcct"
+        },
+        {
             "name": "network-manager",
             "default-channel": "22/stable",
             "type": "app",
@@ -139,5 +145,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2022-09-20T10:43:59+08:00"
+    "timestamp": "2022-09-28T16:34:35+13:00"
 }
