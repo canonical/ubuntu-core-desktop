@@ -29,7 +29,7 @@ function fixup_xauthority() {
         fi
     done
 }
-fixup_xauthority &
+#fixup_xauthority &
 
 # Wait in background to link Wayland socket to location where other
 # snaps will look for it.
