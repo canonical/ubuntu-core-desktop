@@ -90,7 +90,6 @@ plugs:
   polkit-agent: null
   process-control: null
   shutdown: null
-  snapd-control: null
   system-observe: null
   shell-config-files:
     interface: system-files
