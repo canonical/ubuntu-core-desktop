@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: true
       - name: Get core22-desktop revision
@@ -37,7 +37,7 @@ jobs:
         with:
           path: ./ubuntu-desktop-session
       - name: Checkout snapd
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: jhenstridge/snapd
           ref: desktop-mega-merge
@@ -74,7 +74,7 @@ jobs:
           snapd_snap=$(ls snapd/snapd_*.snap)
           make EXTRA_SNAPS="$core22_snap ${{ steps.snapcraft_session.outputs.snap }} $snapd_snap"
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: image
           path: |
