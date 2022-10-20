@@ -17,7 +17,7 @@ jobs:
         id: core22-get-rev
         run: |
           cd core22
-          echo "::set-output name=cache_key::$(git rev-parse HEAD)"
+          echo "cache_key=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Cache core22-desktop
         id: cache-core22-desktop
         uses: actions/cache@v3
@@ -46,7 +46,7 @@ jobs:
         id: snapd-get-rev
         run: |
           cd snapd
-          echo "::set-output name=cache_key::$(git rev-parse HEAD)"
+          echo "cache_key=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Cache snapd
         id: cache-snapd
         uses: actions/cache@v3
