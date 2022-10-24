@@ -20,7 +20,7 @@ snap connect ubuntu-desktop-session:network-manager network-manager:service
 
 snap connect ubuntu-desktop-session:desktop-launch || true
 
-for snap in evince gnome-calculator gnome-characters gnome-clocks gnome-font-viewer gnome-text-editor gnome-weather snap-store workshops; do
+for snap in firefox evince gnome-calculator gnome-characters gnome-clocks gnome-font-viewer gnome-text-editor gnome-weather snap-store workshops; do
     snap connect "$snap:x11" ubuntu-desktop-session:x11
     snap connect "$snap:wayland" ubuntu-desktop-session:wayland
     snap connect "$snap:desktop" ubuntu-desktop-session:desktop
