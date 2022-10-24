@@ -14,7 +14,7 @@ dbus-update-activation-environment --systemd --all
 
 # Don't set this in our own environment, since it will make
 # gnome-session believe it is running in X mode
-dbus-update-activation-environment --systemd DISPLAY=:0 WAYLAND_DISPLAY=wayland-0
+dbus-update-activation-environment --systemd WAYLAND_DISPLAY=wayland-0
 
 # Set up a background task to wait for gnome-session to create its
 # Xauthority file, and copy it to a location snaps will be able to
@@ -29,7 +29,7 @@ function fixup_xauthority() {
         fi
     done
 }
-fixup_xauthority &
+#fixup_xauthority &
 
 # Wait in background to link Wayland socket to location where other
 # snaps will look for it.
