@@ -26,4 +26,4 @@ for snap in evince gnome-calculator gnome-characters gnome-clocks gnome-font-vie
     snap connect "$snap:desktop" ubuntu-desktop-session:desktop
 done
 
-lxd init --auto
+/snap/bin/lxd init --auto
