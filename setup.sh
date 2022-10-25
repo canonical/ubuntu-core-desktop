@@ -13,7 +13,7 @@ cp /snap/ubuntu-desktop-session/current/ubuntu-desktop-session.desktop /usr/shar
 for plug in hardware-observe home login-session-observe login-session-control \
             mount-observe network-control network-observe polkit-agent \
             process-control system-observe shutdown shell-config-files \
-            upower-observe snapd-control; do
+            snapd-control upower-observe; do
     snap connect "ubuntu-desktop-session:$plug"
 done
 snap connect ubuntu-desktop-session:network-manager network-manager:service
