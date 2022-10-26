@@ -67,7 +67,7 @@
         },
         {
             "name": "gnome-42-2204",
-            "default-channel": "latest/stable",
+            "default-channel": "latest/edge/keyfile",
             "type": "app",
             "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
         },
@@ -145,5 +145,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2022-09-28T16:34:35+13:00"
+    "timestamp": "2022-10-26T19:57:43+08:00"
 }

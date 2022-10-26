@@ -55,7 +55,7 @@ snaps:
     name: gnome-3-38-2004
     type: app
   -
-    default-channel: latest/stable
+    default-channel: latest/edge/keyfile
     id: lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3
     name: gnome-42-2204
     type: app
@@ -121,16 +121,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2022-09-28T16:34:35+13:00
+timestamp: 2022-10-26T19:57:43+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjM8PIAAoJEK/DToINRsqGpaMP/jG+
-PAxgnrVligHasyMeACqNkjDC4W3izif1CMgoE31tkeeeqBSQg8Dmd2T32D4bnBK/OPfBJNJOlaKT
-61vrVBpIGN7H82Uk5du0sEr+H9HcIFba60/1WuDCbVbr2xbx2KjO3bFX6fYejP5/j4cIbH0hn9Pu
-gQ5Aux7LdI4H6LJzL8OuiR+y629uD1T6BmPf0Bb7iS3yDLVb0s/nwg2HolB4JToLvOLDUC28GljX
-rglH2gUOUTNFRfn2SO4FaaPfl2iaBT2HzpZyMJy/kt6YeKIE1gL89GLRWbjnYZJmcaRQj7Kd8+GL
-aNvICttZ7+9B0pTXRAGGDPzil6GYinuZqGVNh5wKkvvoqAlGHPFLjlM5QuWZxTNqXRTEcxNhS4Jq
-oGqRtLfP4cT1qOMcrpoZ5WRWYCe2/e4zRxP+HDnryvVjVQvzTx2jsqDy6cY+aWjzFz+FQynlPrUq
-1DlsuPoMx2qHC+sqfz/WQMNnb0n4JXexWP1y7gZk1x3surBR9rqv4/6rY3Vx13Pe6ah8EvS9lPhR
-bhnPXyiIiJs0jxWB6DFgGKmV8H6oLb4cnvZIjNoAcUzLMXSpvLZ+gwnFu2Bxr0hXh+n7c4kT3i0e
-wz6erMJshqccB4idttRZcEnjE2HnMwG0OIMKJ6uC/pO+VixVXznF6s1KfxKtn0qSSetpxEGM
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjWSDcAAoJEK/DToINRsqGPKoQAKnI
+ayrFw0v4FAnT49EmQPTFkYkSWKUZmNCAkwRqnHRj5ReyDXIYgCHxpronLsozuAuLzd1l93Gv8I7Z
+CouVr3vfss8mjgOUA19d38mz7G0DJiXqsmc3ogl0A+zH8OT/yEE7OtM5iDnnDgerl1CJyeuvHhyw
+2FSfo0jRa5ntR+sNWvNrk3wyYlu3dw9fTKXHgaui9wZxCBbkngJs9aqy4mCUh8OqDX2e8Ts+uS0E
+uuhBk8wxQITocRIXovbsjcvvhQoHayMKWtWdJBHb6SZabVJBP4DEv2cCVlSkdlMUtt0EnJvPEpFz
+yV5ELqG0T/10Eh2Zn9HRmp3ZAEnxhwbTj9rD39wdfF7SGAFhI3YrQXgljoprXscqhzUDz7Lmr7Bp
+f6lry738n4WJwUmrroyhd4E96y6EVwYeofjaT/is6CBdYAtVJz/7b/wUQ5DFKMuapIrnFPQsj87K
+m4yKI8Ps++Foa6k+kvxV9ptWOArgXqoyPEfwojIlP/IW/Qo1nusTAU5lg56smA/dLfeqQwuN9uiT
+67g8Id91asNcPHF+8p2dZeW2XMjQmAciuhYgaomjnScpKkn6u93ylL7wb31RmuLzrxnhwEuGrhL+
+6C2YCRGmKCXkPZxVz7Cx3kKHX5b20VpHhfKugMnnLPvj8+hZQVvQBiFwmRPhY1qZ2RYUwOf8
