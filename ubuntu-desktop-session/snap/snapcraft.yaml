@@ -246,6 +246,10 @@ slots:
     interface: dbus
     bus: session
     name: org.gnome.Shell.Introspect
+  dbus-gnome-shell-portal:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.Portal
   dbus-gnome-shell-screencast:
     interface: dbus
     bus: session
