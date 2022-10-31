@@ -3,6 +3,8 @@ defaults:
   system:
     experimental.user-daemons: true
     experimental.dbus-activation: true
+  lxd:
+    daemon.user.group: users
 
 # Connect ubuntu-desktop-session
 connections:
