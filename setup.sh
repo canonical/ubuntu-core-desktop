@@ -25,3 +25,6 @@ for snap in evince gnome-calculator gnome-characters gnome-clocks gnome-font-vie
     snap connect "$snap:wayland" ubuntu-desktop-session:wayland
     snap connect "$snap:desktop" ubuntu-desktop-session:desktop
 done
+
+#initalize lxd with zfs storage backend for sudo support
+/snap/bin/lxd init --storage-backend zfs --auto
