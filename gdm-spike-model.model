@@ -66,6 +66,11 @@ snaps:
     type: base
   -
     default-channel: latest/stable
+    id: m1eQacDdXCthEwWQrESei3Zao3d5gfJF
+    name: cups
+    type: app
+  -
+    default-channel: latest/stable
     id: EDFg87ESUg9sAIlm0Vm5Wmr0LjiEonSm
     name: evince
     presence: optional
@@ -127,16 +132,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2022-10-26T19:57:43+08:00
+timestamp: 2022-11-29T14:24:07+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjhaJFAAoJEK/DToINRsqGsTcP/2Yk
-JT/PPhDrJJyyav4zofhYo8f108d/PWY6yPLQ/AUkOZOgdATb5XgyNKBnFhmUsjHea4d9XOhs1L1K
-D/x9tubhl2ch6eQUofVxmTy2PH1brS0iFmewuYUQEKd3qzLB2CHCdY5IkM6jb8aGIe+4djQCmkKW
-g2wga/D8HrPrf1On+YyTZjeHEGU7o8GmR7dubMkRLVJJgvH6rQUKDw3mw53lco+BNFEL5b5ywBcA
-+XZSeDIVKDx+XuEDUzfVOsSwrYmLD0ckLaxYTog6/2rfMCSaSiKx/Uw3/tFKHKZAleMnsMbv+rcP
-ztjklplTel1C+iIjKwIMxa4fakdJpleNPkvc197/829YeiwbN3CN4PKao2QlNHe/wVeVkRC/hFDl
-CiO4X11ksiUCE8RoFdTjjFHUgwghXbUG/z61ogkLrJaRkiWFFqOOzKUrC6NfBAF4lyGRZU5KAjYd
-/l0i1VYS2Xf/gEIkVj5xz4TI4RrzHELCSv1DcHkC3xTB0QozSgV/S9vSpx4NXXnYWzwsN6Qe0By4
-VeeSaEfXcXbHuC2Wd8Oc0mTZ73hyr8ArKYimBiD8Tg0o0dPJk/GlKabCcTqLAZvCUdU7+VM692LC
-IkRXU15V+6BmjJE2ZKP8uqiV+QCpdCOxRHMKXxJo0GUCuSQvwAUvlbMevFKjZVQlZBddyEgk
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjhaXVAAoJEK/DToINRsqGqcUP/iHM
+Ooa3E9YJ12krHm8Pi4UVdzjMwae0Tpf1534eeOqNsUbYonl5C+T8R9U6N3lQEZzJpAcg4VM0nw2L
++RevT4U3lT3eUdfw8CFAJ2rAuWFEnIJ5kHzXcc3O+dGghttX2B5z4z+8QGT9LpoRThZV7nLK1wKA
+59g4ifQ/cZvjPW21Bv27K47v1m9QbxeQzD4gWiSTnko8dD2JfHhoG7hjFH3ilBrq/eRydiqVPGbx
+lc47UhrSJEQzVIE61AZv/5MUWz1ub8+dVAu5GIh2ed0G8xy8PDynz9HIYIXb0fhaktLoPtudf+FI
+QorMyqXJxqQYJgcU4apXi+ODdrLP4lvNuveOJp8k9IicKGpaRm+c66WaAArC1eK2/FoTy9PvtrTL
+s1H1sHV8KhcskiVQcciDm6KpFk1trEgXxBP+1Qf4nsF4imXpPKyb9G/Cnmac1YVXKWZ2rm/2X38L
+EvVD9/NPqsAjStkSeRZa1wwlqoDbU/GpuywXcq9jbNXSe7MUAYiUimE2KyqJk9E9b8RDnCUMAEtu
+9C5ciY8moDoTaa2zNcG6W3f97f9UReojhgYkPLcvXCh5pUy4EjUiVksD2bZyykDzuWCxxTQs2C57
+74maNGvL33/TMuhQ0xzkiq2OBwz6b8IjWFhWqISOob35JaHk8dsifT1mJhKNUXCdPx0c6jEO
