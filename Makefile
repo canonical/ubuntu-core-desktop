@@ -1,6 +1,6 @@
 
 EXTRA_SNAPS = core22-desktop.snap ubuntu-desktop-session.snap
-ALL_SNAPS = $(EXTRA_SNAPS) evince gnome-calculator gnome-characters gnome-clocks gnome-font-viewer gnome-text-editor gnome-weather
+ALL_SNAPS = $(EXTRA_SNAPS) firefox gnome-calculator gnome-characters gnome-clocks gnome-font-viewer gnome-text-editor gnome-weather
 
 all: pc.img.gz assertions.img.gz
 
@@ -11,7 +11,7 @@ pc-desktop.snap:
 	unsquashfs -d pc-desktop pc.snap
 	sed -i -e 's/^name:.*$$/name: pc-desktop/' \
 	       -e 's/^base:.*$$/base: core22-desktop/' pc-desktop/meta/snap.yaml
-	sed -i -e '/role: system-seed/,/size:/ s/size:.*$$/size: 3000M/' \
+	sed -i -e '/role: system-seed/,/size:/ s/size:.*$$/size: 3500M/' \
 	       pc-desktop/meta/gadget.yaml
 	cat extra-gadget.yaml >> pc-desktop/meta/gadget.yaml
 	cp cloud.conf pc-desktop/cloud.conf

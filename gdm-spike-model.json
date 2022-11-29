@@ -78,10 +78,23 @@
             "id": "DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q"
         },
         {
+            "name": "cups",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "m1eQacDdXCthEwWQrESei3Zao3d5gfJF"
+        },
+        {
             "name": "evince",
             "default-channel": "latest/stable",
             "type": "app",
             "id": "EDFg87ESUg9sAIlm0Vm5Wmr0LjiEonSm",
+            "presence": "optional"
+        },
+        {
+            "name": "firefox",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk",
             "presence": "optional"
         },
         {
@@ -145,5 +158,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2022-10-26T19:57:43+08:00"
+    "timestamp": "2022-11-29T14:24:07+08:00"
 }
