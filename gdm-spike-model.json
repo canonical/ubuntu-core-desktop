@@ -85,6 +85,13 @@
             "presence": "optional"
         },
         {
+            "name": "firefox",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk",
+            "presence": "optional"
+        },
+        {
             "name": "gnome-calculator",
             "default-channel": "latest/stable",
             "type": "app",

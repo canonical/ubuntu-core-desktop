@@ -72,6 +72,12 @@ snaps:
     type: app
   -
     default-channel: latest/stable
+    id: 3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk
+    name: firefox
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
     id: J8OcDPQ0JM8dbvk29HRqpWVI9kBw0atG
     name: gnome-calculator
     presence: optional
