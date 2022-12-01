@@ -11,6 +11,7 @@
     "snaps": [
         {
             "name": "pc-desktop",
+            "default-channel": "latest/edge",
             "type": "gadget"
         },
         {
@@ -27,7 +28,9 @@
         },
         {
             "name": "core22-desktop",
-            "type": "base"
+            "default-channel": "latest/edge",
+            "type": "base",
+            "id": "qRMmQqNDz8kRUTqFIgqk2RzNNoC7jUZ6"
         },
         {
             "name": "ubuntu-desktop-session",
@@ -158,5 +161,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2022-11-29T14:24:07+08:00"
+    "timestamp": "2022-12-01T21:18:54+08:00"
 }
