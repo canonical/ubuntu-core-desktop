@@ -61,13 +61,13 @@
         },
         {
             "name": "gnome-3-38-2004",
-            "default-channel": "latest/candidate",
+            "default-channel": "latest/stable",
             "type": "app",
             "id": "rw36mkAjdIKl13dzfwyxP87cejpyIcct"
         },
         {
             "name": "gnome-42-2204",
-            "default-channel": "latest/candidate",
+            "default-channel": "latest/edge/keyfile",
             "type": "app",
             "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
         },
