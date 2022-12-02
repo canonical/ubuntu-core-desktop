@@ -49,6 +49,6 @@ added to the list of available sessions in GDM by default.  It can be
 added by running the following command (either on the serial console,
 or from the unconfined graphical session):
 
-    sudo /snap/ubuntu-desktop-session/current/setup.sh
+    sudo /snap/pc-desktop/current/setup.sh
 
 This will add an "Ubuntu (confined)" option to the session picker.

@@ -46,29 +46,13 @@ apps:
       activates-on:
         - dbus-gnome-nautilus
 
-  xdg-desktop-portal:
-    command: run.sh /usr/libexec/xdg-desktop-portal
+  xdg-desktop-portal-gnome:
+    command: run.sh /usr/libexec/xdg-desktop-portal-gnome
     daemon: dbus
     passthrough:
       daemon-scope: user
       activates-on:
-        - dbus-freedesktop-portal-desktop
-
-  xdg-document-portal:
-    command: run.sh /usr/libexec/xdg-document-portal
-    daemon: dbus
-    passthrough:
-      daemon-scope: user
-      activates-on:
-        - dbus-freedesktop-portal-documents
-
-  xdg-permission-store:
-    command: run.sh /usr/libexec/xdg-permission-store
-    daemon: dbus
-    passthrough:
-      daemon-scope: user
-      activates-on:
-        - dbus-freedesktop-impl-portal-permissionstore
+        - dbus-freedesktop-impl-portal-gnome
 
   xdg-desktop-portal-gtk:
     command: run.sh /usr/libexec/xdg-desktop-portal-gtk
@@ -113,14 +97,6 @@ slots:
     interface: dbus
     bus: session
     name: com.canonical.Unity
-  dbus-freedesktop-portal-desktop:
-    interface: dbus
-    bus: session
-    name: org.freedesktop.portal.Desktop
-  dbus-freedesktop-portal-documents:
-    interface: dbus
-    bus: session
-    name: org.freedesktop.portal.Documents
   dbus-freedesktop-impl-portal-gnome:
     interface: dbus
     bus: session
@@ -129,10 +105,6 @@ slots:
     interface: dbus
     bus: session
     name: org.freedesktop.impl.portal.desktop.gtk
-  dbus-freedesktop-impl-portal-permissionstore:
-    interface: dbus
-    bus: session
-    name: org.freedesktop.impl.portal.PermissionStore
   dbus-freedesktop-screensaver:
     interface: dbus
     bus: session
@@ -277,6 +249,10 @@ slots:
     interface: dbus
     bus: session
     name: org.gnome.Shell.Introspect
+  dbus-gnome-shell-portal:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.Portal
   dbus-gnome-shell-screencast:
     interface: dbus
     bus: session
