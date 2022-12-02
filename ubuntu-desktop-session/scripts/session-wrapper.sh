@@ -9,6 +9,7 @@ if [ -f /snap/snapd/current/etc/profile.d/apps-bin-path.sh ]; then
 fi
 
 export XDG_CURRENT_DESKTOP=ubuntu:GNOME
+export GSETTINGS_BACKEND=keyfile
 
 dbus-update-activation-environment --systemd --all
 
