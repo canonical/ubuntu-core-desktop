@@ -50,12 +50,12 @@ snaps:
     name: gtk-common-themes
     type: app
   -
-    default-channel: latest/stable
+    default-channel: latest/candidate
     id: rw36mkAjdIKl13dzfwyxP87cejpyIcct
     name: gnome-3-38-2004
     type: app
   -
-    default-channel: latest/edge/keyfile
+    default-channel: latest/candidate
     id: lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3
     name: gnome-42-2204
     type: app
