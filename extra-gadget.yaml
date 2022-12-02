@@ -16,6 +16,6 @@ connections:
   - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:network-control
   - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:network-observe
   - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:shutdown
-  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:snapd-control
   - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:system-observe
   - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:shell-config-files
+  - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:upower-observe
