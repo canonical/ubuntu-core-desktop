@@ -20,9 +20,6 @@ confinement: strict
 architectures:
   - all
 
-environment:
-  GSETTINGS_BACKEND: "keyfile"
-
 apps:
   ubuntu-desktop-session:
     command: run-session.sh
