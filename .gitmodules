@@ -1,4 +1,4 @@
 [submodule "core22"]
 	path = core22
-	url = git@github.com:canonical/core-base-desktop.git
-	branch = main
+	url = git@github.com:kenvandine/core-base-desktop.git
+	branch = enable_xwayland
