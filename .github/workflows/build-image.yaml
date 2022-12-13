@@ -2,8 +2,6 @@ name: build-image
 on:
   pull_request:
   push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -40,8 +38,8 @@ jobs:
       - name: Checkout snapd
         uses: actions/checkout@v3
         with:
-          repository: jhenstridge/snapd
-          ref: desktop-mega-merge
+          repository: robert-ancell/snapd
+          ref: desktop-launch-icons
           path: snapd
       - name: Get snapd revision
         id: snapd-get-rev
