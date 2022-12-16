@@ -21,6 +21,7 @@ connections:
   - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:shutdown
   - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:system-observe
   - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:shell-config-files
+    slot: system:system-files
   - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:upower-observe
 
   - plug: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:network-manager
