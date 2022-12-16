@@ -12,7 +12,8 @@
         {
             "name": "pc-desktop",
             "default-channel": "latest/edge",
-            "type": "gadget"
+            "type": "gadget",
+            "id": "mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy"
         },
         {
             "name": "pc-kernel",
@@ -161,5 +162,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2022-12-01T21:18:54+08:00"
+    "timestamp": "2022-12-16T18:36:58+08:00"
 }

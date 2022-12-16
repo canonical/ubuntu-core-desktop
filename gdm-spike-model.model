@@ -10,6 +10,7 @@ grade: dangerous
 snaps:
   -
     default-channel: latest/edge
+    id: mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy
     name: pc-desktop
     type: gadget
   -
@@ -135,16 +136,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2022-12-01T21:18:54+08:00
+timestamp: 2022-12-16T18:36:58+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjm8ReAAoJEK/DToINRsqGG3QP/01p
-nBoeq7J4biE9SF7z7R/0SHE46sjcQFJJ4qZvahu0/jv4HGbslaQ4L0CQR0M+7mh5ztJGiKPHFtgq
-UBFMh9q7HnWwyCYZXBfEim1VATgHurLvMdAOc1NhR7JCv7tLeVbmk04k2MGuiODYxDT+nbi+oGy5
-EAJ49YQdJAxhLlUvEzCVyCAtkHNVsc8zwOF8q9D0Fhb6Df/E6TmF3vjHvw5xCmdNYU3muUtEoQEg
-/EOmUfX0clrynKiRgkwupA5pK6n1H3FBfEfWyg6ZZXpNW8m6HNV07Kh3Pgh+Bjjg7iTHbWLq0DfU
-+xv4hW0gB1gGUjCDAQv85SumjgYjEj6fa6ihalI6i0AaBeB5WbQ1muLKE5pAYTMl0RuFz8wuR7MK
-pXBtHqIpqopPoJMxL2ak1mAplnoln/QT8ey0SslL5eA6igt/jLlIYgWPzApnyOvYY0l08KANrwtR
-Sg03HpF/yzJn6vXa/+0nTkyhXSCINbjpMweSvOoerLnpPc/sAKxha6d2hsNuKhq81rDlSr6wjWBx
-CJ014NpnnjaKB66qYMUK2GaXZYa/InlI2KAJdLjaUly6D74Qu84h81DBle8hGl8duVD+eD48G/Tf
-1FmISUdYiGrVZw9++zdLST2NtxEtzP0ExxthpA34b/dkvuwczFcZySG2AjpQ0rSFm00PubxE
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjnEpgAAoJEK/DToINRsqGggsP+wWY
+5eupjT3DfhiqzgCv5iWj1T2X8Gt9PVd9aLHMFXykDI8Tly5ef4bqHMlPQ1KcaBOTbmiYzoVOTJ5d
+K0V/StvFQavZL0CetAxSHIdvj0Ic5jNAtWWTKL36O3o9ff0Ff4fY6W2CqWiSNY25ZMSGsvoT6CGC
+LRaWZ/HeS9JYYF4irkroHd6dK3HYCRWFSRJebCsV/HDSquZoxeUr6kt3EIO3oKffOuok4LHbWaTq
+SCylRQFQjEuWnVX8p9/rzVTmXkaW7/E0hEmtIa0w5dxaPNbPEwnN9/fLFJhn4T+eEGqQ0KYtEUTA
+UnXe5iIK5rDk4cPwTg1WLuuZxPGDd6VnTWI1SZ4ev+yvciyL+AM6+RzGsH1YJvywywSJeytZTK9K
+67vvvj7MIoM9flmLo1EsiANgbMpOs4r3yIRaNauLMZdMUhepNc/SOxVsP42jbNjPl369ryanEom1
+9c5G2z7Ty+EtmIsoOtXljY9XrLzLdVJP8fD+U0TgbVTS0buxb6mZEZmyI0ubP2nb87N9aZNfX7NP
+DVUruB1JcQfaByOdRt/gVZ27rj9bc+/5BGKSWxj97zillkc7pDgD7oF15RKwPILuWvYMnGlkd2hP
+PzYLeCZr6MJEZsd5ZGd1YzkYRCuRZgvi9Ss2dhwWnpJO+jJw6IvnDU58TNeFT5vAApwZ1aE0
