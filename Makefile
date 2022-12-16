@@ -1,6 +1,6 @@
 
 EXTRA_SNAPS =
-ALL_SNAPS = $(EXTRA_SNAPS) firefox gnome-calculator gnome-characters gnome-clocks gnome-font-viewer gnome-text-editor gnome-weather
+ALL_SNAPS = $(EXTRA_SNAPS) firefox gnome-calculator gnome-characters gnome-clocks gnome-font-viewer gnome-weather
 
 all: pc.img.gz
 
