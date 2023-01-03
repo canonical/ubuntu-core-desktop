@@ -3,15 +3,17 @@
     "authority-id": "PhMj3TyWXsKJda10Fah6d6selJIw1xCI",
     "brand-id": "PhMj3TyWXsKJda10Fah6d6selJIw1xCI",
     "series": "16",
-    "model": "ubuntu-core-22-gdm-amd64",
-    "display-name":"Ubuntu Core 22 (amd64) with GDM",
+    "model": "ubuntu-core-desktop-22-amd64",
+    "display-name":"Ubuntu Core Desktop 22 (amd64)",
     "architecture": "amd64",
     "grade": "dangerous",
     "base": "core22-desktop",
     "snaps": [
         {
             "name": "pc-desktop",
-            "type": "gadget"
+            "default-channel": "latest/edge",
+            "type": "gadget",
+            "id": "mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy"
         },
         {
             "name": "pc-kernel",
@@ -27,7 +29,9 @@
         },
         {
             "name": "core22-desktop",
-            "type": "base"
+            "default-channel": "latest/edge",
+            "type": "base",
+            "id": "qRMmQqNDz8kRUTqFIgqk2RzNNoC7jUZ6"
         },
         {
             "name": "ubuntu-desktop-session",
@@ -158,5 +162,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2022-11-29T14:24:07+08:00"
+    "timestamp": "2023-01-03T14:14:07+08:00"
 }
