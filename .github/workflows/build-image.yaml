@@ -31,10 +31,6 @@ jobs:
         with:
           path: ./snapd/*.snap
           key: ${{ steps.snapd-get-rev.outputs.cache_key }}
-      #- name: Enale snapd experimental features
-      #  run: |
-      #    cd snapd
-      #    patch -p1 < ../snapd-enable-features.patch
       - name: Build snapd
         if: steps.cache-snapd.outputs.cache-hit != 'true'
         uses: snapcore/action-build@v1
