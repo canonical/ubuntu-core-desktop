@@ -17,8 +17,8 @@ jobs:
       - name: Checkout snapd
         uses: actions/checkout@v3
         with:
-          repository: jhenstridge/snapd
-          ref: desktop-mega-merge
+          repository: canonical/ubuntu-core-desktop-snapd
+          ref: master
           path: snapd
       - name: Get snapd revision
         id: snapd-get-rev
