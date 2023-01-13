@@ -42,13 +42,25 @@ virt-manager with a command like the following:
       -device virtio-blk-pci,drive=main,bootindex=1
 ```
 
-## Testing a confined desktop session
+## Other Repositories
 
-The image includes a `ubuntu-desktop-session` snap, but it is not
-added to the list of available sessions in GDM by default.  It can be
-added by running the following command (either on the serial console,
-or from the unconfined graphical session):
+Most of the code used to construct the image is now managed in other
+repositories. Namely:
 
-    sudo /snap/pc-desktop/current/setup.sh
+* [canonical/core-base-desktop](https://github.com/canonical/core-base-desktop):
+  the `core22-desktop` base snap, forked from `core22` to use as a
+  boot base integrating GDM as a graphical login.
+* [canonical/pc-amd64-gadget-desktop](https://github.com/canonical/pc-amd64-gadget-desktop):
+  the `pc-desktop` gadget snap, forked from the regular `pc` gadget
+  snap to use `core22-desktop` as its base snap and perform some
+  additional setup.
+* [canonical/ubuntu-desktop-session-snap](https://github.com/canonical/ubuntu-desktop-session-snap):
+  the `ubuntu-desktop-session` snap that is run as the confined
+  desktop session.
+* [canonical/ubuntu-core-desktop-snapd](https://github.com/canonical/ubuntu-core-desktop-snapd)
+  a branch of snapd containing additional features that have not yet
+  been accepted upstream. Currently built as an unpublished snap, but
+  should be published as a branch soon.
 
-This will add an "Ubuntu (confined)" option to the session picker.
+Most of the above snaps are being automatically published to their edge
+channels through the snapcraft.io build service.
