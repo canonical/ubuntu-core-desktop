@@ -26,6 +26,8 @@ apps:
     slots:
       - wayland
       - x11
+    plugs:
+      - audio-playback
 
   gnome-terminal-server:
     command: run.sh /usr/libexec/gnome-terminal-server
@@ -60,6 +62,7 @@ apps:
         - dbus-freedesktop-impl-portal-gtk
 
 plugs:
+  audio-playback: null
   desktop-launch: null
   hardware-observe: null
   home: null
