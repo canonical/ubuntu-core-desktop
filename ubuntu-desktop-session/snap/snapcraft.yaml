@@ -28,6 +28,7 @@ apps:
       - x11
     plugs:
       - audio-playback
+      - audio-record
 
   gnome-terminal-server:
     command: run.sh /usr/libexec/gnome-terminal-server
@@ -63,6 +64,7 @@ apps:
 
 plugs:
   audio-playback: null
+  audio-record: null
   desktop-launch: null
   hardware-observe: null
   home: null
