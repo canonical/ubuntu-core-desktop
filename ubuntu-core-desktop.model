@@ -19,7 +19,7 @@ snaps:
     name: pc-kernel
     type: kernel
   -
-    default-channel: no-such-track/edge
+    default-channel: latest/edge/ubuntu-core-desktop
     id: PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4
     name: snapd
     type: snapd
@@ -136,16 +136,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2023-01-03T14:14:07+08:00
+timestamp: 2023-01-18T11:04:49+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjs8fJAAoJEK/DToINRsqG32cQAK+g
-5DaQcheahS/kFVHfRF7X6ZaM/W03qYm+qzcIWbDpD2nJd9oaCs4kFZH5pttaRWqKH/Jro5dSL6GF
-eVLI3i3p7rZydTb5uIK3jrh2bQfEpJ76RJ6KVbtRYgeIlQHpI8hhuGiYpTQHjrZcIooO9wpGJ7Pw
-AevQMoyYm3dY+S0WE9vf7GRH0UPDuia7acgY3HxUVPljl0VQvdWG/gm0vc5m9KIRgRU6jmogKAif
-IwtyzdVwdhI80BFvcWJzTmp5N2oelEz0FUdP4RZbUjxr0QfJfzkvZigb53Rp2MMSr4rT/FKiiCl7
-NhZc1v40pPNcq8FD7a38M0iMgUQSjPp1LhHaZa5dwDNLTIaWFzCO5BzXt0ovZAyfzJXHt2k6PiUa
-2E/SYTnoWTj9THDP3x2ec1cuzJ0AJ8gXCURZdGoRvEMDE1Jvv0yev0I7i8JFjuy1npzCdE0xF9P5
-dlMWfpc66L/vf/yPZ2R2FDeA0nadUeeORARyuD7yAK21CqnN4xed7K11C/X2v2+Ok5pHA7iMkom7
-6gof5DJkqOkjnTcBQHl/eFpYNI79MQZVoCJ9eq9vgZhlL4L5lxQ/Q0eO9p4vcokDB1bhxMyMtxPW
-voO+4mdB21G6ukHtu3J/1Lr/6UUvyrAmmQ4x4ZtYEUqoCm+SbE89thkmdGZ2AAWvrl0jQUFD
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjx2HrAAoJEK/DToINRsqGVRgQAKnc
+m5kyBTmff35AJjkWjnAHbPI52ASDPUBxIo49P5XOIpCNCa0J7k5xK3/z+hu4bxvuBuER915MYoWb
+v2zLr0Hu/j2LWfgutKjI4akacj+BUiAni/kPpAK98oBLe+VZK+bhNrrwITBNVELQntkIurhrqYu5
+GvxRv6wa7qqCFlJQf7c4MXstUlhk7eqVXiI+lwRn0o6iQYhR3AxshSUnid+Me1rabWlBmf/CXjuo
+zZTE6rLkskb9fY7M2T872xir0U5vKaPk033qPzMLMFy7YD2QEuWcgVUVyJUmH8VXl2rJzt7O5Ft1
+AfUifqsqAVjkCi2tK0E13zFQmgwKvVlrogo2rPYqrt0Iz4w8gtrh3tbLbdUnwpYRh/HMbWgU5Nst
+c2izYF1kxA2UjhNJ5i5xHFs03hD8JLLXNgDsX0oGxM8ybpso/2kBtqOKaZu621KWFsD+bKE4ZGJW
+rNrFtqg8HB11HBvttF4tr9Wi9SYPrmtN5TZpwcD+iX56HeM54NYkRB5kN1i+29SIP8KXuWjHTliJ
+s11l0X0plzx/+40iAlt/x+M5qCfMepHux20o1TOjFudgOS1p8nv2CDZwwjRxHZQo28dAeAod7CCQ
+WyRwPVvx4/zOfnNQjaM6fuv4jBuNRzLpuPmSZx2GNARR0Bp4cOZaCiTyThvgjYl3Ci9v8eEE

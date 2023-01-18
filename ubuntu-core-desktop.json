@@ -23,7 +23,7 @@
         },
         {
             "name": "snapd",
-            "default-channel": "no-such-track/edge",
+            "default-channel": "latest/edge/ubuntu-core-desktop",
             "type": "snapd",
             "id": "PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4"
         },
@@ -162,5 +162,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2023-01-03T14:14:07+08:00"
+    "timestamp": "2023-01-18T11:04:49+08:00"
 }
