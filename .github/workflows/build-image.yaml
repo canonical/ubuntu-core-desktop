@@ -14,29 +14,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Checkout snapd
-        uses: actions/checkout@v3
-        with:
-          repository: canonical/ubuntu-core-desktop-snapd
-          ref: master
-          path: snapd
-      - name: Get snapd revision
-        id: snapd-get-rev
-        run: |
-          cd snapd
-          echo "cache_key=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-      - name: Cache snapd
-        id: cache-snapd
-        uses: actions/cache@v3
-        with:
-          path: ./snapd/*.snap
-          key: ${{ steps.snapd-get-rev.outputs.cache_key }}
-      - name: Build snapd
-        if: steps.cache-snapd.outputs.cache-hit != 'true'
-        uses: snapcore/action-build@v1
-        with:
-          path: ./snapd
-          snapcraft-channel: 4.x/stable
       - name: Install build dependencies
         run: |
           sudo apt install -y make squashfs-tools dosfstools mtools
@@ -44,8 +21,7 @@ jobs:
           sudo snap install --classic ubuntu-image
       - name: Build image
         run: |
-          snapd_snap=$(ls snapd/snapd_*.snap)
-          make EXTRA_SNAPS="$snapd_snap"
+          make
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
