@@ -47,20 +47,14 @@ virt-manager with a command like the following:
 Most of the code used to construct the image is now managed in other
 repositories. Namely:
 
-* [canonical/core-base-desktop](https://github.com/canonical/core-base-desktop):
-  the `core22-desktop` base snap, forked from `core22` to use as a
-  boot base integrating GDM as a graphical login.
-* [canonical/pc-amd64-gadget-desktop](https://github.com/canonical/pc-amd64-gadget-desktop):
-  the `pc-desktop` gadget snap, forked from the regular `pc` gadget
-  snap to use `core22-desktop` as its base snap and perform some
-  additional setup.
-* [canonical/ubuntu-desktop-session-snap](https://github.com/canonical/ubuntu-desktop-session-snap):
-  the `ubuntu-desktop-session` snap that is run as the confined
-  desktop session.
-* [canonical/ubuntu-core-desktop-snapd](https://github.com/canonical/ubuntu-core-desktop-snapd)
-  a branch of snapd containing additional features that have not yet
-  been accepted upstream. Currently built as an unpublished snap, but
-  should be published as a branch soon.
+| Snap | Repo | Recipe | Notes |
+| ---- | ---- | ------ | ----- |
+| `core22-desktop` | [core-base-desktop](https://github.com/canonical/core-base-desktop) | [via snapcraft.io](https://launchpad.net/~build.snapcraft.io/+snap/676555fa9c47346f6822f38f1cb28436) | base snap, forked from `core22` to integrate GDM graphical login |
+| `pc-desktop` | [pc-amd64-gadget-desktop](https://github.com/canonical/pc-amd64-gadget-desktop) | [via snapcraft.io](https://launchpad.net/~build.snapcraft.io/+snap/b2fb84822ada14656220661309721e44) | gadget snap, forked from `pc`, using `core22-desktop` as a base |
+| `ubuntu-desktop-session` | [ubuntu-desktop-session-snap](https://github.com/canonical/ubuntu-desktop-session-snap) | [via snapcraft.io](https://launchpad.net/~build.snapcraft.io/+snap/5053979ddb01a83fd292502a5ed3a3b4) | provides the confined desktop session |
+| `snapd` | [ubuntu-core-desktop-snapd](https://github.com/canonical/ubuntu-core-desktop-snapd) | [via ~snappy-dev](https://launchpad.net/~snappy-dev/+snap/ubuntu-core-desktop-snapd) | a branch of snapd with additional changes not yet merged to mainline |
 
-Most of the above snaps are being automatically published to their edge
-channels through the snapcraft.io build service.
+In addition, the base snap uses packages from the [desktop-snappers
+core-desktop
+PPA](https://launchpad.net/~desktop-snappers/+archive/ubuntu/core-desktop). This
+is mostly to backport features we need that are not in jammy-updates.
