@@ -28,4 +28,4 @@ jobs:
           name: image
           path: |
             README.md
-            *.img.gz
+            *.tar.gz

@@ -2,11 +2,11 @@
 EXTRA_SNAPS =
 ALL_SNAPS = $(EXTRA_SNAPS) firefox gnome-calculator gnome-characters gnome-clocks gnome-font-viewer gnome-weather
 
-all: pc.img.gz
+all: pc.tar.gz
 
 pc.img: ubuntu-core-desktop.model $(EXTRA_SNAPS)
 	rm -rf img/
-	ubuntu-image snap --output-dir img --image-size 8G \
+	ubuntu-image snap --output-dir img --image-size 12G \
 	  $(foreach snap,$(ALL_SNAPS),--snap $(snap)) $<
 	mv img/pc.img .
 
@@ -16,7 +16,7 @@ ubuntu-core-desktop.model: ubuntu-core-desktop.json
 	snap sign $< > $@
 endif
 
-%.img.gz: %.img
-	gzip --keep $<
+%.tar.gz: %.img
+	tar czSf $@ $<
 
 .PHONY: all
