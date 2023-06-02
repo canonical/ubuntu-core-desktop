@@ -35,11 +35,12 @@ virt-manager with a command like the following:
 
 ```
     qemu-system-x86_64 -smp 2 -m 2048 -machine accel=kvm \
-      -device virtio-vga,virgl=on -display gtk,gl=on \
+      -display gtk,gl=on \
       -net nic,model=virtio -net user,hostfwd=tcp::8022-:22 \
       -drive file=/usr/share/OVMF/OVMF_CODE.fd,if=pflash,format=raw,unit=0,readonly=on \
       -drive file=pc.img,cache=none,format=raw,id=main,if=none \
-      -device virtio-blk-pci,drive=main,bootindex=1
+      -device virtio-blk-pci,drive=main,bootindex=1 \
+      -device ac97 -audiodev pa,id=ac97
 ```
 
 ## Other Repositories
