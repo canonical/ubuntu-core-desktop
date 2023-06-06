@@ -88,6 +88,12 @@
             "id": "m1eQacDdXCthEwWQrESei3Zao3d5gfJF"
         },
         {
+            "name": "avahi",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll"
+        },
+        {
             "name": "evince",
             "default-channel": "latest/stable",
             "type": "app",
@@ -162,5 +168,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2023-01-18T11:04:49+08:00"
+    "timestamp": "2023-06-06T19:31:35+00:00"
 }
