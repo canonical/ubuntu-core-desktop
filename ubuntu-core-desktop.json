@@ -94,6 +94,12 @@
             "id": "dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll"
         },
         {
+            "name": "bluez",
+            "default-channel": "22/stable",
+            "type": "app",
+            "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
+        },
+        {
             "name": "evince",
             "default-channel": "latest/stable",
             "type": "app",
