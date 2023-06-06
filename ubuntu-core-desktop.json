@@ -64,14 +64,8 @@
             "id": "jZLfBRzf1cYlYysIjD2bwSzNtngY0qit"
         },
         {
-            "name": "gnome-3-38-2004",
-            "default-channel": "latest/candidate",
-            "type": "app",
-            "id": "rw36mkAjdIKl13dzfwyxP87cejpyIcct"
-        },
-        {
             "name": "gnome-42-2204",
-            "default-channel": "latest/candidate",
+            "default-channel": "latest/stable",
             "type": "app",
             "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
         },
@@ -96,7 +90,7 @@
         },
         {
             "name": "firefox",
-            "default-channel": "latest/stable",
+            "default-channel": "latest/candidate/core22",
             "type": "app",
             "id": "3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk",
             "presence": "optional"
