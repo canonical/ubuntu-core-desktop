@@ -59,3 +59,38 @@ In addition, the base snap uses packages from the [desktop-snappers
 core-desktop
 PPA](https://launchpad.net/~desktop-snappers/+archive/ubuntu/core-desktop). This
 is mostly to backport features we need that are not in jammy-updates.
+
+## Extracting the snaps from the image
+
+The built image is a normal hard disk image, which means that it is possible to get
+the partition list with:
+
+    fdisk -lu pc.img
+
+This will show a list like this one:
+
+    Disk pc2.img: 12 GiB, 12884901888 bytes, 25165824 sectors
+    Units: sectors of 1 * 512 = 512 bytes
+    Sector size (logical/physical): 512 bytes / 512 bytes
+    I/O size (minimum/optimal): 512 bytes / 512 bytes
+    Disklabel type: gpt
+    Disk identifier: 6E3A867F-8F44-4880-BA2C-FABA633C36E6
+
+    Device     Start     End Sectors  Size Type
+    pc.img1    2048    4095    2048    1M BIOS boot
+    pc.img2    4096 7172095 7168000  3.4G EFI System
+
+After running the system the first time, other partitions will be added
+for the system, the user data...
+
+Now, using kpartx we can create loop devices for each of those partitions:
+
+    sudo kpartx -av pc-img
+
+Two loop devices, /dev/mapper/loopXXX/p1 and /dev/mapper/loopXXX/p2, will
+be available. We want to mount the second one, which is the one that contains
+the EFI system and the base snaps:
+
+    sudo mount /dev/mapper/loopXXX/p2 /mnt
+
+And now we can go to */mnt/snaps*, and there are all the base snaps.
