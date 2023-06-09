@@ -54,12 +54,7 @@ snaps:
     name: gtk-common-themes
     type: app
   -
-    default-channel: latest/candidate
-    id: rw36mkAjdIKl13dzfwyxP87cejpyIcct
-    name: gnome-3-38-2004
-    type: app
-  -
-    default-channel: latest/candidate
+    default-channel: latest/stable
     id: lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3
     name: gnome-42-2204
     type: app
@@ -75,12 +70,22 @@ snaps:
     type: app
   -
     default-channel: latest/stable
+    id: dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll
+    name: avahi
+    type: app
+  -
+    default-channel: 22/stable
+    id: JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS
+    name: bluez
+    type: app
+  -
+    default-channel: latest/stable
     id: EDFg87ESUg9sAIlm0Vm5Wmr0LjiEonSm
     name: evince
     presence: optional
     type: app
   -
-    default-channel: latest/stable
+    default-channel: latest/candidate/core22
     id: 3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk
     name: firefox
     presence: optional
@@ -136,16 +141,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2023-01-18T11:04:49+08:00
+timestamp: 2023-06-06T19:31:35+00:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJjx2HrAAoJEK/DToINRsqGVRgQAKnc
-m5kyBTmff35AJjkWjnAHbPI52ASDPUBxIo49P5XOIpCNCa0J7k5xK3/z+hu4bxvuBuER915MYoWb
-v2zLr0Hu/j2LWfgutKjI4akacj+BUiAni/kPpAK98oBLe+VZK+bhNrrwITBNVELQntkIurhrqYu5
-GvxRv6wa7qqCFlJQf7c4MXstUlhk7eqVXiI+lwRn0o6iQYhR3AxshSUnid+Me1rabWlBmf/CXjuo
-zZTE6rLkskb9fY7M2T872xir0U5vKaPk033qPzMLMFy7YD2QEuWcgVUVyJUmH8VXl2rJzt7O5Ft1
-AfUifqsqAVjkCi2tK0E13zFQmgwKvVlrogo2rPYqrt0Iz4w8gtrh3tbLbdUnwpYRh/HMbWgU5Nst
-c2izYF1kxA2UjhNJ5i5xHFs03hD8JLLXNgDsX0oGxM8ybpso/2kBtqOKaZu621KWFsD+bKE4ZGJW
-rNrFtqg8HB11HBvttF4tr9Wi9SYPrmtN5TZpwcD+iX56HeM54NYkRB5kN1i+29SIP8KXuWjHTliJ
-s11l0X0plzx/+40iAlt/x+M5qCfMepHux20o1TOjFudgOS1p8nv2CDZwwjRxHZQo28dAeAod7CCQ
-WyRwPVvx4/zOfnNQjaM6fuv4jBuNRzLpuPmSZx2GNARR0Bp4cOZaCiTyThvgjYl3Ci9v8eEE
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJkgojkAAoJEK/DToINRsqGTuEQAKFp
+KDYSp8VdovmPhDsmh8PuVd7i3gZbW10SsI54YFsY2wlq9mC3xHfVYpDaeBo8uhQRJzkmSOGbYoSE
+GNLd2ymXlwEvjoMAPi3vtf6qOkrE7dlLCsPlm2Xfo57rm2Cw7bcZgotBR5UolShBmz03GlvYIsCv
+eMQV8KB4bAheb/+oZqo7TmayUj5jMN12bN2DZ0689NZEhPgi+fPs1Bwf+FUqfZTnGkuIma+HApS3
+bCH/zoQt+0EjdgZL2BaoZk6Wp63J3eZn1Sjl+uGBj4oTaObFiXm/JAoBGLeCZdSDyfJgEXiYNYp8
+axffybHDKGVO3cJFixoB46BmJ5ZqcZsd2Z5B65K0v2HAFrkBK9Jm8tF7hjwWEQBM4SDe3HwTk/M4
+Il39Dlen3bBD734JZ8rausDwhaIHtrpdyZ6PpG5IBq9t24xFx0O3tBsdIv5tfqTBmK19A+vse9xi
+PDP/R6XvQfDvatP3ifRvjZQLo+oh76vFL2IJTrhpqiSGaCoHtqPUtBOB3Wb8vj3nF87lrBKDKJoK
+13WN+weyeV1Z4rTuNOoRp5FxV7FP1ZJVL+ym1Bnl1S1+8HTJnysNS7PEjS8Aa7BWkm6ddwUOe+43
+EF44PnHfTb5ceTuwFD17AP9UWKwe4Uv5X8/JLUgSX9Pvts5n16pdsgJVxQ3mlI8VXAAl60wQ
