@@ -94,6 +94,13 @@
             "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
         },
         {
+            "name": "eog",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "wWtGKn0vLvagfg975tebXfBARLUvU3G7",
+            "presence": "optional"
+        },
+        {
             "name": "evince",
             "default-channel": "latest/stable",
             "type": "app",
@@ -136,6 +143,13 @@
             "presence": "optional"
         },
         {
+            "name": "gnome-logs",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "kIMfmZTJspWa8vtfbgU3W9Nbv4V5Qgmh",
+            "presence": "optional"
+        },
+        {
             "name": "gnome-text-editor",
             "default-channel": "latest/stable",
             "type": "app",
@@ -168,5 +182,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2023-06-06T19:31:35+00:00"
+    "timestamp": "2023-06-16T13:05:25+08:00"
 }

@@ -80,6 +80,12 @@ snaps:
     type: app
   -
     default-channel: latest/stable
+    id: wWtGKn0vLvagfg975tebXfBARLUvU3G7
+    name: eog
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
     id: EDFg87ESUg9sAIlm0Vm5Wmr0LjiEonSm
     name: evince
     presence: optional
@@ -116,6 +122,12 @@ snaps:
     type: app
   -
     default-channel: latest/stable
+    id: kIMfmZTJspWa8vtfbgU3W9Nbv4V5Qgmh
+    name: gnome-logs
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
     id: PZj2sEabMQrVUV1HKZmmmXSk3E6wKC9i
     name: gnome-text-editor
     presence: optional
@@ -141,16 +153,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2023-06-06T19:31:35+00:00
+timestamp: 2023-06-16T13:05:25+08:00
 sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJkgojkAAoJEK/DToINRsqGTuEQAKFp
-KDYSp8VdovmPhDsmh8PuVd7i3gZbW10SsI54YFsY2wlq9mC3xHfVYpDaeBo8uhQRJzkmSOGbYoSE
-GNLd2ymXlwEvjoMAPi3vtf6qOkrE7dlLCsPlm2Xfo57rm2Cw7bcZgotBR5UolShBmz03GlvYIsCv
-eMQV8KB4bAheb/+oZqo7TmayUj5jMN12bN2DZ0689NZEhPgi+fPs1Bwf+FUqfZTnGkuIma+HApS3
-bCH/zoQt+0EjdgZL2BaoZk6Wp63J3eZn1Sjl+uGBj4oTaObFiXm/JAoBGLeCZdSDyfJgEXiYNYp8
-axffybHDKGVO3cJFixoB46BmJ5ZqcZsd2Z5B65K0v2HAFrkBK9Jm8tF7hjwWEQBM4SDe3HwTk/M4
-Il39Dlen3bBD734JZ8rausDwhaIHtrpdyZ6PpG5IBq9t24xFx0O3tBsdIv5tfqTBmK19A+vse9xi
-PDP/R6XvQfDvatP3ifRvjZQLo+oh76vFL2IJTrhpqiSGaCoHtqPUtBOB3Wb8vj3nF87lrBKDKJoK
-13WN+weyeV1Z4rTuNOoRp5FxV7FP1ZJVL+ym1Bnl1S1+8HTJnysNS7PEjS8Aa7BWkm6ddwUOe+43
-EF44PnHfTb5ceTuwFD17AP9UWKwe4Uv5X8/JLUgSX9Pvts5n16pdsgJVxQ3mlI8VXAAl60wQ
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJki+2tAAoJEK/DToINRsqGWcMP/1uP
++mmbOKXIcttl1b2IRuFyuj4w8xLwZaQQhaGIXW5Pgk2vAqG8te75R4h99BYkYUbNhKUPicG0Mm38
+Jus9coDZf94f80/CKs0xGHA0AG+YVkgCsqaFFtWfuxO39MBIcZEBTjYRQaU2hDuVhIVi2RRfNa7d
+Xzgl+POyxnt35vPkyxJkkleNHSnZa7SM17fd1tfrxWoaHqjQwuHxGxBM0HHWkmgK3ReQBVYSVxn/
+yb5PBB+O0j65xzya6AZDFU1pl5QV8sX+yCLbdoqZc/DK3zz2j0T0QCDBQB58tD9T+k0jcE4Q+Wbs
+24Bo9ReqgK8Tg4EKw7z+uVg9ZugFi+/KaPisIQt77TkRTkXq9ndhFWxr/KMP9zxg18qASPa97R40
+rc079a1xqq4eHqyEAfejvzYBM0Utt1twfa58Fd+J0uumyR4rHJP+9aoBWUfUP2ToMyw5Eu2NB0OO
+K/Vs9vVdw4/KtB4DzFHqDERDmYJbE0W0WN1EDbfgbdujdCzc3Q4akZVkW3x35Npzl6RwjFcV32Cl
+60hkgSVLYfODOxGhRxi/SWOmMyNPSr/V5vVZmqkS01zpxWQBq+KJ7HzkLaMukE+1DRz3s4XGH6nE
+d79TFihFNE5JyVBynWMMNhEMAWq3/ydjadzVrp4rPgavneNcCB5p5v2noMMnphD5/IfLf8kD
