@@ -94,6 +94,13 @@
             "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
         },
         {
+            "name": "eog",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "wWtGKn0vLvagfg975tebXfBARLUvU3G7",
+            "presence": "optional"
+        },
+        {
             "name": "evince",
             "default-channel": "latest/stable",
             "type": "app",
@@ -133,6 +140,13 @@
             "default-channel": "latest/stable",
             "type": "app",
             "id": "BzJuWXmCIpyjUKotXPWU2psnl8gEh4hm",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-logs",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "kIMfmZTJspWa8vtfbgU3W9Nbv4V5Qgmh",
             "presence": "optional"
         },
         {
