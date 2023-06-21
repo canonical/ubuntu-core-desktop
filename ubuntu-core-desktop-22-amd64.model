@@ -1,12 +1,12 @@
 type: model
-authority-id: PhMj3TyWXsKJda10Fah6d6selJIw1xCI
+authority-id: canonical
 series: 16
-brand-id: PhMj3TyWXsKJda10Fah6d6selJIw1xCI
+brand-id: canonical
 model: ubuntu-core-desktop-22-amd64
 architecture: amd64
 base: core22-desktop
 display-name: Ubuntu Core Desktop 22 (amd64)
-grade: dangerous
+grade: signed
 snaps:
   -
     default-channel: latest/edge
@@ -153,16 +153,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2023-06-16T13:05:25+08:00
-sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
+timestamp: 2023-06-20T07:40:40+00:00
+sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
 
-AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJki+2tAAoJEK/DToINRsqGWcMP/1uP
-+mmbOKXIcttl1b2IRuFyuj4w8xLwZaQQhaGIXW5Pgk2vAqG8te75R4h99BYkYUbNhKUPicG0Mm38
-Jus9coDZf94f80/CKs0xGHA0AG+YVkgCsqaFFtWfuxO39MBIcZEBTjYRQaU2hDuVhIVi2RRfNa7d
-Xzgl+POyxnt35vPkyxJkkleNHSnZa7SM17fd1tfrxWoaHqjQwuHxGxBM0HHWkmgK3ReQBVYSVxn/
-yb5PBB+O0j65xzya6AZDFU1pl5QV8sX+yCLbdoqZc/DK3zz2j0T0QCDBQB58tD9T+k0jcE4Q+Wbs
-24Bo9ReqgK8Tg4EKw7z+uVg9ZugFi+/KaPisIQt77TkRTkXq9ndhFWxr/KMP9zxg18qASPa97R40
-rc079a1xqq4eHqyEAfejvzYBM0Utt1twfa58Fd+J0uumyR4rHJP+9aoBWUfUP2ToMyw5Eu2NB0OO
-K/Vs9vVdw4/KtB4DzFHqDERDmYJbE0W0WN1EDbfgbdujdCzc3Q4akZVkW3x35Npzl6RwjFcV32Cl
-60hkgSVLYfODOxGhRxi/SWOmMyNPSr/V5vVZmqkS01zpxWQBq+KJ7HzkLaMukE+1DRz3s4XGH6nE
-d79TFihFNE5JyVBynWMMNhEMAWq3/ydjadzVrp4rPgavneNcCB5p5v2noMMnphD5/IfLf8kD
+AcLBXAQAAQoABgUCZJGczQAKCRDgT5vottzAEi3mEACRRrRYfjMrNrHw15n6MlRey3eafGz5dZ6K
+yOK2NNpeTWrbR1oX3U8Ck383VJWVejuKVvWoTNQBvbyt17sZ0FYjU3lsrdsXU2pHoKl5/V33kWO1
+jCcCMuGbLrU3BiU8dT/4Tjaopz0QRHQ2X3fc220VuC8f5czFUEaU8ybrZWy/59H4AdFiXXopEicd
+88ORfo/OKUNMZCu7ap/5s0Si/er5+VreLLYV0YHJC5QofXXs56LxshvUnC0vODoJgzUtqL7ubeQH
+rrAqavo9EDb8kJKEUooIDsK78Btf3BinsS79nT6N76k2k0IKGsLqIXpP4DQYE/oC2RHvNBrg/Lmy
++Xqs9tRCxC2cV1/3tYojaVE+BQEUD8XXHiGhR4LfJyEqIAhMfVrryVO/yJaUMznnDDYuNBCOYx7X
+JgKbQ5fqjjv/uV0vgpSioQgihttpwVUhowLuC68/lUyBCalUXvdQ4SZrES5KIzvn8G/E2G3UCE+K
+466VR7EiwZPWD3b+xKe+fBjZaTdQ2t1NN9MDIm8lxHo7w0QZofP4R7TKQaQVYu2+8gHZc7ar0ZE4
+3MigjvkJ/VxQSu8mvSz9lAYNhp0JTs8rCRX0cxuezFrjppAegNevxbUlZzsf0OytwB7bNkCFl+6e
+z1+4IEASWs3jwCHEzJewUNy6t0Bpf12lRVeOjJ+ocQ==

@@ -1,0 +1,186 @@
+{
+    "type": "model",
+    "authority-id": "canonical",
+    "brand-id": "canonical",
+    "series": "16",
+    "model": "ubuntu-core-desktop-22-amd64",
+    "display-name":"Ubuntu Core Desktop 22 (amd64)",
+    "architecture": "amd64",
+    "grade": "signed",
+    "base": "core22-desktop",
+    "snaps": [
+        {
+            "name": "pc-desktop",
+            "default-channel": "latest/edge",
+            "type": "gadget",
+            "id": "mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy"
+        },
+        {
+            "name": "pc-kernel",
+            "default-channel": "22/stable",
+            "type": "kernel",
+            "id": "pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza"
+        },
+        {
+            "name": "snapd",
+            "default-channel": "latest/edge/ubuntu-core-desktop",
+            "type": "snapd",
+            "id": "PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4"
+        },
+        {
+            "name": "core22-desktop",
+            "default-channel": "latest/edge",
+            "type": "base",
+            "id": "qRMmQqNDz8kRUTqFIgqk2RzNNoC7jUZ6"
+        },
+        {
+            "name": "ubuntu-desktop-session",
+            "default-channel": "latest/edge",
+            "type": "app",
+            "id": "LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN"
+        },
+        {
+            "name": "core22",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "amcUKQILKXHHTlmSa7NMdnXSx02dNeeT"
+        },
+        {
+            "name": "network-manager",
+            "default-channel": "22/stable",
+            "type": "app",
+            "id": "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy"
+        },
+        {
+            "name": "bare",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "EISPgh06mRh1vordZY9OZ34QHdd7OrdR"
+        },
+        {
+            "name": "gtk-common-themes",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "jZLfBRzf1cYlYysIjD2bwSzNtngY0qit"
+        },
+        {
+            "name": "gnome-42-2204",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
+        },
+        {
+            "name": "core20",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q"
+        },
+        {
+            "name": "cups",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "m1eQacDdXCthEwWQrESei3Zao3d5gfJF"
+        },
+        {
+            "name": "avahi",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll"
+        },
+        {
+            "name": "bluez",
+            "default-channel": "22/stable",
+            "type": "app",
+            "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
+        },
+        {
+            "name": "eog",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "wWtGKn0vLvagfg975tebXfBARLUvU3G7",
+            "presence": "optional"
+        },
+        {
+            "name": "evince",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "EDFg87ESUg9sAIlm0Vm5Wmr0LjiEonSm",
+            "presence": "optional"
+        },
+        {
+            "name": "firefox",
+            "default-channel": "latest/candidate/core22",
+            "type": "app",
+            "id": "3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-calculator",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "J8OcDPQ0JM8dbvk29HRqpWVI9kBw0atG",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-characters",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "qJcS3UjpF9AMJKWAiKwA5EWbm0y6Uduw",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-clocks",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "8NtSF2nXW6krsxbXBYydy1j985k6ZsVK",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-font-viewer",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "BzJuWXmCIpyjUKotXPWU2psnl8gEh4hm",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-logs",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "kIMfmZTJspWa8vtfbgU3W9Nbv4V5Qgmh",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-text-editor",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "PZj2sEabMQrVUV1HKZmmmXSk3E6wKC9i",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-weather",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "LhzK7p8214jufMYx1kz43QkWhFnOKdbr",
+            "presence": "optional"
+        },
+        {
+            "name": "lxd",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "J60k4JY0HppjwOjW8dZdYc8obXKxujRu"
+        },
+        {
+            "name": "snap-store",
+            "default-channel": "preview/edge",
+            "type": "app",
+            "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
+        },
+        {
+            "name": "workshops",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
+        }
+    ],
+    "timestamp": "2023-06-20T07:40:40+00:00"
+}

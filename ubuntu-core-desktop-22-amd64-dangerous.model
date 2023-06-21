@@ -1,0 +1,168 @@
+type: model
+authority-id: canonical
+series: 16
+brand-id: canonical
+model: ubuntu-core-desktop-22-amd64-dangerous
+architecture: amd64
+base: core22-desktop
+display-name: Ubuntu Core Desktop 22 (amd64) (dangerous)
+grade: dangerous
+snaps:
+  -
+    default-channel: latest/edge
+    id: mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy
+    name: pc-desktop
+    type: gadget
+  -
+    default-channel: 22/stable
+    id: pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza
+    name: pc-kernel
+    type: kernel
+  -
+    default-channel: latest/edge/ubuntu-core-desktop
+    id: PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4
+    name: snapd
+    type: snapd
+  -
+    default-channel: latest/edge
+    id: qRMmQqNDz8kRUTqFIgqk2RzNNoC7jUZ6
+    name: core22-desktop
+    type: base
+  -
+    default-channel: latest/edge
+    id: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN
+    name: ubuntu-desktop-session
+    type: app
+  -
+    default-channel: latest/stable
+    id: amcUKQILKXHHTlmSa7NMdnXSx02dNeeT
+    name: core22
+    type: base
+  -
+    default-channel: 22/stable
+    id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
+    name: network-manager
+    type: app
+  -
+    default-channel: latest/stable
+    id: EISPgh06mRh1vordZY9OZ34QHdd7OrdR
+    name: bare
+    type: base
+  -
+    default-channel: latest/stable
+    id: jZLfBRzf1cYlYysIjD2bwSzNtngY0qit
+    name: gtk-common-themes
+    type: app
+  -
+    default-channel: latest/stable
+    id: lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3
+    name: gnome-42-2204
+    type: app
+  -
+    default-channel: latest/stable
+    id: DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q
+    name: core20
+    type: base
+  -
+    default-channel: latest/stable
+    id: m1eQacDdXCthEwWQrESei3Zao3d5gfJF
+    name: cups
+    type: app
+  -
+    default-channel: latest/stable
+    id: dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll
+    name: avahi
+    type: app
+  -
+    default-channel: 22/stable
+    id: JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS
+    name: bluez
+    type: app
+  -
+    default-channel: latest/stable
+    id: wWtGKn0vLvagfg975tebXfBARLUvU3G7
+    name: eog
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: EDFg87ESUg9sAIlm0Vm5Wmr0LjiEonSm
+    name: evince
+    presence: optional
+    type: app
+  -
+    default-channel: latest/candidate/core22
+    id: 3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk
+    name: firefox
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: J8OcDPQ0JM8dbvk29HRqpWVI9kBw0atG
+    name: gnome-calculator
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: qJcS3UjpF9AMJKWAiKwA5EWbm0y6Uduw
+    name: gnome-characters
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: 8NtSF2nXW6krsxbXBYydy1j985k6ZsVK
+    name: gnome-clocks
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: BzJuWXmCIpyjUKotXPWU2psnl8gEh4hm
+    name: gnome-font-viewer
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: kIMfmZTJspWa8vtfbgU3W9Nbv4V5Qgmh
+    name: gnome-logs
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: PZj2sEabMQrVUV1HKZmmmXSk3E6wKC9i
+    name: gnome-text-editor
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: LhzK7p8214jufMYx1kz43QkWhFnOKdbr
+    name: gnome-weather
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: J60k4JY0HppjwOjW8dZdYc8obXKxujRu
+    name: lxd
+    type: app
+  -
+    default-channel: preview/edge
+    id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
+    name: snap-store
+    type: app
+  -
+    default-channel: latest/stable
+    id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
+    name: workshops
+    type: app
+timestamp: 2023-06-20T07:40:40+00:00
+sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
+
+AcLBXAQAAQoABgUCZJGcvwAKCRDgT5vottzAEuCZD/9cfEP3vAxdThvyK46Go52c/yRoRe+vSLf0
+nf9w9z0BSFOEnhynzh5rG9w0V3qkQfhWiFN6CCOLLAmkZnrL24IMVeeSls4WNEbkfJzRWMwt5Ui3
+5jOQqu82/kkvuazkKJCFI0J+Lxqngh1DhE2Dr2vR3T04ZeTVzHAmvLLCfK/Tnghm56TI6JUywLhl
++JtVTsWX0yO3KPPh4AYb1UltDOuOWrzT6zC1t/NwLEAFKvQ/LdeJ/kVeKmDFFUX3AezuxvOQNdO6
+92NyCSxrNCFPjVSZbPyAN0a3xWLSU5NoxBSHxOzir0qIj+Wa6QZhpQIDA0GJD4KKpZLVyX/S8T10
+RW2w3s7ZvkFxXk+S899a5shhtk1yiW3V/jbW2ez1l9S1D99Nay4RIaQkTS5zG5kcHu3/GLN8urOZ
+cy2SDwoigG7xjZUCae81RhzFvK7BfOd/6LGpIrU/+JMchVZgulFPgp2z/On2Rbd0pzqrc/KeWONI
+AsvoVQpT8/pacrpBlBvS+5RXxqIuV7+QuuaInrBe7+qHoDfdYFewFKqeHqR5sUkjMS01Y/Sjw+Wo
+NAb3yUe2vZPRJFxPO2bSNaL8o7SKB4wqqybEpLua1SnYR+OlaJxs981p/DJoeFwCajdXJ1RkHBrW
+c6ACaHQtT5Gl5qVrJJzOHM2P9dtybeS+NE+WtTKBbg==
