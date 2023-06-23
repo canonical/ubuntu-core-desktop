@@ -1,10 +1,10 @@
 {
     "type": "model",
-    "authority-id": "PhMj3TyWXsKJda10Fah6d6selJIw1xCI",
-    "brand-id": "PhMj3TyWXsKJda10Fah6d6selJIw1xCI",
+    "authority-id": "canonical",
+    "brand-id": "canonical",
     "series": "16",
-    "model": "ubuntu-core-desktop-22-amd64",
-    "display-name":"Ubuntu Core Desktop 22 (amd64)",
+    "model": "ubuntu-core-desktop-22-amd64-dangerous",
+    "display-name":"Ubuntu Core Desktop 22 (amd64) (dangerous)",
     "architecture": "amd64",
     "grade": "dangerous",
     "base": "core22-desktop",
@@ -182,5 +182,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2023-06-16T13:05:25+08:00"
+    "timestamp": "2023-06-20T07:40:40+00:00"
 }
