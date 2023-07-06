@@ -82,6 +82,12 @@
             "id": "m1eQacDdXCthEwWQrESei3Zao3d5gfJF"
         },
         {
+            "name": "ipp-usb",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "WJKWBUuCDufOFw2p24tvkbbw02plGkbd"
+        },
+        {
             "name": "avahi",
             "default-channel": "latest/stable",
             "type": "app",
@@ -182,5 +188,5 @@
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
         }
     ],
-    "timestamp": "2023-06-20T07:40:40+00:00"
+    "timestamp": "2023-07-06T13:46:00+00:00"
 }
