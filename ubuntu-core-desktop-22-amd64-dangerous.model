@@ -1,5 +1,6 @@
 type: model
 authority-id: canonical
+revision: 1
 series: 16
 brand-id: canonical
 model: ubuntu-core-desktop-22-amd64-dangerous
@@ -67,6 +68,11 @@ snaps:
     default-channel: latest/stable
     id: m1eQacDdXCthEwWQrESei3Zao3d5gfJF
     name: cups
+    type: app
+  -
+    default-channel: latest/stable
+    id: WJKWBUuCDufOFw2p24tvkbbw02plGkbd
+    name: ipp-usb
     type: app
   -
     default-channel: latest/stable
@@ -153,16 +159,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2023-06-20T07:40:40+00:00
+timestamp: 2023-07-06T13:46:00+00:00
 sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
 
-AcLBXAQAAQoABgUCZJGcvwAKCRDgT5vottzAEuCZD/9cfEP3vAxdThvyK46Go52c/yRoRe+vSLf0
-nf9w9z0BSFOEnhynzh5rG9w0V3qkQfhWiFN6CCOLLAmkZnrL24IMVeeSls4WNEbkfJzRWMwt5Ui3
-5jOQqu82/kkvuazkKJCFI0J+Lxqngh1DhE2Dr2vR3T04ZeTVzHAmvLLCfK/Tnghm56TI6JUywLhl
-+JtVTsWX0yO3KPPh4AYb1UltDOuOWrzT6zC1t/NwLEAFKvQ/LdeJ/kVeKmDFFUX3AezuxvOQNdO6
-92NyCSxrNCFPjVSZbPyAN0a3xWLSU5NoxBSHxOzir0qIj+Wa6QZhpQIDA0GJD4KKpZLVyX/S8T10
-RW2w3s7ZvkFxXk+S899a5shhtk1yiW3V/jbW2ez1l9S1D99Nay4RIaQkTS5zG5kcHu3/GLN8urOZ
-cy2SDwoigG7xjZUCae81RhzFvK7BfOd/6LGpIrU/+JMchVZgulFPgp2z/On2Rbd0pzqrc/KeWONI
-AsvoVQpT8/pacrpBlBvS+5RXxqIuV7+QuuaInrBe7+qHoDfdYFewFKqeHqR5sUkjMS01Y/Sjw+Wo
-NAb3yUe2vZPRJFxPO2bSNaL8o7SKB4wqqybEpLua1SnYR+OlaJxs981p/DJoeFwCajdXJ1RkHBrW
-c6ACaHQtT5Gl5qVrJJzOHM2P9dtybeS+NE+WtTKBbg==
+AcLBXAQAAQoABgUCZLDJMgAKCRDgT5vottzAEsw7D/9eQCQ3sFk8K2cBbihYjlDsc6ltko0cP17Q
+7XNC9FgirDQdPb4fitJGpY1AKPAuTnypuMwQKRfaj68tULUFbHKBYyBLZoM/EXmpjOrKp2CzBAY3
+3B0jk6vE7+y7462J2wgcF7RBVo+lb5hrD6GZmmNKOno+zdPv2LF1FeRCOd9TH0UFBw9t6BmuWDsg
+p5WxgRVLki00Qtk75hdLrm95KHyPQ1IQeX9qa7R756CZ8+c3J1oFlrwQo/uXFFHh0i5KOfqhK4+S
+X41wDOiuAP6p/PvAKuSwB+TN9KdKzBs+zKrwio19S6ukpcZJoLQiP3QE9q+8tiBDvChIj9nwSwQz
+BkVmLhlTmFPwiAzSqzFLTMvzAY6ICzj7gl7XxZ+uVclEgCP/tuYK/3Pk1vQhtU89KI94eXC2EvVL
+lkMdqFUSoVqNV+gSPkSYA3Rj81C1AQTpLg3bUP1amnM/mMf1t6fsz7f2pPQti/DCQDrQ0tB5igpJ
+gEN0BA7Gka59unoiutCD7Blys+AtBqMxeo/T5XkfESZZo41nrHIIofGe78T2O2DWIUVXeaGJ3bxb
+M6d4V4zPlWswNWMY59jJRNhhkQVvjQyoM429grDGGrxqfzGkndEmnKEQskMwsp33hPgLWItgUQ85
+COXX4V9snXrNqOiTGnGrjEkHMQCXcnKuSVJ4P0MXrA==
