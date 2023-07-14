@@ -1,5 +1,6 @@
 type: model
 authority-id: canonical
+revision: 1
 series: 16
 brand-id: canonical
 model: ubuntu-core-desktop-22-amd64
@@ -67,6 +68,11 @@ snaps:
     default-channel: latest/stable
     id: m1eQacDdXCthEwWQrESei3Zao3d5gfJF
     name: cups
+    type: app
+  -
+    default-channel: latest/stable
+    id: WJKWBUuCDufOFw2p24tvkbbw02plGkbd
+    name: ipp-usb
     type: app
   -
     default-channel: latest/stable
@@ -153,16 +159,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2023-06-20T07:40:40+00:00
+timestamp: 2023-07-06T13:46:00+00:00
 sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
 
-AcLBXAQAAQoABgUCZJGczQAKCRDgT5vottzAEi3mEACRRrRYfjMrNrHw15n6MlRey3eafGz5dZ6K
-yOK2NNpeTWrbR1oX3U8Ck383VJWVejuKVvWoTNQBvbyt17sZ0FYjU3lsrdsXU2pHoKl5/V33kWO1
-jCcCMuGbLrU3BiU8dT/4Tjaopz0QRHQ2X3fc220VuC8f5czFUEaU8ybrZWy/59H4AdFiXXopEicd
-88ORfo/OKUNMZCu7ap/5s0Si/er5+VreLLYV0YHJC5QofXXs56LxshvUnC0vODoJgzUtqL7ubeQH
-rrAqavo9EDb8kJKEUooIDsK78Btf3BinsS79nT6N76k2k0IKGsLqIXpP4DQYE/oC2RHvNBrg/Lmy
-+Xqs9tRCxC2cV1/3tYojaVE+BQEUD8XXHiGhR4LfJyEqIAhMfVrryVO/yJaUMznnDDYuNBCOYx7X
-JgKbQ5fqjjv/uV0vgpSioQgihttpwVUhowLuC68/lUyBCalUXvdQ4SZrES5KIzvn8G/E2G3UCE+K
-466VR7EiwZPWD3b+xKe+fBjZaTdQ2t1NN9MDIm8lxHo7w0QZofP4R7TKQaQVYu2+8gHZc7ar0ZE4
-3MigjvkJ/VxQSu8mvSz9lAYNhp0JTs8rCRX0cxuezFrjppAegNevxbUlZzsf0OytwB7bNkCFl+6e
-z1+4IEASWs3jwCHEzJewUNy6t0Bpf12lRVeOjJ+ocQ==
+AcLBXAQAAQoABgUCZLDJMgAKCRDgT5vottzAEkgiEACXHMJ9Ee6SgDG+RzeO+NRqbVPyUpIWQjJD
+BQow0S8nV+f3idBh/pHWWvgUfdS0lXn7Uy6dXi8+MaBGgOTr+DaDtM/qMEFGXQACme3FmDxhvYqR
+1T7d0ISMnNUbjg3CuD1e47biVHEbMttsdFEFKeyJB2JuL1OOvPwnfts2saUNyGQw0J2/gQtOuXPJ
+jw4EUBYpPIavK4DrCQ8pY+s/O7ND87qKJQ2I1/jjPoyeG976ExcaC53IkggRc6j2S5tX1ZKaha0P
+0D2hCANjCxvf98gJ75uam0mnph1wwS9Au6KXtdBCDPqBvdmbZs9l018TAjlXxj2pZaMsWYE7A46e
+GdjITTA8SMOsmxLFT+sOzZ4xv9/t6yGA3oqULBpRW19Ud4jgywSfA6/tcPaFB9zowM97lGkFI0VW
+OtwgKocWE3T7WQdH90RCb8EigeMGvaWPKUUTuSFcwq41bf7qOcnuaS47FeJxv0rJzBPaPfcm+wG/
+CewmhYbojQiHJcI6UP5gFxzpyjuL1Pm8xjORucTUtN2gehE3kNxuIv7l7ICv1cdiLT8yCMGralQh
+CmqDkC/CWaUrlvjE06LrYrsRAE6TESDU5XUv4mR4nXvjV20aE+OjecVHpJoq5IN+xW6qtD9UPINQ
+ePc7SnSzBgmvU0i2+eGucSNLLkRhz5vBjOYjIgVyZg==
