@@ -1,6 +1,6 @@
 type: model
 authority-id: canonical
-revision: 1
+revision: 2
 series: 16
 brand-id: canonical
 model: ubuntu-core-desktop-22-amd64-dangerous
@@ -150,6 +150,11 @@ snaps:
     name: lxd
     type: app
   -
+    default-channel: latest/edge/ubuntu-core-desktop
+    id: IrwRHakqtzhFRHJOOPxKVPU0Kk7Erhcu
+    name: snapd-desktop-integration
+    type: app
+  -
     default-channel: preview/edge
     id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
     name: snap-store
@@ -159,16 +164,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2023-07-06T13:46:00+00:00
+timestamp: 2023-08-02T04:56:00+00:00
 sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
 
-AcLBXAQAAQoABgUCZLDJMgAKCRDgT5vottzAEsw7D/9eQCQ3sFk8K2cBbihYjlDsc6ltko0cP17Q
-7XNC9FgirDQdPb4fitJGpY1AKPAuTnypuMwQKRfaj68tULUFbHKBYyBLZoM/EXmpjOrKp2CzBAY3
-3B0jk6vE7+y7462J2wgcF7RBVo+lb5hrD6GZmmNKOno+zdPv2LF1FeRCOd9TH0UFBw9t6BmuWDsg
-p5WxgRVLki00Qtk75hdLrm95KHyPQ1IQeX9qa7R756CZ8+c3J1oFlrwQo/uXFFHh0i5KOfqhK4+S
-X41wDOiuAP6p/PvAKuSwB+TN9KdKzBs+zKrwio19S6ukpcZJoLQiP3QE9q+8tiBDvChIj9nwSwQz
-BkVmLhlTmFPwiAzSqzFLTMvzAY6ICzj7gl7XxZ+uVclEgCP/tuYK/3Pk1vQhtU89KI94eXC2EvVL
-lkMdqFUSoVqNV+gSPkSYA3Rj81C1AQTpLg3bUP1amnM/mMf1t6fsz7f2pPQti/DCQDrQ0tB5igpJ
-gEN0BA7Gka59unoiutCD7Blys+AtBqMxeo/T5XkfESZZo41nrHIIofGe78T2O2DWIUVXeaGJ3bxb
-M6d4V4zPlWswNWMY59jJRNhhkQVvjQyoM429grDGGrxqfzGkndEmnKEQskMwsp33hPgLWItgUQ85
-COXX4V9snXrNqOiTGnGrjEkHMQCXcnKuSVJ4P0MXrA==
+AcLBXAQAAQoABgUCZNCGFgAKCRDgT5vottzAEsRyEACxApkkIKb+w9PNqTOGiPdRXAFtw2OUSvMI
+ChjO2lQlODA4an8qhtVzYC68Ui4AFoUV9GFcksA41ckhgas1mpU1oTFNc/sQdGI6ixoXvpGMUVxD
+vuIY+Ty9QOVoNfR2I7jThbcLOdojhDt8fudZ7AH7eWCk0GGFXkCtt8OPBdKy3bnc0lxI/07IAF92
+OK85i4Z4D44MChql/eJ1Myifuajc6WQnV/uAHvTwl4G19AExwJS9Cs5TbtQJo38b8sRzTw2nr0Rg
+lsANHZkIoH9UN17ZvSYkbdEl9TleVteNmm2AJuOQq8vebeG9QYH+33lZ5OXNdtDl+T9aAoD7BNtI
+V+1nqJLoVmMdoX2VMcSmukN5P7cpPZJ8HjiSFkbJec3/tggT4BGgOMXNBjJrfS61lPVzI0esbpYX
+ORin9194uOJRxUNDNgJktaA6UGiH8jwNrPYAvGZuLb6YsXAyURFjNH17YguJl81Oq2sssT7wqyld
+wOXDvQxMY+Sj1W8nF8qiKTmmEbygdqppfWWoq5yer1K7OgaTQpWsdIYX2GXH5vHIgci9ngagi1Ll
+KaS82Mawsz9+zpFS25q8vwrk8C1DSQPUleM0F4zGOlgkkC47hC638YS0fQ5/+n6rI4R0FoMkYx9k
+36OCn4M+7jDbymCcvtE+yjpXTsPZdAX8Q2Ftq48Y1Q==
