@@ -1,6 +1,6 @@
 type: model
 authority-id: canonical
-revision: 1
+revision: 2
 series: 16
 brand-id: canonical
 model: ubuntu-core-desktop-22-amd64
@@ -150,6 +150,11 @@ snaps:
     name: lxd
     type: app
   -
+    default-channel: latest/edge/ubuntu-core-desktop
+    id: IrwRHakqtzhFRHJOOPxKVPU0Kk7Erhcu
+    name: snapd-desktop-integration
+    type: app
+  -
     default-channel: preview/edge
     id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
     name: snap-store
@@ -159,16 +164,16 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2023-07-06T13:46:00+00:00
+timestamp: 2023-08-02T04:56:00+00:00
 sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
 
-AcLBXAQAAQoABgUCZLDJMgAKCRDgT5vottzAEkgiEACXHMJ9Ee6SgDG+RzeO+NRqbVPyUpIWQjJD
-BQow0S8nV+f3idBh/pHWWvgUfdS0lXn7Uy6dXi8+MaBGgOTr+DaDtM/qMEFGXQACme3FmDxhvYqR
-1T7d0ISMnNUbjg3CuD1e47biVHEbMttsdFEFKeyJB2JuL1OOvPwnfts2saUNyGQw0J2/gQtOuXPJ
-jw4EUBYpPIavK4DrCQ8pY+s/O7ND87qKJQ2I1/jjPoyeG976ExcaC53IkggRc6j2S5tX1ZKaha0P
-0D2hCANjCxvf98gJ75uam0mnph1wwS9Au6KXtdBCDPqBvdmbZs9l018TAjlXxj2pZaMsWYE7A46e
-GdjITTA8SMOsmxLFT+sOzZ4xv9/t6yGA3oqULBpRW19Ud4jgywSfA6/tcPaFB9zowM97lGkFI0VW
-OtwgKocWE3T7WQdH90RCb8EigeMGvaWPKUUTuSFcwq41bf7qOcnuaS47FeJxv0rJzBPaPfcm+wG/
-CewmhYbojQiHJcI6UP5gFxzpyjuL1Pm8xjORucTUtN2gehE3kNxuIv7l7ICv1cdiLT8yCMGralQh
-CmqDkC/CWaUrlvjE06LrYrsRAE6TESDU5XUv4mR4nXvjV20aE+OjecVHpJoq5IN+xW6qtD9UPINQ
-ePc7SnSzBgmvU0i2+eGucSNLLkRhz5vBjOYjIgVyZg==
+AcLBXAQAAQoABgUCZNCGHwAKCRDgT5vottzAEmF9D/9XhVmpShjc8nbausGIvixN4ElePwBD8E4+
+jsxCMnmkyMgHVgmyy4ENLLAhGKmarsj7iBYvF/HzUsFKQ6YWFRrk5gkCuhitJoxVL6jxnilhX6zG
+E1oHzopd+ak3T/YLRT5V9P/II6NOImCkuYivvKQGX0GZL88YD3Wv9MyUnyZbotdZpCY7yo2UB/G0
+tTNUqlYCQffe8UB88gj7EKWWR5N/fLamzEOCtOfGJqFvTeKXMjJrPRIckQrCpR3hhhtHWY5CDYa+
+rKIVbDFsgTq6mfAyFvP9fngZTgC3NYkj9Evi/paEgZEj8iUelrFOH2ikvt4cAkC7GKqfYflKLEf3
+C6J9Azs8IgWmTgSmkwwqt+m48xHxfTP3sThPN4SNoH7FFx/jpJKkwkg9OFhDSoGJgonCUmoFSWvH
+j11AbyQlheZ3D0+cJJo9KUrFjH5bXrqCqa/8fgjiJqNL7Uw8ZHCBhY2okwEYDGp0JXJjmPLJU/gJ
+hQK6+A/HqVp39UvWDIchSggjRKsM/zQD44jhAxuyvPEr/tHoZr6/qFKOYbDyaxe7QE2poG8tKnMt
+AGCDgPEJ2ykXHWl6R+1TTOowpBg2duKfGlcf8Tyr4cqMNYyqYrF6A/lreqKtmnyme4HoohAV6SST
+sol4Zvf7EQOU0qU55wdext0ETit18f4R0dUIb0Gkzg==

@@ -6,8 +6,8 @@
     "model": "ubuntu-core-desktop-22-amd64-dangerous",
     "display-name":"Ubuntu Core Desktop 22 (amd64) (dangerous)",
     "architecture": "amd64",
-    "revision": "1",
-    "timestamp": "2023-07-06T13:46:00+00:00",
+    "revision": "2",
+    "timestamp": "2023-08-02T04:56:00+00:00",
     "grade": "dangerous",
     "base": "core22-desktop",
     "snaps": [
@@ -176,6 +176,12 @@
             "default-channel": "latest/stable",
             "type": "app",
             "id": "J60k4JY0HppjwOjW8dZdYc8obXKxujRu"
+        },
+        {
+            "name": "snapd-desktop-integration",
+            "default-channel": "latest/edge/ubuntu-core-desktop",
+            "type": "app",
+            "id": "IrwRHakqtzhFRHJOOPxKVPU0Kk7Erhcu"
         },
         {
             "name": "snap-store",
