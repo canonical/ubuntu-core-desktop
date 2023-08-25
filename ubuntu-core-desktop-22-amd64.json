@@ -194,6 +194,13 @@
             "default-channel": "latest/stable",
             "type": "app",
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
+        },
+        {
+            "name": "gnome-system-monitor",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "9BTClmjz31r0UltmbJ5nnGe0Xm1AzfMp",
+            "presence": "optional"
         }
     ]
 }
