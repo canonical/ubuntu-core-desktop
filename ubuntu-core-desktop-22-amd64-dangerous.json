@@ -185,7 +185,7 @@
         },
         {
             "name": "snap-store",
-            "default-channel": "preview/edge/ubuntu-23.10",
+            "default-channel": "latest/stable/ubuntu-23.10",
             "type": "app",
             "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
         },
