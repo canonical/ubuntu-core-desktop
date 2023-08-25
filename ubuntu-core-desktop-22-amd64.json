@@ -13,7 +13,7 @@
     "snaps": [
         {
             "name": "pc-desktop",
-            "default-channel": "latest/edge",
+            "default-channel": "22/stable",
             "type": "gadget",
             "id": "mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy"
         },
@@ -31,13 +31,13 @@
         },
         {
             "name": "core22-desktop",
-            "default-channel": "latest/edge",
+            "default-channel": "latest/stable",
             "type": "base",
             "id": "qRMmQqNDz8kRUTqFIgqk2RzNNoC7jUZ6"
         },
         {
             "name": "ubuntu-desktop-session",
-            "default-channel": "latest/edge",
+            "default-channel": "latest/stable",
             "type": "app",
             "id": "LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN"
         },
@@ -185,7 +185,7 @@
         },
         {
             "name": "snap-store",
-            "default-channel": "preview/edge",
+            "default-channel": "preview/edge/ubuntu-23.10",
             "type": "app",
             "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
         },
