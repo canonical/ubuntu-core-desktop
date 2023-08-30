@@ -72,12 +72,6 @@
             "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
         },
         {
-            "name": "core20",
-            "default-channel": "latest/stable",
-            "type": "base",
-            "id": "DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q"
-        },
-        {
             "name": "cups",
             "default-channel": "latest/stable",
             "type": "app",
@@ -91,7 +85,7 @@
         },
         {
             "name": "avahi",
-            "default-channel": "latest/stable",
+            "default-channel": "22/stable",
             "type": "app",
             "id": "dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll"
         },
@@ -117,7 +111,7 @@
         },
         {
             "name": "firefox",
-            "default-channel": "latest/stable/ubuntu-23.10",
+            "default-channel": "latest/stable",
             "type": "app",
             "id": "3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk",
             "presence": "optional"
