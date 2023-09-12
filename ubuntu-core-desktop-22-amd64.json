@@ -6,14 +6,15 @@
     "model": "ubuntu-core-desktop-22-amd64",
     "display-name":"Ubuntu Core Desktop 22 (amd64)",
     "architecture": "amd64",
-    "revision": "2",
-    "timestamp": "2023-08-02T04:56:00+00:00",
+    "revision": "3",
+    "timestamp": "2023-08-25T18:50:16+00:00",
     "grade": "signed",
+    "storage-safety": "prefer-encrypted",
     "base": "core22-desktop",
     "snaps": [
         {
             "name": "pc-desktop",
-            "default-channel": "latest/edge",
+            "default-channel": "22/stable",
             "type": "gadget",
             "id": "mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy"
         },
@@ -31,13 +32,13 @@
         },
         {
             "name": "core22-desktop",
-            "default-channel": "latest/edge",
+            "default-channel": "latest/stable",
             "type": "base",
             "id": "qRMmQqNDz8kRUTqFIgqk2RzNNoC7jUZ6"
         },
         {
             "name": "ubuntu-desktop-session",
-            "default-channel": "latest/edge",
+            "default-channel": "latest/stable",
             "type": "app",
             "id": "LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN"
         },
@@ -72,12 +73,6 @@
             "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
         },
         {
-            "name": "core20",
-            "default-channel": "latest/stable",
-            "type": "base",
-            "id": "DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q"
-        },
-        {
             "name": "cups",
             "default-channel": "latest/stable",
             "type": "app",
@@ -91,7 +86,7 @@
         },
         {
             "name": "avahi",
-            "default-channel": "latest/stable",
+            "default-channel": "22/stable",
             "type": "app",
             "id": "dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll"
         },
@@ -117,7 +112,7 @@
         },
         {
             "name": "firefox",
-            "default-channel": "latest/candidate/core22",
+            "default-channel": "latest/stable",
             "type": "app",
             "id": "3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk",
             "presence": "optional"
@@ -185,7 +180,7 @@
         },
         {
             "name": "snap-store",
-            "default-channel": "preview/edge",
+            "default-channel": "latest/stable/ubuntu-23.10",
             "type": "app",
             "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
         },
@@ -194,6 +189,13 @@
             "default-channel": "latest/stable",
             "type": "app",
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
+        },
+        {
+            "name": "gnome-system-monitor",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "9BTClmjz31r0UltmbJ5nnGe0Xm1AzfMp",
+            "presence": "optional"
         }
     ]
 }
