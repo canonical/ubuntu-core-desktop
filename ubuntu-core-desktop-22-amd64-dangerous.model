@@ -1,6 +1,6 @@
 type: model
 authority-id: canonical
-revision: 2
+revision: 3
 series: 16
 brand-id: canonical
 model: ubuntu-core-desktop-22-amd64-dangerous
@@ -10,7 +10,7 @@ display-name: Ubuntu Core Desktop 22 (amd64) (dangerous)
 grade: dangerous
 snaps:
   -
-    default-channel: latest/edge
+    default-channel: 22/stable
     id: mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy
     name: pc-desktop
     type: gadget
@@ -25,12 +25,12 @@ snaps:
     name: snapd
     type: snapd
   -
-    default-channel: latest/edge
+    default-channel: latest/stable
     id: qRMmQqNDz8kRUTqFIgqk2RzNNoC7jUZ6
     name: core22-desktop
     type: base
   -
-    default-channel: latest/edge
+    default-channel: latest/stable
     id: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN
     name: ubuntu-desktop-session
     type: app
@@ -61,11 +61,6 @@ snaps:
     type: app
   -
     default-channel: latest/stable
-    id: DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q
-    name: core20
-    type: base
-  -
-    default-channel: latest/stable
     id: m1eQacDdXCthEwWQrESei3Zao3d5gfJF
     name: cups
     type: app
@@ -75,7 +70,7 @@ snaps:
     name: ipp-usb
     type: app
   -
-    default-channel: latest/stable
+    default-channel: 22/stable
     id: dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll
     name: avahi
     type: app
@@ -97,7 +92,7 @@ snaps:
     presence: optional
     type: app
   -
-    default-channel: latest/candidate/core22
+    default-channel: latest/stable
     id: 3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk
     name: firefox
     presence: optional
@@ -155,7 +150,7 @@ snaps:
     name: snapd-desktop-integration
     type: app
   -
-    default-channel: preview/edge
+    default-channel: latest/stable/ubuntu-23.10
     id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
     name: snap-store
     type: app
@@ -164,16 +159,23 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2023-08-02T04:56:00+00:00
+  -
+    default-channel: latest/stable
+    id: 9BTClmjz31r0UltmbJ5nnGe0Xm1AzfMp
+    name: gnome-system-monitor
+    presence: optional
+    type: app
+storage-safety: prefer-encrypted
+timestamp: 2023-08-25T18:50:16+00:00
 sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
 
-AcLBXAQAAQoABgUCZNCGFgAKCRDgT5vottzAEsRyEACxApkkIKb+w9PNqTOGiPdRXAFtw2OUSvMI
-ChjO2lQlODA4an8qhtVzYC68Ui4AFoUV9GFcksA41ckhgas1mpU1oTFNc/sQdGI6ixoXvpGMUVxD
-vuIY+Ty9QOVoNfR2I7jThbcLOdojhDt8fudZ7AH7eWCk0GGFXkCtt8OPBdKy3bnc0lxI/07IAF92
-OK85i4Z4D44MChql/eJ1Myifuajc6WQnV/uAHvTwl4G19AExwJS9Cs5TbtQJo38b8sRzTw2nr0Rg
-lsANHZkIoH9UN17ZvSYkbdEl9TleVteNmm2AJuOQq8vebeG9QYH+33lZ5OXNdtDl+T9aAoD7BNtI
-V+1nqJLoVmMdoX2VMcSmukN5P7cpPZJ8HjiSFkbJec3/tggT4BGgOMXNBjJrfS61lPVzI0esbpYX
-ORin9194uOJRxUNDNgJktaA6UGiH8jwNrPYAvGZuLb6YsXAyURFjNH17YguJl81Oq2sssT7wqyld
-wOXDvQxMY+Sj1W8nF8qiKTmmEbygdqppfWWoq5yer1K7OgaTQpWsdIYX2GXH5vHIgci9ngagi1Ll
-KaS82Mawsz9+zpFS25q8vwrk8C1DSQPUleM0F4zGOlgkkC47hC638YS0fQ5/+n6rI4R0FoMkYx9k
-36OCn4M+7jDbymCcvtE+yjpXTsPZdAX8Q2Ftq48Y1Q==
+AcLBXAQAAQoABgUCZQCodgAKCRDgT5vottzAEuLnD/0YIute64cbdKOf91e68H2FKF1SGZpORhyl
+Zu9gwD6OM5jUq3qCarqSoEOw4krA3ZpLfSD0E8l90xD9/f9j7WFiPZgdG51Ga86Z9CAHzDpiuWmc
+p3X2LlBBFUEeY1k97/8f+mj2OzD6L97BIxobfUQvb8l2m1oE6useSan1KX7yoxWL35ubM9lg3ujx
+AMjFfJNafIhirYQT0wpCj3rI8a/qgbuChKC1jOS0sP2b7u0ntPcJ3rsT21gfXmqGx0MbFmI1BlgV
+ejrfDINhtXD58nJjtwx8O2hepda3TTKvLZZkOZZoaR4crf4o9ULNjIzsbKJ08v1XsgWU+upiNekp
+1nJo7GK/zK9vi85eI+zg/7pfByXZvwwIZRFkIqaNRvHgYytXjnvE5fvSoNeEq26Yb4Guf7+U5E41
+AKVs8/cNrznTz0dGGwqzmimTetb0XvWgjxtXOdn5BqG/iPAaD7EcCB+EMbffvOyIiUEwtenLTE5V
+C4rjOH9IEHMKHDPiD3N4+yctNmhvyXgTty8m1sqgcV/R8BA4upyo0K2uxvNbttWdO2xzhxO/seZO
+zh8uVpiAeAGMu977+ryjK7XoE/lkfvf4klECtLVrsf0o2eoncPKuQeyV1qWB/9yTgjY+RIL46AW5
+hedwIPZMoJt/h2KYQNKhejS0wVr8c8OoffRrc4Dddg==

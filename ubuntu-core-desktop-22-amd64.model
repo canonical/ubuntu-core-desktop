@@ -1,6 +1,6 @@
 type: model
 authority-id: canonical
-revision: 2
+revision: 3
 series: 16
 brand-id: canonical
 model: ubuntu-core-desktop-22-amd64
@@ -10,7 +10,7 @@ display-name: Ubuntu Core Desktop 22 (amd64)
 grade: signed
 snaps:
   -
-    default-channel: latest/edge
+    default-channel: 22/stable
     id: mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy
     name: pc-desktop
     type: gadget
@@ -25,12 +25,12 @@ snaps:
     name: snapd
     type: snapd
   -
-    default-channel: latest/edge
+    default-channel: latest/stable
     id: qRMmQqNDz8kRUTqFIgqk2RzNNoC7jUZ6
     name: core22-desktop
     type: base
   -
-    default-channel: latest/edge
+    default-channel: latest/stable
     id: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN
     name: ubuntu-desktop-session
     type: app
@@ -61,11 +61,6 @@ snaps:
     type: app
   -
     default-channel: latest/stable
-    id: DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q
-    name: core20
-    type: base
-  -
-    default-channel: latest/stable
     id: m1eQacDdXCthEwWQrESei3Zao3d5gfJF
     name: cups
     type: app
@@ -75,7 +70,7 @@ snaps:
     name: ipp-usb
     type: app
   -
-    default-channel: latest/stable
+    default-channel: 22/stable
     id: dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll
     name: avahi
     type: app
@@ -97,7 +92,7 @@ snaps:
     presence: optional
     type: app
   -
-    default-channel: latest/candidate/core22
+    default-channel: latest/stable
     id: 3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk
     name: firefox
     presence: optional
@@ -155,7 +150,7 @@ snaps:
     name: snapd-desktop-integration
     type: app
   -
-    default-channel: preview/edge
+    default-channel: latest/stable/ubuntu-23.10
     id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
     name: snap-store
     type: app
@@ -164,16 +159,23 @@ snaps:
     id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
     name: workshops
     type: app
-timestamp: 2023-08-02T04:56:00+00:00
+  -
+    default-channel: latest/stable
+    id: 9BTClmjz31r0UltmbJ5nnGe0Xm1AzfMp
+    name: gnome-system-monitor
+    presence: optional
+    type: app
+storage-safety: prefer-encrypted
+timestamp: 2023-08-25T18:50:16+00:00
 sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
 
-AcLBXAQAAQoABgUCZNCGHwAKCRDgT5vottzAEmF9D/9XhVmpShjc8nbausGIvixN4ElePwBD8E4+
-jsxCMnmkyMgHVgmyy4ENLLAhGKmarsj7iBYvF/HzUsFKQ6YWFRrk5gkCuhitJoxVL6jxnilhX6zG
-E1oHzopd+ak3T/YLRT5V9P/II6NOImCkuYivvKQGX0GZL88YD3Wv9MyUnyZbotdZpCY7yo2UB/G0
-tTNUqlYCQffe8UB88gj7EKWWR5N/fLamzEOCtOfGJqFvTeKXMjJrPRIckQrCpR3hhhtHWY5CDYa+
-rKIVbDFsgTq6mfAyFvP9fngZTgC3NYkj9Evi/paEgZEj8iUelrFOH2ikvt4cAkC7GKqfYflKLEf3
-C6J9Azs8IgWmTgSmkwwqt+m48xHxfTP3sThPN4SNoH7FFx/jpJKkwkg9OFhDSoGJgonCUmoFSWvH
-j11AbyQlheZ3D0+cJJo9KUrFjH5bXrqCqa/8fgjiJqNL7Uw8ZHCBhY2okwEYDGp0JXJjmPLJU/gJ
-hQK6+A/HqVp39UvWDIchSggjRKsM/zQD44jhAxuyvPEr/tHoZr6/qFKOYbDyaxe7QE2poG8tKnMt
-AGCDgPEJ2ykXHWl6R+1TTOowpBg2duKfGlcf8Tyr4cqMNYyqYrF6A/lreqKtmnyme4HoohAV6SST
-sol4Zvf7EQOU0qU55wdext0ETit18f4R0dUIb0Gkzg==
+AcLBXAQAAQoABgUCZQCodgAKCRDgT5vottzAEujqEACcHNCxFiARmLd3yquIsRXQ40LWY5VOoPqT
+oLK5po2/BtewQXBMQJST1KHwzpmxFWabbD5mNEe6w/+oP2p/OjtHKrpwDD9SSSYgYlUn4G5ub/Zi
+ufMuf9Hqqqyr2Zy2+RaCLt+Vf0YdfSxStPvmPAWtLFSb73seMWQ0lcfLYgHKgu6cSzW7JfBrGvdl
+ZDEyFg4fhfsylrjkQdgMofR4XJSUoj5HElgsIiHVJnF3mlrzDb/N93v9S8Wd028h4iW+lu1UVuB7
+ui4IDAStS9qOireZlqtxreVTdqIQoLL0xc13P5MTYj3mfQYQnhq+I3iKejbQ3xeu9Ka2x5LG8pZ9
+C9DrSJ2KjrFFfNIatxAQxoaHwBp9DRsP9wuHw+K7nFwxyKGUkjVM79Bu0pCc4pKWqPSywti7XETV
+reLMBSEze7W4S/zmYjBsnaEgn97ZypIGXkEeUs2RNwq0wY9ZhSCEl80Jot+Y2xzuZxX2PdLIQWFB
+dykU9HvuMB74/Jo6gQKGmmlEJ1Yosev8VL6aUsykJR0HR0Diyh9U5mGxgC3c/v24cyNnjlALXytg
+xzeJ7aDyB3cRYsiRAX/xHIy5V8IegcscSuxTN1p1yhYloy8Nqfy3P8wS8w+P88EmA+OiVEFQXJXo
+QtE/gNFnHRge1nnqLl7BQmomH5L8fXR4LZTPXBUcAg==
