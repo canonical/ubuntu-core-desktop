@@ -1,6 +1,7 @@
 EXTRA_SNAPS =
 ALL_SNAPS = $(EXTRA_SNAPS) evince firefox gnome-calculator gnome-characters gnome-clocks gnome-font-viewer gnome-logs gnome-system-monitor gnome-text-editor gnome-weather loupe snapd-desktop-integration snap-store ubuntu-core-desktop-init workshops
-all: pc.tar.gz
+
+all: pc.tar.gz installer-amd64.img.xz
 
 pc.img: ubuntu-core-desktop-22-amd64.model $(EXTRA_SNAPS)
 	rm -rf img/
