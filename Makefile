@@ -26,7 +26,6 @@ ubuntu-core-desktop-22-amd64.img: pc.img.xz
 	cat image/install-sources.yaml.in |sed "s/@SIZE@/$(shell stat -c%s pc.img.xz)/g" > image/install-sources.yaml
 	sudo ubuntu-image classic --debug -O output/ image/core-desktop.yaml
 	sudo chown -R $(shell id -u):$(shell id -g) output
-	sudo ./image/tweak.sh
 	mv output/ubuntu-core-desktop-22-amd64.img .
 
 ubuntu-core-desktop-22-amd64.img.xz: ubuntu-core-desktop-22-amd64.img
