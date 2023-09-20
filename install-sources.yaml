@@ -1,0 +1,12 @@
+- default: true
+  description:
+    en: Ubuntu Desktop.
+  id: ubuntu-desktop
+  locale_support: none
+  name:
+    en: Ubuntu Desktop
+  path: pc.img
+  type: dd-raw:file
+  size: 12884901888
+  variant: core 
+
