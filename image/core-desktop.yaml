@@ -1,0 +1,57 @@
+name: ubuntu-core-desktop-amd64
+display-name: Ubuntu Core Desktop amd64
+revision: 1
+architecture: amd64
+series: mantic
+class: preinstalled
+kernel: linux-image-generic
+gadget:
+  url: "https://git.launchpad.net/~canonical-foundations/snap-pc/+git/github-mirror-amd64"
+  branch: classic
+  type: "git"
+rootfs:
+  components:
+    - main
+    - restricted
+  seed:
+    urls:
+      - "git://git.launchpad.net/~ubuntu-core-dev/ubuntu-seeds/+git/"
+    branch: mantic
+    names:
+      - minimal
+customization:
+  cloud-init:
+    user-data: |
+      #cloud-config
+      chpasswd:
+        expire: false
+        users:
+          - name: ubuntu
+            password: ubuntu
+            type: text
+    meta-data: |
+      dsmode: local
+      instance_id: ubuntu-core-desktop
+  extra-packages:
+    - name: plymouth-theme-spinner
+    - name: squashfs-tools
+    - name: snapd
+    - name: cloud-init
+  extra-snaps:
+    - name: ubuntu-core-desktop-installer
+    - name: core22
+    - name: snapd
+  manual:
+    copy-file:
+      - source: image/99-custom-networking.cfg
+        destination: /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
+      - source: image/install-sources.yaml
+        destination: /install-sources.yaml
+      - source: pc.img.xz
+        destination: /pc.img.xz
+artifacts:
+  img:
+    -
+      name: installer-amd64.img
+  manifest:
+    name: "filesystem-manifest.txt"
