@@ -196,6 +196,13 @@
             "type": "app",
             "id": "9BTClmjz31r0UltmbJ5nnGe0Xm1AzfMp",
             "presence": "optional"
+        },
+        {
+            "name": "ubuntu-core-desktop-init",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "xODwiAdjx9KGChvI1z9Xx2JWJE7oLFF6",
+            "presence": "optional"
         }
     ]
 }
