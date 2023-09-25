@@ -1,7 +1,7 @@
 {
     "type": "model",
-    "authority-id": "2WlR1Tm8mVkqItcaFkNaRgnRxZicKJZz",
-    "brand-id": "2WlR1Tm8mVkqItcaFkNaRgnRxZicKJZz",
+    "authority-id": "canonical",
+    "brand-id": "canonical",
     "series": "16",
     "model": "ubuntu-core-desktop-22-amd64-dangerous",
     "display-name":"Ubuntu Core Desktop 22 (amd64) (dangerous)",
