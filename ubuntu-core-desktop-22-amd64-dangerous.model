@@ -165,11 +165,6 @@ snaps:
     name: gnome-system-monitor
     presence: optional
     type: app
-  -
-    default-channel: latest/stable
-    id: xODwiAdjx9KGChvI1z9Xx2JWJE7oLFF6
-    name: ubuntu-core-desktop-init
-    type: app
 storage-safety: prefer-encrypted
 timestamp: 2023-08-25T18:50:16+00:00
 sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
