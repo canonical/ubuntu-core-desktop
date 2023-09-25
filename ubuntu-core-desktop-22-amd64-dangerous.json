@@ -7,7 +7,7 @@
     "display-name":"Ubuntu Core Desktop 22 (amd64) (dangerous)",
     "architecture": "amd64",
     "revision": "3",
-    "timestamp": "2023-09-22T16:08:30+00:00",
+    "timestamp": "2023-08-25T18:50:16+00:00",
     "grade": "dangerous",
     "storage-safety": "prefer-encrypted",
     "base": "core22-desktop",
