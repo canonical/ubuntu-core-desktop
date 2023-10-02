@@ -6,8 +6,8 @@
     "model": "ubuntu-core-desktop-22-amd64",
     "display-name":"Ubuntu Core Desktop 22 (amd64)",
     "architecture": "amd64",
-    "revision": "3",
-    "timestamp": "2023-08-25T18:50:16+00:00",
+    "revision": "4",
+    "timestamp": "2023-10-02T19:10:01+00:00",
     "grade": "signed",
     "storage-safety": "prefer-encrypted",
     "base": "core22-desktop",
@@ -112,7 +112,7 @@
         },
         {
             "name": "firefox",
-            "default-channel": "latest/stable",
+            "default-channel": "latest/stable/ubuntu-23.10",
             "type": "app",
             "id": "3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk",
             "presence": "optional"
@@ -195,6 +195,13 @@
             "default-channel": "latest/stable",
             "type": "app",
             "id": "9BTClmjz31r0UltmbJ5nnGe0Xm1AzfMp",
+            "presence": "optional"
+        },
+        {
+            "name": "ubuntu-core-desktop-init",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "xODwiAdjx9KGChvI1z9Xx2JWJE7oLFF6",
             "presence": "optional"
         }
     ]
