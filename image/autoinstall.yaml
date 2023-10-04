@@ -1,0 +1,12 @@
+version: 1
+source:
+  id: ubuntu-core-desktop
+  search_drivers: false
+interactive-sections:
+  - locale
+  - keyboard
+  - storage
+identity:
+  username: ubuntu
+  password: '$1$zB3Qu2ef$TKLhQpQlKRyCZGUdHFFMH/'
+  hostname: ubuntu
