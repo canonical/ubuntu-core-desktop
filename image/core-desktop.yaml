@@ -47,6 +47,8 @@ customization:
         destination: /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
       - source: image/install-sources.yaml
         destination: /install-sources.yaml
+      - source: image/autoinstall.yaml
+        destination: /autoinstall.yaml
       - source: pc.img.xz
         destination: /pc.img.xz
 artifacts:
