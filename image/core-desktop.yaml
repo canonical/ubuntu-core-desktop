@@ -30,6 +30,7 @@ customization:
             password: ubuntu
             type: text
     meta-data: |
+      #cloud-config
       dsmode: local
       instance_id: ubuntu-core-desktop
   extra-packages:
