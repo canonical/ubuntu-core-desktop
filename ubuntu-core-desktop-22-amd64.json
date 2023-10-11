@@ -97,10 +97,10 @@
             "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
         },
         {
-            "name": "eog",
+            "name": "loupe",
             "default-channel": "latest/stable",
             "type": "app",
-            "id": "wWtGKn0vLvagfg975tebXfBARLUvU3G7",
+            "id": "Si21Q1kjaZpyJ8TfGbAnxJ4y6KMv7FuW",
             "presence": "optional"
         },
         {
@@ -189,6 +189,7 @@
             "default-channel": "latest/stable",
             "type": "app",
             "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
+            "presence": "optional"
         },
         {
             "name": "gnome-system-monitor",
@@ -201,8 +202,7 @@
             "name": "ubuntu-core-desktop-init",
             "default-channel": "latest/stable",
             "type": "app",
-            "id": "xODwiAdjx9KGChvI1z9Xx2JWJE7oLFF6",
-            "presence": "optional"
+            "id": "xODwiAdjx9KGChvI1z9Xx2JWJE7oLFF6"
         }
     ]
 }
