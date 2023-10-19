@@ -44,13 +44,13 @@ customization:
     - name: snapd
   manual:
     copy-file:
-      - source: image/99-custom-networking.cfg
+      - source: 99-custom-networking.cfg
         destination: /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
-      - source: image/install-sources.yaml
+      - source: install-sources.yaml
         destination: /install-sources.yaml
-      - source: image/autoinstall.yaml
+      - source: autoinstall.yaml
         destination: /autoinstall.yaml
-      - source: pc.img.xz
+      - source: ../pc.img.xz
         destination: /pc.img.xz
 artifacts:
   img:
