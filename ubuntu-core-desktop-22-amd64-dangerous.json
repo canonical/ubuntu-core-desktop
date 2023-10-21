@@ -6,8 +6,8 @@
     "model": "ubuntu-core-desktop-22-amd64-dangerous",
     "display-name":"Ubuntu Core Desktop 22 (amd64) (dangerous)",
     "architecture": "amd64",
-    "revision": "4",
-    "timestamp": "2023-10-02T19:10:01+00:00",
+    "revision": "5",
+    "timestamp": "2023-10-21T10:19:41+00:00",
     "grade": "dangerous",
     "storage-safety": "prefer-encrypted",
     "base": "core22-desktop",
@@ -20,7 +20,7 @@
         },
         {
             "name": "pc-kernel",
-            "default-channel": "22/stable",
+            "default-channel": "23.10/stable",
             "type": "kernel",
             "id": "pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza"
         },
@@ -97,10 +97,10 @@
             "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
         },
         {
-            "name": "eog",
+            "name": "loupe",
             "default-channel": "latest/stable",
             "type": "app",
-            "id": "wWtGKn0vLvagfg975tebXfBARLUvU3G7",
+            "id": "Si21Q1kjaZpyJ8TfGbAnxJ4y6KMv7FuW",
             "presence": "optional"
         },
         {
@@ -188,7 +188,8 @@
             "name": "workshops",
             "default-channel": "latest/stable",
             "type": "app",
-            "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8"
+            "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8",
+            "presence": "optional"
         },
         {
             "name": "gnome-system-monitor",
@@ -201,8 +202,7 @@
             "name": "ubuntu-core-desktop-init",
             "default-channel": "latest/stable",
             "type": "app",
-            "id": "xODwiAdjx9KGChvI1z9Xx2JWJE7oLFF6",
-            "presence": "optional"
+            "id": "xODwiAdjx9KGChvI1z9Xx2JWJE7oLFF6"
         }
     ]
 }
