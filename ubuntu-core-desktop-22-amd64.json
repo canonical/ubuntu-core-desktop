@@ -20,7 +20,7 @@
         },
         {
             "name": "pc-kernel",
-            "default-channel": "22/stable",
+            "default-channel": "23.10/stable",
             "type": "kernel",
             "id": "pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza"
         },
