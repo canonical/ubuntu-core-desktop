@@ -43,15 +43,16 @@ customization:
     - name: core22
     - name: snapd
   manual:
+    make-dirs:
+      - path: /cdrom/casper
+        permissions: 644
     copy-file:
-      - source: 99-custom-networking.cfg
-        destination: /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
       - source: install-sources.yaml
-        destination: /install-sources.yaml
+        destination: /cdrom/casper/install-sources.yaml
       - source: autoinstall.yaml
         destination: /autoinstall.yaml
       - source: ../pc.img.xz
-        destination: /pc.img.xz
+        destination: /cdrom/casper/pc.img.xz
 artifacts:
   img:
     -
