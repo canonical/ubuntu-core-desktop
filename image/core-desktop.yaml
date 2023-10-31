@@ -55,6 +55,6 @@ customization:
 artifacts:
   img:
     -
-      name: installer-amd64.img
+      name: ubuntu-core-desktop-22-amd64.img
   manifest:
     name: "filesystem-manifest.txt"
