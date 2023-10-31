@@ -31,7 +31,7 @@ customization:
             type: text
     meta-data: |
       #cloud-config
-      dsmode: disabled
+      dsmode: local
       instance_id: ubuntu-core-desktop
   extra-packages:
     - name: plymouth-theme-spinner
@@ -47,6 +47,8 @@ customization:
       - path: /cdrom/casper
         permissions: 644
     copy-file:
+      - source: 99-custom-networking.cfg
+        destination: /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
       - source: install-sources.yaml
         destination: /cdrom/casper/install-sources.yaml
       - source: autoinstall.yaml
