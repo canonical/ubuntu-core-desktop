@@ -55,6 +55,8 @@ customization:
         destination: /autoinstall.yaml
       - source: ../pc.img.xz
         destination: /cdrom/casper/pc.img.xz
+    execute:
+      - path: /usr/bin/systemd-machine-id-setup
 artifacts:
   img:
     -
