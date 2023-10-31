@@ -31,7 +31,7 @@ customization:
             type: text
     meta-data: |
       #cloud-config
-      dsmode: local
+      dsmode: disabled
       instance_id: ubuntu-core-desktop
   extra-packages:
     - name: plymouth-theme-spinner
