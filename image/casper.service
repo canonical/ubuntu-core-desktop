@@ -1,0 +1,16 @@
+[Unit]
+Description=Shuts down the "live" preinstalled system cleanly
+DefaultDependencies=no
+Before=final.target
+After=shutdown.target umount.target plymouth-halt.service plymouth-poweroff.service plymouth-reboot.service
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/casper-stop
+StandardInput=tty-force
+StandardOutput=inherit
+StandardError=inherit
+TTYReset=yes
+
+[Install]
+WantedBy=final.target
