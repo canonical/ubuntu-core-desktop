@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# Author: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+#         Tollef Fog Heen <tfheen@canonical.com>
+#         Marco Amadori <marco.amadori@gmail.com>
+#
+
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+do_stop ()
+{
+    prompt=1
+    if grep -qs noprompt /proc/cmdline || [ -e /run/casper-no-prompt ]; then
+        prompt=
+    fi
+
+    # XXX - i18n
+    MSG="Please remove the installation medium, then press ENTER: "
+    MSG_FALLBACK="Please remove the installation medium, then reboot."
+
+    if [ "$prompt" ]; then
+        if [ -x /bin/plymouth ] && plymouth --ping; then
+            chvt 63
+            plymouth message --text="$MSG"
+            clear > /dev/tty1
+            echo $MSG_FALLBACK > /dev/tty1
+        else
+            stty sane < /dev/console
+            echo $MSG > /dev/console
+        fi
+    fi
+
+    [ "$prompt" ] || return 0
+
+    if [ -x /bin/plymouth ] && plymouth --ping; then
+        plymouth watch-keystroke > /dev/null
+    else
+        read x < /dev/console
+    fi
+}
+
+do_stop
+

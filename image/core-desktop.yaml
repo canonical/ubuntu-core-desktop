@@ -45,7 +45,7 @@ customization:
   manual:
     make-dirs:
       - path: /cdrom/casper
-        permissions: 644
+        permissions: 0755
     copy-file:
       - source: 99-custom-networking.cfg
         destination: /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
@@ -55,11 +55,18 @@ customization:
         destination: /autoinstall.yaml
       - source: ../pc.img.xz
         destination: /cdrom/casper/pc.img.xz
+      - source: casper.service
+        destination: /lib/systemd/system/casper.service
+      - source: casper-stop
+        destination: /sbin/casper-stop
+      - source: casper-enable
+        destination: /sbin/casper-enable
     execute:
       - path: /usr/bin/systemd-machine-id-setup
+      - path: /sbin/casper-enable
 artifacts:
   img:
     -
       name: ubuntu-core-desktop-22-amd64.img
   manifest:
-    name: "filesystem-manifest.txt"
+    name: ubuntu-core-desktop-pc-amd64.manifest
