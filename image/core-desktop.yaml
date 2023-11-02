@@ -46,6 +46,8 @@ customization:
     make-dirs:
       - path: /cdrom/casper
         permissions: 0755
+      - path: /etc/systemd/system/snap.ubuntu-core-desktop-installer.miriway.service.d
+        permissions: 0755
     copy-file:
       - source: 99-custom-networking.cfg
         destination: /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
@@ -61,6 +63,8 @@ customization:
         destination: /sbin/casper-stop
       - source: casper-enable
         destination: /sbin/casper-enable
+      - source: override.conf
+        destination: /etc/systemd/system/snap.ubuntu-core-desktop-installer.miriway.service.d/override.conf
     execute:
       - path: /usr/bin/systemd-machine-id-setup
       - path: /sbin/casper-enable
