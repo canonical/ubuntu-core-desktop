@@ -15,7 +15,7 @@ do_stop ()
     fi
 
     # XXX - i18n
-    MSG="Please remove the installation medium, then press ENTER: "
+    MSG="Please press ENTER then remove the installation medium: "
     MSG_FALLBACK="Please remove the installation medium, then reboot."
 
     if [ "$prompt" ]; then
