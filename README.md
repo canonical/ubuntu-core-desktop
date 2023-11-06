@@ -51,7 +51,8 @@ repositories. Namely:
 | Snap | Repo | Recipe | Notes |
 | ---- | ---- | ------ | ----- |
 | `core22-desktop` | [core-base-desktop](https://github.com/canonical/core-base-desktop) | [via snapcraft.io](https://launchpad.net/~build.snapcraft.io/+snap/676555fa9c47346f6822f38f1cb28436) | base snap, forked from `core22` to integrate GDM graphical login |
-| `pc-desktop` | [pc-amd64-gadget-desktop](https://github.com/canonical/pc-amd64-gadget-desktop) | [via snapcraft.io](https://launchpad.net/~build.snapcraft.io/+snap/b2fb84822ada14656220661309721e44) | gadget snap, forked from `pc`, using `core22-desktop` as a base |
+| `pc-desktop` | [pc-amd64-gadget-desktop](https://github.com/canonical/pc-amd64-gadget-desktop) | [via launchpad](https://launchpad.net/~ubuntu-desktop/pc-gadget-desktop/+snap/pc-amd64-gadget-desktop-core22) | gadget snap, forked from `pc`, using `core22-desktop` as a base |
+| `pi-desktop` | [pi-desktop](https://github.com/canonical/pi-desktop) | [via launchpad](https://launchpad.net/~desktop-snappers/+snap/pi-desktop) | Pi gadget snap, forked from `pi`, using `core22-desktop` as a base |
 | `ubuntu-desktop-session` | [ubuntu-desktop-session-snap](https://github.com/canonical/ubuntu-desktop-session-snap) | [via snapcraft.io](https://launchpad.net/~build.snapcraft.io/+snap/5053979ddb01a83fd292502a5ed3a3b4) | provides the confined desktop session |
 | `snapd` | [ubuntu-core-desktop-snapd](https://github.com/canonical/ubuntu-core-desktop-snapd) | [via ~snappy-dev](https://launchpad.net/~snappy-dev/+snap/ubuntu-core-desktop-snapd) | a branch of snapd with additional changes not yet merged to mainline |
 
