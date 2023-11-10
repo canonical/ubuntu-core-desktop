@@ -1,0 +1,185 @@
+type: model
+authority-id: canonical
+series: 16
+brand-id: canonical
+model: ubuntu-core-desktop-22-pi
+architecture: arm64
+base: core22-desktop
+display-name: Ubuntu Core Desktop 22 (pi)
+grade: signed
+snaps:
+  -
+    default-channel: latest/stable
+    id: 5eZJDHK8okhU9bQ6Hwih0pZOJPHSxQBH
+    name: pi-desktop
+    type: gadget
+  -
+    default-channel: 22/stable
+    id: jeIuP6tfFrvAdic8DMWqHmoaoukAPNbJ
+    name: pi-kernel
+    type: kernel
+  -
+    default-channel: latest/edge/ubuntu-core-desktop
+    id: PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4
+    name: snapd
+    type: snapd
+  -
+    default-channel: latest/stable
+    id: qRMmQqNDz8kRUTqFIgqk2RzNNoC7jUZ6
+    name: core22-desktop
+    type: base
+  -
+    default-channel: latest/stable
+    id: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN
+    name: ubuntu-desktop-session
+    type: app
+  -
+    default-channel: latest/stable
+    id: amcUKQILKXHHTlmSa7NMdnXSx02dNeeT
+    name: core22
+    type: base
+  -
+    default-channel: 22/stable
+    id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
+    name: network-manager
+    type: app
+  -
+    default-channel: latest/stable
+    id: EISPgh06mRh1vordZY9OZ34QHdd7OrdR
+    name: bare
+    type: base
+  -
+    default-channel: latest/stable
+    id: jZLfBRzf1cYlYysIjD2bwSzNtngY0qit
+    name: gtk-common-themes
+    type: app
+  -
+    default-channel: latest/stable
+    id: lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3
+    name: gnome-42-2204
+    type: app
+  -
+    default-channel: latest/stable
+    id: m1eQacDdXCthEwWQrESei3Zao3d5gfJF
+    name: cups
+    type: app
+  -
+    default-channel: latest/stable
+    id: WJKWBUuCDufOFw2p24tvkbbw02plGkbd
+    name: ipp-usb
+    type: app
+  -
+    default-channel: 22/stable
+    id: dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll
+    name: avahi
+    type: app
+  -
+    default-channel: 22/stable
+    id: JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS
+    name: bluez
+    type: app
+  -
+    default-channel: latest/stable
+    id: Si21Q1kjaZpyJ8TfGbAnxJ4y6KMv7FuW
+    name: loupe
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: EDFg87ESUg9sAIlm0Vm5Wmr0LjiEonSm
+    name: evince
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable/ubuntu-23.10
+    id: 3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk
+    name: firefox
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: J8OcDPQ0JM8dbvk29HRqpWVI9kBw0atG
+    name: gnome-calculator
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: qJcS3UjpF9AMJKWAiKwA5EWbm0y6Uduw
+    name: gnome-characters
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: 8NtSF2nXW6krsxbXBYydy1j985k6ZsVK
+    name: gnome-clocks
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: BzJuWXmCIpyjUKotXPWU2psnl8gEh4hm
+    name: gnome-font-viewer
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: kIMfmZTJspWa8vtfbgU3W9Nbv4V5Qgmh
+    name: gnome-logs
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: PZj2sEabMQrVUV1HKZmmmXSk3E6wKC9i
+    name: gnome-text-editor
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: LhzK7p8214jufMYx1kz43QkWhFnOKdbr
+    name: gnome-weather
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: J60k4JY0HppjwOjW8dZdYc8obXKxujRu
+    name: lxd
+    type: app
+  -
+    default-channel: latest/edge/ubuntu-core-desktop
+    id: IrwRHakqtzhFRHJOOPxKVPU0Kk7Erhcu
+    name: snapd-desktop-integration
+    type: app
+  -
+    default-channel: latest/stable/ubuntu-23.10
+    id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
+    name: snap-store
+    type: app
+  -
+    default-channel: latest/stable
+    id: JMjaFobGn56fh1HepiaGuCxQgbWYnHc8
+    name: workshops
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: 9BTClmjz31r0UltmbJ5nnGe0Xm1AzfMp
+    name: gnome-system-monitor
+    presence: optional
+    type: app
+  -
+    default-channel: latest/stable
+    id: xODwiAdjx9KGChvI1z9Xx2JWJE7oLFF6
+    name: ubuntu-core-desktop-init
+    type: app
+timestamp: 2023-11-10T08:27:01+00:00
+sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
+
+AcLBXAQAAQoABgUCZU4WgQAKCRDgT5vottzAEs1pEACUtB7pLOwEGv7y9p75cPFXeKrSfGJ4L77R
+Ab5liQYDWY26r/rkLXBnH+xhsCJTPOz07MzHTSzWUZ63Jkbt2VpWr3LSQXh1oeEzvCnb4w0IqZaN
+ejsMr6rWwbOF2FvifOxCNHHELKFKmkkqBu47f/KwmRwuDeXFENI6fGWnEIH70VEsglH6KPyXChpk
+zPsDsvBrURZcpFxrl+Yt9j5AwQ+vvCZC6jMREQUu2mxlXmFxprlLZJI2uTm65Ci8Y+X+fgRfUpXD
+VDOJZHrcKVMAItu+rERmIq0/F9q/SGOIJnsxhqLeGqWJzguEdJKV7FuBDOXkEiq4TyjB5ytuXYIJ
+gVjs8X7V3l3o8Izj33XScd4VsPuTX0IIZR/A7fG70ciAOS+OCW0uiBWUEIv4Y/TKs9nmOGJ9HKPW
+qQJZHTuQTPblUyPp6dJIB5vfFPVIcAY45cHtxxL/WA5ZDRaqHHHCBhBIvNyC5lyVeFm9l8V5W1Vx
+/dMno2pHln2djhfh0zEnIAJLX80CyLY6iK6MkbGkdEGYgt8KURqsA4dqFegB1T3k9oeFR2ox4ElP
+ITGJxIgY4nzETvHWat7yDY3NWdsUkoHv0GZwwkg0nHjiiX2Q3k+1Lv9uM6uivf+r9DsKPplQC2fg
+An3ky5k3/8My0lCJhIIalGMSJaxKhVe5Uh2gP2IZlw==
