@@ -1,0 +1,207 @@
+{
+    "type": "model",
+    "authority-id": "canonical",
+    "brand-id": "canonical",
+    "series": "16",
+    "model": "ubuntu-core-desktop-22-pi",
+    "display-name":"Ubuntu Core Desktop 22 (pi)",
+    "architecture": "arm64",
+    "revision": "0",
+    "timestamp": "2023-11-10T08:27:01+00:00",
+    "grade": "signed",
+    "base": "core22-desktop",
+    "snaps": [
+        {
+            "name": "pi-desktop",
+            "default-channel": "latest/stable",
+            "type": "gadget",
+            "id": "5eZJDHK8okhU9bQ6Hwih0pZOJPHSxQBH"
+        },
+        {
+            "name": "pi-kernel",
+            "type": "kernel",
+            "default-channel": "22/stable",
+            "id": "jeIuP6tfFrvAdic8DMWqHmoaoukAPNbJ"
+        },   	
+        {
+            "name": "snapd",
+            "default-channel": "latest/edge/ubuntu-core-desktop",
+            "type": "snapd",
+            "id": "PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4"
+        },
+        {
+            "name": "core22-desktop",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "qRMmQqNDz8kRUTqFIgqk2RzNNoC7jUZ6"
+        },
+        {
+            "name": "ubuntu-desktop-session",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN"
+        },
+        {
+            "name": "core22",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "amcUKQILKXHHTlmSa7NMdnXSx02dNeeT"
+        },
+        {
+            "name": "network-manager",
+            "default-channel": "22/stable",
+            "type": "app",
+            "id": "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy"
+        },
+        {
+            "name": "bare",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "EISPgh06mRh1vordZY9OZ34QHdd7OrdR"
+        },
+        {
+            "name": "gtk-common-themes",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "jZLfBRzf1cYlYysIjD2bwSzNtngY0qit"
+        },
+        {
+            "name": "gnome-42-2204",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
+        },
+        {
+            "name": "cups",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "m1eQacDdXCthEwWQrESei3Zao3d5gfJF"
+        },
+        {
+            "name": "ipp-usb",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "WJKWBUuCDufOFw2p24tvkbbw02plGkbd"
+        },
+        {
+            "name": "avahi",
+            "default-channel": "22/stable",
+            "type": "app",
+            "id": "dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll"
+        },
+        {
+            "name": "bluez",
+            "default-channel": "22/stable",
+            "type": "app",
+            "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
+        },
+        {
+            "name": "loupe",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "Si21Q1kjaZpyJ8TfGbAnxJ4y6KMv7FuW",
+            "presence": "optional"
+        },
+        {
+            "name": "evince",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "EDFg87ESUg9sAIlm0Vm5Wmr0LjiEonSm",
+            "presence": "optional"
+        },
+        {
+            "name": "firefox",
+            "default-channel": "latest/stable/ubuntu-23.10",
+            "type": "app",
+            "id": "3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-calculator",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "J8OcDPQ0JM8dbvk29HRqpWVI9kBw0atG",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-characters",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "qJcS3UjpF9AMJKWAiKwA5EWbm0y6Uduw",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-clocks",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "8NtSF2nXW6krsxbXBYydy1j985k6ZsVK",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-font-viewer",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "BzJuWXmCIpyjUKotXPWU2psnl8gEh4hm",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-logs",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "kIMfmZTJspWa8vtfbgU3W9Nbv4V5Qgmh",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-text-editor",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "PZj2sEabMQrVUV1HKZmmmXSk3E6wKC9i",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-weather",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "LhzK7p8214jufMYx1kz43QkWhFnOKdbr",
+            "presence": "optional"
+        },
+        {
+            "name": "lxd",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "J60k4JY0HppjwOjW8dZdYc8obXKxujRu"
+        },
+        {
+            "name": "snapd-desktop-integration",
+            "default-channel": "latest/edge/ubuntu-core-desktop",
+            "type": "app",
+            "id": "IrwRHakqtzhFRHJOOPxKVPU0Kk7Erhcu"
+        },
+        {
+            "name": "snap-store",
+            "default-channel": "latest/stable/ubuntu-23.10",
+            "type": "app",
+            "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
+        },
+        {
+            "name": "workshops",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "JMjaFobGn56fh1HepiaGuCxQgbWYnHc8",
+            "presence": "optional"
+        },
+        {
+            "name": "gnome-system-monitor",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "9BTClmjz31r0UltmbJ5nnGe0Xm1AzfMp",
+            "presence": "optional"
+        },
+        {
+            "name": "ubuntu-core-desktop-init",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "xODwiAdjx9KGChvI1z9Xx2JWJE7oLFF6"
+        }
+    ]
+}
