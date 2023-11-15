@@ -38,6 +38,7 @@ customization:
     - name: squashfs-tools
     - name: snapd
     - name: cloud-init
+    - name: lshw
   extra-snaps:
     - name: ubuntu-core-desktop-installer
     - name: core22
