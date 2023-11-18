@@ -39,6 +39,7 @@ customization:
     - name: snapd
     - name: cloud-init
     - name: lshw
+    - name: alsa-ucm-conf
   extra-snaps:
     - name: ubuntu-core-desktop-installer
     - name: core22
