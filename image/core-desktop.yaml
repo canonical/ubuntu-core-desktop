@@ -39,6 +39,8 @@ customization:
     - name: snapd
     - name: cloud-init
     - name: lshw
+    - name: yaru-theme-gtk
+    - name: gsettings-desktop-schemas
   extra-snaps:
     - name: ubuntu-core-desktop-installer
     - name: core22
@@ -48,6 +50,8 @@ customization:
       - path: /cdrom/casper
         permissions: 0755
       - path: /etc/systemd/system/snap.ubuntu-core-desktop-installer.miriway.service.d
+        permissions: 0755
+      - path: /etc/gtk-3.0
         permissions: 0755
     copy-file:
       - source: 99-custom-networking.cfg
@@ -66,6 +70,8 @@ customization:
         destination: /sbin/casper-enable
       - source: override.conf
         destination: /etc/systemd/system/snap.ubuntu-core-desktop-installer.miriway.service.d/override.conf
+      - source: gtk-3.0-settings.ini
+        destination: /etc/gtk-3.0/settings.ini
     execute:
       - path: /usr/bin/systemd-machine-id-setup
       - path: /sbin/casper-enable
