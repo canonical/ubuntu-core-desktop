@@ -94,3 +94,8 @@ the EFI system and the base snaps:
     sudo mount /dev/mapper/loopXXX/p2 /mnt
 
 And now we can go to */mnt/snaps*, and there are all the base snaps.
+
+# ISO image
+
+To generate an ISO image with the installer, just run `make` and then
+run the `sudo create_iso.sh` script.
