@@ -19,6 +19,7 @@ pc-dangerous.img: ubuntu-core-desktop-22-amd64-dangerous.model $(EXTRA_SNAPS)
 	tar czSf $@ $<
 
 pc.img.xz: pc.img
+	rm -f pc.img.xz
 	xz --threads=0 -vv $<
 
 ubuntu-core-desktop-22-amd64.img: pc.img.xz
@@ -29,6 +30,7 @@ ubuntu-core-desktop-22-amd64.img: pc.img.xz
 	mv output/ubuntu-core-desktop-22-amd64.img .
 
 ubuntu-core-desktop-22-amd64.img.xz: ubuntu-core-desktop-22-amd64.img
+	rm -f ubuntu-core-desktop-22-amd64.img.xz
 	xz --threads=0 -vv $<
 
 .PHONY: all
