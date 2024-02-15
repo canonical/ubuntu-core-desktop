@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Process obtained from https://itnext.io/how-to-create-a-custom-ubuntu-live-from-scratch-dd3b3f213f81
+
 # we expect a .xz compressed image (see below where we decompress it)
 DISK_IMAGE=$PWD/ubuntu-core-desktop-22-amd64.img
 
