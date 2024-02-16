@@ -102,8 +102,8 @@ sudo xorriso \
    -as mkisofs \
    -iso-level 3 \
    -full-iso9660-filenames \
-   -volid "Core Desktop 22 AMD64" \
-   -output "../ubuntu-core-desktop-22-amd64.iso" \
+   -volid "Ubuntu Core Desktop" \
+   -output ${DISK_IMAGE%.*}.iso \
    -eltorito-boot boot/grub/bios.img \
       -no-emul-boot \
       -boot-load-size 4 \
