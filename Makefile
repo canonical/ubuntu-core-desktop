@@ -35,4 +35,4 @@ clean:
 	sudo rm -rf img
 	sudo rm -rf image2
 	sudo rm -rf output
-	sudo rm -f pc.img.xz pc.tar.gz pc-dangerous.img.xz pc-dangerous.tar.gz ubuntu-core-desktop-*-amd64.img ubuntu-core-desktop-*-amd64.img.xz ubuntu-core-desktop-*-amd64.iso
+	sudo rm -f pc*.img.xz pc.tar.gz pc*.tar.gz ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso
