@@ -36,4 +36,4 @@ clean:
 	sudo rm -rf image2
 	sudo rm -rf output
 	sudo rm -rf image/isolinux
-	sudo rm -f pc*.img.xz pc*.tar.gz ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml
+	sudo rm -f pc*.img.xz pc*.img pc*.tar.gz ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml
