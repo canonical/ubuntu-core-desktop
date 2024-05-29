@@ -30,3 +30,9 @@ pi-dangerous.img: ubuntu-core-desktop-22-pi-dangerous.model $(EXTRA_SNAPS)
 	tar czSf $@ $<
 
 .PHONY: all
+
+clean:
+	sudo rm -rf img
+	sudo rm -rf output
+	sudo rm -rf image
+	sudo rm -f pc*.img.xz pc*.img pc*.tar.gz ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml
