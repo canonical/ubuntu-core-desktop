@@ -1,0 +1,11 @@
+[Unit]
+Description=Launches subiquity
+After=getty@tty1.service
+
+[Service]
+Type=simple
+ExecStart=bin/sh /snap/subiquity/current/usr/bin/subiquity-server
+StandardInput=tty
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/tty1

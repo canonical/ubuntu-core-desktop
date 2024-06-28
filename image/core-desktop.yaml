@@ -1,0 +1,71 @@
+name: ubuntu-core-desktop-amd64
+display-name: Ubuntu Core Desktop amd64
+revision: 1
+architecture: amd64
+series: noble
+class: preinstalled
+kernel: linux-image-generic
+gadget:
+  url: "https://git.launchpad.net/~canonical-foundations/snap-pc/+git/github-mirror-amd64"
+  branch: classic
+  type: "git"
+rootfs:
+  components:
+    - main
+    - restricted
+  seed:
+    urls:
+      - "git://git.launchpad.net/~ubuntu-core-dev/ubuntu-seeds/+git/"
+    branch: noble
+    names:
+      - minimal
+customization:
+  cloud-init:
+    user-data: |
+      #cloud-config
+      chpasswd:
+        expire: false
+        users:
+          - name: ubuntu
+            password: ubuntu
+            type: text
+    meta-data: |
+      #cloud-config
+      dsmode: local
+      instance_id: ubuntu-core-desktop
+  extra-packages:
+    - name: squashfs-tools
+    - name: snapd
+    - name: cloud-init
+    - name: lshw
+  extra-snaps:
+    - name: subiquity
+    - name: core22
+    - name: snapd
+  manual:
+    make-dirs:
+      - path: /cdrom/casper
+        permissions: 0755
+    copy-file:
+#      - source: 99-custom-networking.cfg
+#        destination: /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
+      - source: install-sources.yaml
+        destination: /cdrom/casper/install-sources.yaml
+      - source: autoinstall.yaml
+        destination: /autoinstall.yaml
+      - source: ../pc-dangerous.img
+        destination: /cdrom/casper/pc.img
+      - source: subiquity-enable
+        destination: /sbin/subiquity-enable
+      # - source: subiquity-installer.service
+      #   destination: /lib/systemd/system/subiquity-installer.service
+    execute:
+      - path: /usr/bin/systemd-machine-id-setup
+      - path: /sbin/subiquity-enable
+artifacts:
+  img:
+    -
+      name: ubuntu-core-desktop-22-amd64.img
+  manifest:
+    name: ubuntu-core-desktop-pc-amd64.manifest
+

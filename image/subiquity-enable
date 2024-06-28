@@ -1,0 +1,6 @@
+#!/bin/sh
+
+/usr/bin/systemctl disable getty@tty1.service
+/usr/bin/systemctl enable snap.subiquity.subiquity-server.service
+/usr/bin/systemctl enable snap.subiquity.subiquity-service.service
+sed -i 's#Type=simple#Type=simple\nRestartSec=3#g' /etc/systemd/system/snap.subiquity.subiquity-service.service

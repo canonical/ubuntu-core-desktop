@@ -1,0 +1,11 @@
+- default: true
+  description:
+    en: Ubuntu Core Desktop.
+  id: ubuntu-core-desktop
+  locale_support: none
+  name:
+    en: Ubuntu Core Desktop
+  path: @FILE@
+  type: dd:file
+  size: @SIZE@
+  variant: core
