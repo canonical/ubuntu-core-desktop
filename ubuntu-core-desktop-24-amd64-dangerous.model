@@ -1,0 +1,120 @@
+type: model
+authority-id: PhMj3TyWXsKJda10Fah6d6selJIw1xCI
+series: 16
+brand-id: PhMj3TyWXsKJda10Fah6d6selJIw1xCI
+model: ubuntu-core-desktop-24-amd64-dangerous
+architecture: amd64
+base: core24-desktop
+display-name: Ubuntu Core Desktop 24 (amd64) (dangerous)
+grade: dangerous
+snaps:
+  -
+    default-channel: 24/edge
+    id: mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy
+    name: pc-desktop
+    type: gadget
+  -
+    default-channel: 24/stable
+    id: pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza
+    name: pc-kernel
+    type: kernel
+  -
+    default-channel: latest/edge/ubuntu-core-desktop
+    id: PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4
+    name: snapd
+    type: snapd
+  -
+    default-channel: latest/edge
+    id: GY5GohJ4F1ZsWpkosG0joeZyDfHzTZrD
+    name: core24-desktop
+    type: base
+  -
+    default-channel: 24/edge
+    id: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN
+    name: ubuntu-desktop-session
+    type: app
+  -
+    default-channel: latest/stable
+    id: amcUKQILKXHHTlmSa7NMdnXSx02dNeeT
+    name: core22
+    type: base
+  -
+    default-channel: latest/stable
+    id: dwTAh7MZZ01zyriOZErqd1JynQLiOGvM
+    name: core24
+    type: base
+  -
+    default-channel: 24/stable
+    id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
+    name: network-manager
+    type: app
+  -
+    default-channel: latest/stable
+    id: EISPgh06mRh1vordZY9OZ34QHdd7OrdR
+    name: bare
+    type: base
+  -
+    default-channel: latest/stable
+    id: jZLfBRzf1cYlYysIjD2bwSzNtngY0qit
+    name: gtk-common-themes
+    type: app
+  -
+    default-channel: latest/stable
+    id: lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3
+    name: gnome-42-2204
+    type: app
+  -
+    default-channel: latest/stable
+    id: m1eQacDdXCthEwWQrESei3Zao3d5gfJF
+    name: cups
+    type: app
+  -
+    default-channel: latest/stable
+    id: WJKWBUuCDufOFw2p24tvkbbw02plGkbd
+    name: ipp-usb
+    type: app
+  -
+    default-channel: 22/stable
+    id: dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll
+    name: avahi
+    type: app
+  -
+    default-channel: 22/stable
+    id: JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS
+    name: bluez
+    type: app
+  -
+    default-channel: latest/stable/ubuntu-23.10
+    id: 3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk
+    name: firefox
+    presence: optional
+    type: app
+  -
+    default-channel: latest/edge/ubuntu-core-desktop
+    id: IrwRHakqtzhFRHJOOPxKVPU0Kk7Erhcu
+    name: snapd-desktop-integration
+    type: app
+  -
+    default-channel: latest/stable/ubuntu-24.04
+    id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
+    name: snap-store
+    type: app
+  -
+    default-channel: latest/candidate
+    id: tBdYpKjXcW5farGGJaWiYXrxIwMVMtx5
+    name: ubuntu-desktop-init
+    type: app
+storage-safety: prefer-encrypted
+timestamp: 2024-06-25T16:11:57+08:00
+sign-key-sha3-384: DcLw22apMVMI7ANPT9JYc15zYZu4u7LlKuuMtaJCRjaXnS0KaAWBh-1a-_ES2Xam
+
+AcLBcwQAAQoAHRYhBF7Jk7LWvjDgjaKu8q/DToINRsqGBQJmgm26AAoJEK/DToINRsqGhG8P/iQK
+ZNO8CrPL5yAQd5Lcs8bBGhZgI1p1K6Q1pMO4H6hDNZCTv6txlyfB10JJ/bK1pT74Gj4JOckeGz9d
+bneEIyJUGbtRmwGerSEXBI6PV4tIiFOmoKB5sBLl88hmj8bqZjLYDE4e4A3ar1fJX+bxEzSY5/i1
+ULisuQtANV3+RcqPbbHUw525qIqrr0w5CVVvzs/28hgvsgfeJou20OPprkw4OHNcyJJIJ4PK9q4V
+jkkaOoD6nDoMKqFHP4IZS6LOPyvWElr243WT4e/EpWdWmiDvluIB9d6GVvJ1c9tZgCnZeGcWttdK
+GqcpuztpZgAgNsZ2s3GcxCnvAQO/ktz/5Eix6sIt93LLwqczXFJhc5dFQalluJt/yXGGpF2umFxI
+N/9bhBok3/cWOGXu4Z0aht9oQPlZW8Trg7Zj99sJZsJy0GPucmRu2AHGg+BGW5Nm19Jy6kOcD4/v
+t/tGvuOpHtTN+d8Ib9KFqPN0lU2NF3hJ3Kh31IGCo32yntci9gqc9vHCyEET0oOkNx9l3qzjV4DS
+JGhZhgqPhJ9Yv8xiP7v+3SFkr4OpVmABvprGXLLpOha4XTbSIISA/aSCrcYipIATE+kLsATF/QyN
+FYy0mCKznRvaukrkHm5bYUNrv+ADSKAlRz81JB6sD/gNCIRpAuEEfdQtfiOGd0JVZn+BHW3z
