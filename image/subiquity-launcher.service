@@ -6,7 +6,7 @@ After=cloud-final.service
 
 [Service]
 Type=oneshot
-ExecStart=snap run subiquity
+ExecStart=/sbin/subiquity-launch
 StandardInput=tty
 StandardOutput=tty
 StandardError=tty

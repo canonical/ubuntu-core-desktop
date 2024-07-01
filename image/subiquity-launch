@@ -1,3 +1,4 @@
 #!/bin/sh
 
-systemctl start snap.subiquity.subiquity-service.service
+dmesg -D
+snap run subiquity
