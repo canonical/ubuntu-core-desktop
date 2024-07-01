@@ -1,4 +1,5 @@
 #!/bin/sh
 
 dmesg -D
+setfont Uni2-Terminus16
 snap run subiquity
