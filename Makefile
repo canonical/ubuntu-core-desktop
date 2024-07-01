@@ -31,7 +31,7 @@ pi-dangerous.img: ubuntu-core-desktop-22-pi-dangerous.model $(EXTRA_SNAPS)
 
 .PHONY: all
 
-ubuntu-core-desktop-22-amd64.img: pc-dangerous.img
+ubuntu-core-desktop-22-amd64.img: pc.img
 	rm -rf output/
 	cat image/install-sources.yaml.in |sed "s/@FILE@/$</g"|sed "s/@SIZE@/$(shell stat -c%s $<)/g" > image/install-sources.yaml
 	sudo ubuntu-image classic --debug -O output/ image/core-desktop.yaml

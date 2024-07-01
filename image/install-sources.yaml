@@ -5,7 +5,7 @@
   locale_support: none
   name:
     en: Ubuntu Core Desktop
-  path: pc-dangerous.img
+  path: pc.img
   type: dd:file
   size: 21474836480
   variant: core

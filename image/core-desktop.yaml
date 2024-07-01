@@ -53,7 +53,7 @@ customization:
         destination: /cdrom/casper/install-sources.yaml
       - source: autoinstall.yaml
         destination: /autoinstall.yaml
-      - source: ../pc-dangerous.img
+      - source: ../pc.img
         destination: /cdrom/casper/pc.img
       - source: subiquity-enable
         destination: /sbin/subiquity-enable
