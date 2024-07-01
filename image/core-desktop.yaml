@@ -46,9 +46,11 @@ customization:
     make-dirs:
       - path: /cdrom/casper
         permissions: 0755
+      - path: /etc/systemd/journald.conf.d
+        permissions: 0755
+      - path: /etc/systemd/system/systemd-journald.service.d
+        permissions: 0755
     copy-file:
-#      - source: 99-custom-networking.cfg
-#        destination: /etc/cloud/cloud.cfg.d/99-custom-networking.cfg
       - source: install-sources.yaml
         destination: /cdrom/casper/install-sources.yaml
       - source: autoinstall.yaml
@@ -61,6 +63,12 @@ customization:
         destination: /lib/systemd/system/subiquity-launcher.service
       - source: subiquity-launch
         destination: /sbin
+      - source: no-rate-limit.conf
+        destination: /etc/systemd/journald.conf.d/no-rate-limit.conf
+      - source: no-compact.conf
+        destination: /etc/systemd/system/systemd-journald.service.d/no-compact.conf
+      - source: no-hardening.conf
+        destination: /etc/systemd/system/systemd-journald.service.d/no-hardening.conf
     execute:
       - path: /usr/bin/systemd-machine-id-setup
       - path: /sbin/subiquity-enable
