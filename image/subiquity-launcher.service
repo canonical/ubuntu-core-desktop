@@ -1,0 +1,16 @@
+[Unit]
+Description=Launches subiquity, both back and front-end
+DefaultDependencies=no
+After=multi-user.target
+After=cloud-final.service
+
+[Service]
+Type=oneshot
+ExecStart=snap run subiquity
+StandardInput=tty
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/tty1
+
+[Install]
+WantedBy=multi-user.target

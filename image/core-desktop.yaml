@@ -57,8 +57,10 @@ customization:
         destination: /cdrom/casper/pc.img
       - source: subiquity-enable
         destination: /sbin/subiquity-enable
-      # - source: subiquity-installer.service
-      #   destination: /lib/systemd/system/subiquity-installer.service
+      - source: subiquity-launcher.service
+        destination: /lib/systemd/system/subiquity-launcher.service
+      - source: subiquity-launch
+        destination: /sbin
     execute:
       - path: /usr/bin/systemd-machine-id-setup
       - path: /sbin/subiquity-enable
