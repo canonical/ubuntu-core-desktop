@@ -29,10 +29,34 @@ pi-dangerous.img: ubuntu-core-desktop-22-pi-dangerous.model $(EXTRA_SNAPS)
 %.tar.gz: %.img
 	tar czSf $@ $<
 
+pc.img.xz: pc.img
+	xz -k --force --threads=0 -vv $<
+
 .PHONY: all
+
+ubuntu-core-desktop-22-amd64.img: pc.img.xz
+	rm -rf output/
+	cat image/install-sources.yaml.in |sed "s/@FILE@/$</g"|sed "s/@SIZE@/$(shell stat -c%s $<)/g" > image/install-sources.yaml
+#	rm -f image/installer-data.tar.bz2
+#	rm -rf livecd-rootfs
+#	git clone --branch ubuntu/master --single-branch git://git.launchpad.net/livecd-rootfs
+#	tar cjvf image/installer-data.tar.bz2 -C livecd-rootfs/live-build/ubuntu-server/includes.chroot.ubuntu-server-minimal.ubuntu-server.installer .
+	sudo ubuntu-image classic --debug -O output/ image/core-desktop.yaml
+	sudo chown -R $(shell id -u):$(shell id -g) output
+	mv output/ubuntu-core-desktop-22-amd64.img .
+
 
 clean:
 	sudo rm -rf img
 	sudo rm -rf output
-	sudo rm -rf image
+	sudo rm -rf image/isolinux
+	sudo rm -rf dangerous
+	sudo rm -rf livecd-rootfs
 	sudo rm -f pc*.img.xz pc*.img pc*.tar.gz ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml
+
+clean_bootable:
+	sudo rm -rf img
+	sudo rm -rf output
+	sudo rm -rf image/isolinux
+	sudo rm -rf dangerous
+	sudo rm -f ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml
