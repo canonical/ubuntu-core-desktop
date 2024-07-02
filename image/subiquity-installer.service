@@ -5,4 +5,4 @@ After=snap.subiquity.subiquity-server
 
 [Service]
 Type=simple
-ExecStart=bin/sh /snap/subiquity/current/usr/bin/subiquity-server
+ExecStart=bin/sh sudo /snap/subiquity/current/usr/bin/subiquity-server

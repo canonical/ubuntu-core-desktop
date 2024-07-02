@@ -2,4 +2,4 @@
 
 dmesg -D
 setfont Uni2-Terminus16
-snap run subiquity
+sudo snap run subiquity

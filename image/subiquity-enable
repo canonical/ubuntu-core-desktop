@@ -1,5 +1,15 @@
 #!/bin/sh
 
+# cd /
+# mkdir -p installer-data
+# cd installer-data
+# tar xvf ../installer-data.tar.bz2
+# rm -rf etc/systemd/system/dev-disk*
+# rm -f etc/cloud/cloud.cfg
+# cp -a etc/* /etc/
+# cd ..
+# rm -rf installer-data
+
 /usr/bin/systemctl disable getty@tty1.service
 /usr/bin/systemctl enable snap.subiquity.subiquity-server.service
 /usr/bin/systemctl enable subiquity-launcher.service
