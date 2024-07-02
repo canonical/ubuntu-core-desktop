@@ -30,7 +30,7 @@ pi-dangerous.img: ubuntu-core-desktop-22-pi-dangerous.model $(EXTRA_SNAPS)
 	tar czSf $@ $<
 
 pc.img.xz: pc.img
-	xz --force --threads=0 -vv $<
+	xz -k --force --threads=0 -vv $<
 
 .PHONY: all
 
