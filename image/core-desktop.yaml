@@ -43,6 +43,7 @@ customization:
     - name: lvm2
     - name: parted
     - name: dosfstools
+    - name: xz-utils
   extra-snaps:
     - name: subiquity
     - name: core22
@@ -60,8 +61,8 @@ customization:
         destination: /cdrom/casper/install-sources.yaml
       - source: autoinstall.yaml
         destination: /autoinstall.yaml
-      - source: ../pc.img
-        destination: /cdrom/casper/pc.img
+      - source: ../pc.img.xz
+        destination: /cdrom/casper/pc.img.xz
       - source: subiquity-enable
         destination: /sbin/subiquity-enable
       - source: subiquity-launcher.service

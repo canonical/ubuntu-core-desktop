@@ -29,9 +29,12 @@ pi-dangerous.img: ubuntu-core-desktop-22-pi-dangerous.model $(EXTRA_SNAPS)
 %.tar.gz: %.img
 	tar czSf $@ $<
 
+pc.img.xz: pc.img
+	xz --force --threads=0 -vv $<
+
 .PHONY: all
 
-ubuntu-core-desktop-22-amd64.img: pc.img
+ubuntu-core-desktop-22-amd64.img: pc.img.xz
 	rm -rf output/
 	cat image/install-sources.yaml.in |sed "s/@FILE@/$</g"|sed "s/@SIZE@/$(shell stat -c%s $<)/g" > image/install-sources.yaml
 #	rm -f image/installer-data.tar.bz2

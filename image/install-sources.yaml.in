@@ -6,6 +6,6 @@
   name:
     en: Ubuntu Core Desktop
   path: @FILE@
-  type: dd:file
+  type: dd-xz:file
   size: @SIZE@
   variant: core
