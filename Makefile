@@ -1,7 +1,10 @@
 
 EXTRA_SNAPS =
 ALL_SNAPS = $(EXTRA_SNAPS) evince firefox gnome-calculator gnome-characters gnome-clocks gnome-font-viewer gnome-logs gnome-system-monitor gnome-text-editor gnome-weather loupe snapd-desktop-integration snap-store ubuntu-core-desktop-init workshops
-all: pc.tar.gz
+all: pc.img
+bootable: ubuntu-core-desktop-22-amd64.img
+bootable-dangerous: ubuntu-core-desktop-22-dangerous-amd64.img
+
 
 pc.img: ubuntu-core-desktop-22-amd64.model $(EXTRA_SNAPS)
 	rm -rf img/
@@ -20,30 +23,28 @@ pi.img: ubuntu-core-desktop-22-pi.model $(EXTRA_SNAPS)
 	ubuntu-image snap --output-dir img --image-size 12G \
 	  $(foreach snap,$(ALL_SNAPS),--snap $(snap)) $<
 	mv img/pi.img pi.img
+
 pi-dangerous.img: ubuntu-core-desktop-22-pi-dangerous.model $(EXTRA_SNAPS)
 	rm -rf dangerous/
 	ubuntu-image snap --output-dir dangerous --image-size 12G \
 	  $(foreach snap,$(ALL_SNAPS),--snap $(snap)) $<
 	mv dangerous/pi.img pi-dangerous.img
 
-%.tar.gz: %.img
-	tar czSf $@ $<
+#%.tar.gz: %.img
+#	tar czSf $@ $<
 
-pc.img.xz: pc.img
+pc%.img.xz: pc%.img
 	xz -k --force --threads=0 -vv $<
 
 .PHONY: all
 
-ubuntu-core-desktop-22-amd64.img: pc.img.xz
+ubuntu-core-desktop-22%-amd64.img: pc%.img.xz image/core-desktop.yaml.in image/install-sources.yaml.in
 	rm -rf output/
 	cat image/install-sources.yaml.in |sed "s/@FILE@/$</g"|sed "s/@SIZE@/$(shell stat -c%s $<)/g" > image/install-sources.yaml
-#	rm -f image/installer-data.tar.bz2
-#	rm -rf livecd-rootfs
-#	git clone --branch ubuntu/master --single-branch git://git.launchpad.net/livecd-rootfs
-#	tar cjvf image/installer-data.tar.bz2 -C livecd-rootfs/live-build/ubuntu-server/includes.chroot.ubuntu-server-minimal.ubuntu-server.installer .
+	cat image/core-desktop.yaml.in |sed "s/@FILE@/$</g" | sed "s/@OUTPUT@/$@/g" > image/core-desktop.yaml
 	sudo ubuntu-image classic --debug -O output/ image/core-desktop.yaml
 	sudo chown -R $(shell id -u):$(shell id -g) output
-	mv output/ubuntu-core-desktop-22-amd64.img .
+	mv output/$@ .
 
 
 clean:
@@ -54,9 +55,9 @@ clean:
 	sudo rm -rf livecd-rootfs
 	sudo rm -f pc*.img.xz pc*.img pc*.tar.gz ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml
 
-clean_bootable:
+clean-bootable:
 	sudo rm -rf img
 	sudo rm -rf output
 	sudo rm -rf image/isolinux
 	sudo rm -rf dangerous
-	sudo rm -f ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml
+	sudo rm -f ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml image/core-desktop.yaml

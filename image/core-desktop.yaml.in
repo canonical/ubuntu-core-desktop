@@ -61,8 +61,8 @@ customization:
         destination: /cdrom/casper/install-sources.yaml
       - source: autoinstall.yaml
         destination: /autoinstall.yaml
-      - source: ../pc.img.xz
-        destination: /cdrom/casper/pc.img.xz
+      - source: ../@FILE@
+        destination: /cdrom/casper/@FILE@
       - source: subiquity-enable
         destination: /sbin/subiquity-enable
       - source: subiquity-launcher.service
@@ -83,7 +83,7 @@ customization:
 artifacts:
   img:
     -
-      name: ubuntu-core-desktop-22-amd64.img
+      name: @OUTPUT@
   manifest:
     name: ubuntu-core-desktop-pc-amd64.manifest
 
