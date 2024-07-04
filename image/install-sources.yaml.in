@@ -2,7 +2,7 @@
   description:
     en: Ubuntu Core Desktop.
   id: ubuntu-core-desktop
-  locale_support: none
+  locale_support: locale-only
   name:
     en: Ubuntu Core Desktop
   path: @FILE@

@@ -5,7 +5,3 @@ source:
 interactive-sections:
   - locale
   - storage
-identity:
-  username: ubuntu
-  password: '$1$zB3Qu2ef$TKLhQpQlKRyCZGUdHFFMH/'
-  hostname: ubuntu

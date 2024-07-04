@@ -44,6 +44,8 @@ customization:
     - name: parted
     - name: dosfstools
     - name: xz-utils
+    - name: console-setup-linux
+    - name: whois
   extra-snaps:
     - name: subiquity
     - name: core22
@@ -55,6 +57,8 @@ customization:
       - path: /etc/systemd/journald.conf.d
         permissions: 0755
       - path: /etc/systemd/system/systemd-journald.service.d
+        permissions: 0755
+      - path: /etc/cloud/cloud.cfg.d
         permissions: 0755
     copy-file:
       - source: install-sources.yaml
@@ -77,6 +81,8 @@ customization:
         destination: /etc/systemd/system/systemd-journald.service.d/no-compact.conf
       - source: no-hardening.conf
         destination: /etc/systemd/system/systemd-journald.service.d/no-hardening.conf
+      - source: 06_quiet.cfg
+        destination: /etc/cloud/cloud.cfg.d/06_quiet.cfg
     execute:
       - path: /usr/bin/systemd-machine-id-setup
       - path: /sbin/subiquity-enable
