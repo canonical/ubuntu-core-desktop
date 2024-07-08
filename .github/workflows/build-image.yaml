@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
       - name: Install build dependencies
@@ -23,9 +23,10 @@ jobs:
         run: |
           make
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: image
           path: |
             README.md
             *.tar.gz
+          compression-level: 0 # content is already compressed
