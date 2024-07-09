@@ -4,8 +4,8 @@ ALL_SNAPS = $(EXTRA_SNAPS) evince firefox gnome-calculator gnome-characters gnom
 
 all: pc.img
 
-bootable: ubuntu-core-desktop-22-amd64.img
-bootable-dangerous: ubuntu-core-desktop-22-dangerous-amd64.img
+bootable: ubuntu-core-desktop-22-amd64.iso
+bootable-dangerous: ubuntu-core-desktop-22-dangerous-amd64.iso
 
 define build_img =
 rm -rf img${1}
@@ -45,6 +45,9 @@ ubuntu-core-desktop-22-amd64.img: pc.img.xz image/core-desktop.yaml.in image/ins
 
 ubuntu-core-desktop-22-dangerous-amd64.img: pc-dangerous.img.xz image/core-desktop.yaml.in image/install-sources.yaml.in
 	$(call build_bootable_img)
+
+ubuntu-core-desktop-22-%.iso: ubuntu-core-desktop-22-%.img
+	./create_iso.sh $<
 
 clean:
 	sudo rm -rf img
