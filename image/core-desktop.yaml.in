@@ -46,6 +46,7 @@ customization:
     - name: xz-utils
     - name: console-setup-linux
     - name: whois
+    - name: mdadm
   extra-snaps:
     - name: subiquity
     - name: core22
