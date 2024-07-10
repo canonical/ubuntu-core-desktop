@@ -11,10 +11,10 @@ CHROOT=$PWD/output/mnt
 
 cp -a ${ORIGINAL_DISK_IMAGE} ${DISK_IMAGE}
 
-cd output
+#cd output
 # decompress the image
-xz -v -d ${DISK_IMAGE}
-cd ..
+#xz -v -d ${DISK_IMAGE}
+#cd ..
 
 mkdir -p $CHROOT
 # since we know that the partition with the data is the third one, we use awk to extract the start sector
@@ -31,6 +31,7 @@ sudo chroot ${CHROOT} apt install -y casper
 # and, if needed, open a bash shell to do manual checks
 # chroot ${CHROOT} /bin/bash
 sudo umount ${CHROOT}/run
+sudo umount ${CHROOT}/sys/firmware/efi/efivars
 sudo umount ${CHROOT}/sys
 sudo umount ${CHROOT}/proc
 sudo umount ${CHROOT}/dev/pts
@@ -69,8 +70,8 @@ sudo mksquashfs $CHROOT image2/casper/filesystem.squashfs
 printf $(sudo du -sx --block-size=1 $CHROOT | cut -f1) > image2/casper/filesystem.size
 
 # we are done with the original disk image
-sudo umount ${CHROOT}/sys/firmware/efi/efivars
-sudo umount ${CHROOT}/sys
+#sudo umount ${CHROOT}/sys/firmware/efi/efivars
+#sudo umount ${CHROOT}/sys
 sudo umount ${CHROOT}
 rmdir ${CHROOT}
 
@@ -130,3 +131,4 @@ sudo xorriso \
 
 cd ..
 mv ${DISK_IMAGE%.*}.iso ${ORIGINAL_DISK_IMAGE%.*}.iso
+rm -rf image2
