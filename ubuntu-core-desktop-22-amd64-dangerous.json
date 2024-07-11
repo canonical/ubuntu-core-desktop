@@ -203,6 +203,12 @@
             "default-channel": "latest/stable",
             "type": "app",
             "id": "xODwiAdjx9KGChvI1z9Xx2JWJE7oLFF6"
+        },
+        {
+            "name": "ubuntu-desktop-init",
+            "default-channel": "latest/candidate",
+            "type": "app",
+            "id": "tBdYpKjXcW5farGGJaWiYXrxIwMVMtx5"
         }
     ]
 }
