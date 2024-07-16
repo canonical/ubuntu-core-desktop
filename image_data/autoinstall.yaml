@@ -1,0 +1,7 @@
+version: 1
+source:
+  id: ubuntu-core-desktop
+  search_drivers: false
+interactive-sections:
+  - locale
+  - storage

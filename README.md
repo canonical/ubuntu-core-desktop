@@ -1,8 +1,12 @@
 # GDM on Ubuntu Core
 
-This directory contains an image of Ubuntu Core 22 with the GDM
-display manager loaded into the boot file system.  It can be launched
-in a Qemu virtual machine by following these instructions:
+This directory contains an image of Ubuntu Core 24 with the GDM
+display manager loaded into the boot file system, and an ISO image
+with an installer for that same image.
+
+The ISO image can be used in any virtual machine. The image, in .zx
+compressed format, can be launched in a Qemu virtual machine by
+following these instructions:
 
 1. Download and decompress the two image files and place them in the
    same directory.

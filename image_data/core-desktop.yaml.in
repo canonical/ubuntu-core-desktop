@@ -1,0 +1,96 @@
+name: ubuntu-core-desktop-amd64
+display-name: Ubuntu Core Desktop amd64
+revision: 1
+architecture: amd64
+series: noble
+class: preinstalled
+kernel: linux-image-generic
+gadget:
+  url: "https://git.launchpad.net/~canonical-foundations/snap-pc/+git/github-mirror-amd64"
+  branch: classic
+  type: "git"
+rootfs:
+  components:
+    - main
+    - restricted
+  seed:
+    urls:
+      - "git://git.launchpad.net/~ubuntu-core-dev/ubuntu-seeds/+git/"
+    branch: noble
+    names:
+      - minimal
+customization:
+  cloud-init:
+    user-data: |
+      #cloud-config
+      chpasswd:
+        expire: false
+        users:
+          - name: ubuntu
+            password: ubuntu
+            type: text
+    meta-data: |
+      #cloud-config
+      dsmode: local
+      instance_id: ubuntu-core-desktop
+  extra-packages:
+    - name: squashfs-tools
+    - name: snapd
+    - name: cloud-init
+    - name: lshw
+    - name: bzip2
+    - name: tar
+    - name: lvm2
+    - name: parted
+    - name: dosfstools
+    - name: xz-utils
+    - name: console-setup-linux
+    - name: whois
+    - name: mdadm
+  extra-snaps:
+    - name: subiquity
+    - name: core22
+    - name: snapd
+  manual:
+    make-dirs:
+      - path: /cdrom/casper
+        permissions: 0755
+      - path: /etc/systemd/journald.conf.d
+        permissions: 0755
+      - path: /etc/systemd/system/systemd-journald.service.d
+        permissions: 0755
+      - path: /etc/cloud/cloud.cfg.d
+        permissions: 0755
+    copy-file:
+      - source: install-sources.yaml
+        destination: /cdrom/casper/install-sources.yaml
+      - source: ../image_data/autoinstall.yaml
+        destination: /autoinstall.yaml
+      - source: ../@FILE@
+        destination: /cdrom/casper/@FILE@
+      - source: ../image_data/subiquity-enable
+        destination: /sbin/subiquity-enable
+      - source: ../image_data/subiquity-launcher.service
+        destination: /lib/systemd/system/subiquity-launcher.service
+      - source: ../image_data/subiquity-launch
+        destination: /sbin/subiquity-launch
+      #- source: installer-data.tar.bz2
+      #  destination: /installer-data.tar.bz2
+      - source: ../image_data/no-rate-limit.conf
+        destination: /etc/systemd/journald.conf.d/no-rate-limit.conf
+      - source: ../image_data/no-compact.conf
+        destination: /etc/systemd/system/systemd-journald.service.d/no-compact.conf
+      - source: ../image_data/no-hardening.conf
+        destination: /etc/systemd/system/systemd-journald.service.d/no-hardening.conf
+      - source: ../image_data/06_quiet.cfg
+        destination: /etc/cloud/cloud.cfg.d/06_quiet.cfg
+    execute:
+      - path: /usr/bin/systemd-machine-id-setup
+      - path: /sbin/subiquity-enable
+artifacts:
+  img:
+    -
+      name: @OUTPUT@
+  manifest:
+    name: ubuntu-core-desktop-pc-amd64.manifest
+

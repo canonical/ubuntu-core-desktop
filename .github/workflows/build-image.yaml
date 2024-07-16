@@ -16,17 +16,24 @@ jobs:
           submodules: true
       - name: Install build dependencies
         run: |
-          sudo apt install -y make squashfs-tools dosfstools mtools
+          sudo apt install -y make squashfs-tools dosfstools mtools xorriso grub-common grub-pc-bin
           sudo snap refresh --edge snapd
           sudo snap install --classic ubuntu-image
       - name: Build image
         run: |
           make
-      - name: Upload artifacts
+      - name: Upload image artifact
         uses: actions/upload-artifact@v4
         with:
-          name: image
+          name: bootable-image
           path: |
             README.md
-            *.tar.gz
-          compression-level: 0 # content is already compressed
+            *.img.xz
+          compression-level: 0
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bootable-iso
+          path: |
+            *.iso
+          compression-level: 6
