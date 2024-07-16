@@ -1,0 +1,5 @@
+#!/bin/sh
+
+dmesg -D
+#setfont Uni2-Terminus16
+sudo snap run subiquity
