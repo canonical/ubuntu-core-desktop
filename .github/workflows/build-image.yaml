@@ -16,7 +16,7 @@ jobs:
           submodules: true
       - name: Install build dependencies
         run: |
-          sudo apt install -y make squashfs-tools dosfstools mtools xorriso
+          sudo apt install -y make squashfs-tools dosfstools mtools xorriso grub-common grub-pc-bin
           sudo snap refresh --edge snapd
           sudo snap install --classic ubuntu-image
       - name: Build image
