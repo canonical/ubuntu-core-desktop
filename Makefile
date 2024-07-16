@@ -1,10 +1,10 @@
 
 EXTRA_SNAPS =
 ALL_SNAPS = $(EXTRA_SNAPS) firefox
-all: pc.tar.gz
+all: bootable-iso
 
-bootable: ubuntu-core-desktop-24-amd64.iso
-bootable-dangerous: ubuntu-core-desktop-24-dangerous-amd64.iso
+bootable-iso: ubuntu-core-desktop-24-amd64.iso
+bootable-iso-dangerous: ubuntu-core-desktop-24-dangerous-amd64.iso
 
 define build_img =
 rm -rf img${1}
@@ -62,7 +62,7 @@ clean:
 	sudo rm -rf output
 	sudo rm -rf image
 	sudo rm -rf image2
-	sudo rm -rf dangerous
+	sudo rm -rf img-dangerous
 	sudo rm -rf livecd-rootfs
 	sudo rm -f pc*.img.xz pc*.img pc*.tar.gz ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml
 
@@ -71,5 +71,5 @@ clean-bootable:
 	sudo rm -rf output
 	sudo rm -rf image
 	sudo rm -rf image2
-	sudo rm -rf dangerous
+	sudo rm -rf img-dangerous
 	sudo rm -f ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml image/core-desktop.yaml
