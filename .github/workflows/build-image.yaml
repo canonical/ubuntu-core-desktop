@@ -36,4 +36,4 @@ jobs:
           name: bootable-iso
           path: |
             *.iso
-          compression-level: 0
+          compression-level: 6
