@@ -16,7 +16,7 @@ jobs:
           submodules: true
       - name: Install build dependencies
         run: |
-          sudo apt install -y make squashfs-tools dosfstools mtools
+          sudo apt install -y make squashfs-tools dosfstools mtools xorriso
           sudo snap refresh --edge snapd
           sudo snap install --classic ubuntu-image
       - name: Build image
@@ -28,5 +28,6 @@ jobs:
           name: image
           path: |
             README.md
-            *.tar.gz
-          compression-level: 0 # content is already compressed
+            *.iso
+            *.img.xz
+          compression-level: 0
