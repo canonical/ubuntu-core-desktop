@@ -6,8 +6,8 @@
     "model": "ubuntu-core-desktop-24-amd64-dangerous",
     "display-name":"Ubuntu Core Desktop 24 (amd64) (dangerous)",
     "architecture": "amd64",
-    "revision": "0",
-    "timestamp": "2024-07-04T10:33:44+08:00",
+    "revision": "1",
+    "timestamp": "2025-01-31T10:37:55+01:00",
     "grade": "dangerous",
     "storage-safety": "prefer-encrypted",
     "base": "core24-desktop",
@@ -126,6 +126,12 @@
             "default-channel": "latest/candidate",
             "type": "app",
             "id": "tBdYpKjXcW5farGGJaWiYXrxIwMVMtx5"
+        },
+        {
+            "name": "pipewire",
+            "default-channel": "latest/candidate",
+            "type": "app",
+            "id": "cXXVv4NGwXqlxTVSdrjsuvrPGAHfRSRs"
         }
     ]
 }
