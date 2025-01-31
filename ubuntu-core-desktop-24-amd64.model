@@ -1,5 +1,6 @@
 type: model
 authority-id: canonical
+revision: 1
 series: 16
 brand-id: canonical
 model: ubuntu-core-desktop-24-amd64
@@ -104,17 +105,22 @@ snaps:
     id: tBdYpKjXcW5farGGJaWiYXrxIwMVMtx5
     name: ubuntu-desktop-init
     type: app
+  -
+    default-channel: latest/candidate
+    id: cXXVv4NGwXqlxTVSdrjsuvrPGAHfRSRs
+    name: pipewire
+    type: app
 storage-safety: prefer-encrypted
-timestamp: 2024-07-04T10:33:44+08:00
+timestamp: 2025-01-31T10:37:55+01:00
 sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
 
-AcLBXAQAAQoABgUCZoYTygAKCRDgT5vottzAEnlLD/4toc4w5IiLm/xmBFL8BVwXXVQsvNNtVYaT
-NGSa+q7OJXeVbPQnnRMK4oH31IbGFngK3IHoc04LK76W2GQzAE4SQxTcV9VTlyPrVc6OeCn9rSWj
-zFX/fOVuD5Wd6OOgNitaHqVHh8CDQFcsdOBICImHG6s0Au1mIDVQvV/DxcnnprJ53yXFCeastuX+
-CnZiB6wOv/dzGHnIbhpUtKg5HV5jZoIkmplWAZr1IXd8gAPvltDzpJYwN6GMHK6SLUD1tgviP4ZB
-gw9IT11DCeB9TOEnsAs7y1YApUdkxMSv4B+Jwew/lkjysncULqFCt6fCD3HEw+OdULb/OrFnYcSV
-4NqPBop/9mi+CB5Fs3ubtlKxK9VnSJbLpXsyBeDvljVKp0MvNBpCTJnlGtRvQE/bHLpaAhRRsP0R
-6cUqd1ieRm4wp/1/v+zMjdp6VL7co0/a6jZgtfptCMnCC6Z0KdLWGQjaXDwxNStqMK3h/Au2YWDc
-ZgZ/+wTxMlDyU4i4gg+rByV2yPHfGeVpN7D7nuY8OWXq1ezESY6K5fsOW77/XEjZJOI3BFOJ6Xnl
-2ATKBs6uSmMPQSZo21sk+E0c2gH8qj6L6mUcAz2qvilur9w4uEM3TRfZcAKPN+8lV44eB8/aZpq7
-GfjsXFa+DpXJzWdC91SP4yIeojoj3OAl4gNwt0c85g==
+AcLBXAQAAQoABgUCZ5zT4gAKCRDgT5vottzAEoUTEACPVVlhQG7XeS64fULTqFEOwbtpXQbzOSha
+cA75LkAwEGns3704ca09nJObeTVdg5KTiWheZ8Es123GZ0ywGsdoVHNOYcxpXahDTQjBG5+W7tWZ
+A+RS8y4VrqWRzUrNP0B0rpV6Z3LMVj0ClRPmczSpE3S4XWgHCPINBbf4nmJpnR2nAUgIVargSwIk
+Fdhq+hZyqF3WrITk5sqqbJC7byoTqFYltF2g4NnwXPymagPjByjRpRxAzzax8Ya/HRPzoOhRXSKn
+1KRonNj1INYQ26JuVv+NXQMk5GZp5gjN+yhxWSqenfFjjcRHJKM5I//F1X+k7VrufJTIXhvlQnqe
+tElTsCDj1mzs3g2VPsocgdVD0oZxrpABDa25j4hsavPBGkxD2zyDrt6cTmHE9sPb1CMibfRpJsLQ
+NV7MZfgyA7AvZvVysXhBkqZL/xxxP3g3dVz4dvLFIMXs49rMBD4QqI9Nc70fosIUcwPtrEyuOamH
+VN2aMXvK19fMGNRTOds8HERB4es4aELUTDufOUiyBsKemniL1mu4HasadTYJesCv8P/7lXYjz2bz
+5qkA9pM4N5/WrDk4GcRFeIXJSIbEmWeuIEZM8+xyYQqp7oaD6sCUXjov0mPij82IFPgSZH/n9Ei1
+9i+vQJacHNHBfIbO3Jvr/GFe1xC9kwRPFAw6G6t4Xw==
