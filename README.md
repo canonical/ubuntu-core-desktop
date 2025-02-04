@@ -107,3 +107,27 @@ the EFI system and the base snaps:
     sudo mount /dev/mapper/loopXXX/p2 /mnt
 
 And now we can go to */mnt/snaps*, and there are all the base snaps.
+
+## Self-signing the -dangerous model for testings
+
+To do local testings with other sources than the current ones, it may be useful
+to modify the `.model` files (for example, to make them point to `edge`). But
+since these files must be signed, it must be done correctly.
+
+First, you need a developer account in snapcraft.io. This process is detailed
+here:
+
+<https://snapcraft.io/docs/creating-your-developer-account>
+
+After configuring the account, log in with snapcraft (`snapcraft login`) and
+get your user ID (`snapcraft whoami`). Also, get your signature name with the
+command `snap keys`.
+
+Edit `ubuntu-core-desktop-XX-YY-dangerous.json` file, and put your ID both in
+`authority-id` and `brand-id`.
+
+Now, create the new `.model` file with the command:
+
+`snap sign -k SIGNATURE-NAME ubuntu-core-desktop-XX-YY-dangerous.json > output.model`
+
+Replacing `SIGNATURE-NAME`, `XX`, `YY` and `output.model` with the right values.
