@@ -1,5 +1,6 @@
 type: model
 authority-id: canonical
+revision: 1
 series: 16
 brand-id: canonical
 model: ubuntu-core-desktop-24-amd64-dangerous
@@ -104,17 +105,22 @@ snaps:
     id: tBdYpKjXcW5farGGJaWiYXrxIwMVMtx5
     name: ubuntu-desktop-init
     type: app
+  -
+    default-channel: latest/candidate
+    id: cXXVv4NGwXqlxTVSdrjsuvrPGAHfRSRs
+    name: pipewire
+    type: app
 storage-safety: prefer-encrypted
-timestamp: 2024-07-04T10:33:44+08:00
+timestamp: 2025-01-31T10:37:55+01:00
 sign-key-sha3-384: 9tydnLa6MTJ-jaQTFUXEwHl1yRx7ZS4K5cyFDhYDcPzhS7uyEkDxdUjg9g08BtNn
 
-AcLBXAQAAQoABgUCZoYTygAKCRDgT5vottzAEp5GEACX59hc/FHiFzBvTaXzdkH4Dsuqd40jiL/J
-/wFmVcLH4SV8NVcFAVUkKY0rLviLA+ai/W/rOlsq5pbMHcaXiukRSjormeXlH84t7xRy9WTNXYx2
-R6HNJ7LY+twFqCXSxOtGKENXdWwtw5YifCtRSm4l7MKiDb9IbysuDupjZL2l/DqjN0kF3yaVUgVN
-WneI6j94rFlUCzv7L7j3TB4Dh7WeyqlnpDGy5deztl+4wwAWuDDTTHuo8dx4sIYD+L53sAk6MiSI
-BbjFk6QnbQvCodJwawZHjChZU2m/R3Xv8jjVww/1f2zzonx2myoQJCRrnUAUQ4xE28ViqeUJZkl/
-YeJKHa4DxMEQhwG02y4Y7pjVO+UErCruA6xP+g6TuQYC7sHqN5SLnPICPhHdVKyE3ukowwbe9SOm
-Z6gK+vt8QKfnMXoFofmbmaRZz+kp8rYAOYbOH4JjAzFUl4Cd+AnXeP5tt0g0q2Cv8ucJCaNLXg3v
-yhRPHIoiWx/Udl+fHdNPM4Cfdy651IJy6Wxpfv8PQJpmuaUzL23UxY111nmZF1kIgedcSbf+Bsmp
-e0qhWDKftF8nWmXS0RklgmdBskztVCSTflCXn2yo8w2/UAO/1cDUzEaTtjCTVMjcHbMqIDBw0nuf
-dq6yqlLbwLEZWSJTJOBuIpnVcWq+7YFg0RtDyZK2/g==
+AcLBXAQAAQoABgUCZ5zT4QAKCRDgT5vottzAEsgCD/9q8pRsFTFf/2MO6D2+fVGUm/DV5JwQp1mU
+Tvg8SayQRgO42nvTi0dajwwJxqhrkwxB2Hhqf06XQNcxt9cmrBOeUDmXS9fjEDEfhD+isI6BQTRF
+ORhr7GpepMaq4uAQ5UTlHYULT8mlkAyY2pAl/NIQronVq1fgxv8rBAIV2yZo6AxT3cuj/kFPRHDU
+fT85SSyL5yUjt1+x9JM+1Nse/JML37oE1EFKCV2h6ahclDwEywlAkqk5+FQm5koHTrUIWdpxsOF6
+tUEM3yTV5Tb13/urpoa6f1HEAVpQycbHF6AGuYmGC+g+SxNnzAF+Tb5Bwj1RYGXoi03Ac8qZiIEV
+4s4odX8husCcz4P/brNjfXcN3X1x+Yu+50l16aIUv8amLUIfQAPOkMUmWvCE8Xfn/Bvt4nCdUWj7
+yqY7ZMe8qt4FqXbECvA9SpRxeTadaFIQ6tNuPgkw4S4UUJGtZ4oGKGxKCSGlNqO/viyq42K8KUO6
+uX08LIqbD2ZqFrHm+b+cKZ2uPQSjT8R4oAeEWpbqrK23KNpAGIX/TyQZt6eQr7rn69PthPMNTL6F
+Lt7ykPJRI0RmHUza741ACET/YyhXbFo95Gr5EFMNZPDIvtEdbEXB0o9cPyE849YRn43UiF7eZH3q
+FSFszRqpuxz0GL2xaGEU6jTbDDRckZqZFWqMtUHMEA==
