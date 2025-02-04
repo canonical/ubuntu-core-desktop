@@ -40,8 +40,15 @@ virt-manager with a command like the following:
       -drive file=/usr/share/OVMF/OVMF_CODE.fd,if=pflash,format=raw,unit=0,readonly=on \
       -drive file=pc.img,cache=none,format=raw,id=main,if=none \
       -device virtio-blk-pci,drive=main,bootindex=1 \
-      -device ac97 -audiodev pa,id=ac97
+      -serial telnet:localhost:4321,server,nowait \
+      -audio driver=pipewire,model=hda
 ```
+
+This command line connects the inner port 22 to the localhost port 8022, to allow to
+access SSH. Also connects the serial port to the localhost port 4321, allowing to
+access through a virtual serial terminal using
+
+    telnet localhost 4321
 
 ## Other Repositories
 
