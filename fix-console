@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+ROOT="${1:-squashfs-root}"
+SYSTEMD="$ROOT/etc/systemd/system"
+
+if [[ ! -d "$ROOT/etc" ]]; then
+    echo "ERROR: not an extracted root filesystem: $ROOT" >&2
+    exit 1
+fi
+
+echo "Modifying extracted root filesystem: $ROOT"
+
+tee $ROOT/etc/profile.d/serial-terminal.sh >/dev/null <<'EOF'
+# Terminal dimensions for the QEMU serial console.
+if [ "$(tty 2>/dev/null)" = "/dev/ttyS0" ]; then
+    stty rows 55 cols 86 2>/dev/null || :
+fi
+EOF
+
+chown root:root $ROOT/etc/profile.d/serial-terminal.sh
+chmod 0644 $ROOT/etc/profile.d/serial-terminal.sh
+
+mkdir -p \
+    "$SYSTEMD" \
+    "$SYSTEMD/basic.target.wants"
+
+# Remove previous enablement links.
+rm -f \
+    "$SYSTEMD/getty.target.wants/serial-getty@ttyS0.service" \
+    "$SYSTEMD/sysinit.target.wants/serial-getty@ttyS0.service" \
+    "$SYSTEMD/sysinit.target.wants/early-serial-getty.service" \
+    "$SYSTEMD/basic.target.wants/serial-getty@ttyS0.service" \
+    "$SYSTEMD/basic.target.wants/early-serial-getty.service"
+
+# Remove previous drop-ins.
+rm -rf \
+    "$SYSTEMD/serial-getty@ttyS0.service.d" \
+    "$SYSTEMD/early-serial-getty.service.d"
+
+# Prevent Ubuntu Core's serial-console setup from taking over ttyS0.
+ln -sfn /dev/null \
+    "$SYSTEMD/serial-console-conf@ttyS0.service"
+
+# Prevent the standard serial getty from competing with our getty.
+ln -sfn /dev/null \
+    "$SYSTEMD/serial-getty@ttyS0.service"
+
+# Install the early serial getty.
+tee "$SYSTEMD/early-serial-getty.service" >/dev/null <<'EOF'
+[Unit]
+Description=Early Serial Getty on ttyS0
+Requires=dev-ttyS0.device
+After=dev-ttyS0.device
+
+[Service]
+Type=simple
+ExecStart=/sbin/agetty --keep-baud 115200,57600,38400,9600 ttyS0 vt100
+Environment=TERM=xterm-256color
+Restart=always
+RestartSec=1
+TTYPath=/dev/ttyS0
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=no
+
+[Install]
+WantedBy=basic.target
+EOF
+
+chown root:root \
+    "$SYSTEMD/early-serial-getty.service"
+
+chmod 0644 \
+    "$SYSTEMD/early-serial-getty.service"
+
+ln -sfn ../early-serial-getty.service \
+    "$SYSTEMD/basic.target.wants/early-serial-getty.service"
+
+echo
+echo "Installed unit:"
+sed -n '1,200p' \
+    "$SYSTEMD/early-serial-getty.service"
+
+echo
+echo "Relevant links:"
+ls -l \
+    "$SYSTEMD/basic.target.wants/early-serial-getty.service" \
+    "$SYSTEMD/serial-getty@ttyS0.service" \
+    "$SYSTEMD/serial-console-conf@ttyS0.service"
+
+echo
+echo "Done."
