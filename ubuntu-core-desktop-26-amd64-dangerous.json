@@ -85,6 +85,18 @@
             "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
         },
         {
+            "name": "gnome-46-2404",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "ew7OxpbRTxfK7ImpIygRR85lkxvU7Pzt"
+        },
+        {
+            "name": "mesa-2404",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "HyhSEBPv3vHsW6uOHkQR384NgI7S6zpj"
+        },
+        {
             "name": "cups",
             "default-channel": "latest/stable",
             "type": "app",
@@ -117,7 +129,7 @@
         },
         {
             "name": "snap-store",
-            "default-channel": "latest/stable/ubuntu-24.04",
+            "default-channel": "2/stable",
             "type": "app",
             "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
         },
