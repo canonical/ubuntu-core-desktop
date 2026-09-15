@@ -61,6 +61,7 @@ core26.img: ubuntu-core-26-amd64-dangerous.model auto-import.assert
 	  --snap gadget.snap \
 	  --snap snapd26.snap \
 	  --snap ubuntu-desktop-session.snap \
+	  --snap ubuntu-desktop-init.snap \
 	  $<
 	mv 26/pc.img $@
 
