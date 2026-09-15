@@ -31,12 +31,6 @@
             "id": "PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4"
         },
         {
-            "name": "core24-desktop",
-            "default-channel": "latest/stable",
-            "type": "base",
-            "id": "GY5GohJ4F1ZsWpkosG0joeZyDfHzTZrD"
-        },
-        {
             "name": "core26-desktop",
             "default-channel": "latest/stable",
             "type": "base",
