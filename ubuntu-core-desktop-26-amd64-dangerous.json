@@ -56,7 +56,7 @@
         },
         {
             "name": "network-manager",
-            "default-channel": "24/stable",
+            "default-channel": "26/stable",
             "type": "app",
             "id": "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy"
         },
@@ -86,13 +86,13 @@
         },
         {
             "name": "avahi",
-            "default-channel": "24/stable",
+            "default-channel": "26/stable",
             "type": "app",
             "id": "dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll"
         },
         {
             "name": "bluez",
-            "default-channel": "24/stable",
+            "default-channel": "26/stable",
             "type": "app",
             "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
         },
