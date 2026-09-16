@@ -107,12 +107,6 @@
             "default-channel": "latest/candidate",
             "type": "app",
             "id": "tBdYpKjXcW5farGGJaWiYXrxIwMVMtx5"
-        },
-        {
-            "name": "console-conf",
-            "type": "app",
-            "default-channel": "24/stable",
-            "id": "ASctKBEHzVt3f1pbZLoekCvcigRjtuqw"
         }
     ]
 }
