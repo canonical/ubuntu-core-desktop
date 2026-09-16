@@ -55,6 +55,12 @@
             "id": "dwTAh7MZZ01zyriOZErqd1JynQLiOGvM"
         },
         {
+            "name": "core26",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "cUqM61hRuZAJYmIS898Ux66VY61gBbZf"
+        },
+        {
             "name": "network-manager",
             "default-channel": "24/stable",
             "type": "app",

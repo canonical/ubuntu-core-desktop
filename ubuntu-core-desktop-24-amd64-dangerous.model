@@ -44,6 +44,11 @@ snaps:
     name: core24
     type: base
   -
+    default-channel: latest/stable
+    id: cUqM61hRuZAJYmIS898Ux66VY61gBbZf
+    name: core26
+    type: base
+  -
     default-channel: 24/stable
     id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
     name: network-manager
@@ -105,16 +110,16 @@ snaps:
     name: console-conf
     type: app
 storage-safety: prefer-encrypted
-timestamp: 2026-09-09T15:13:33Z
+timestamp: 2026-09-15T14:16:29Z
 sign-key-sha3-384: B55Ji_hfo6XxL5cQQpl6ONjVDelaVrcT-K-trKU1ZzzplG2q1mw-8aDRTWyXza5S
 
-AcLBcwQAAQoAHRYhBK1p6e/18ZZqDcT1BvlkgnR2/T1ZBQJqoXedAAoJEPlkgnR2/T1ZzcEP/1Vw
-6/WTk0BvD2ELmclf7eNe2Dl/yxlSR1QmbQ/fBcqhJ3Z3Ismb1M6in9WWfiyNA39dgFcumTbNdjT7
-tBh7JbhpdhppY5uK3o4tLefLgBgETd9lNvMuEBDGvWcpXErgfeqwn7YnUfMvW3C/Tw/PigFjdUDq
-uVYbYf2XcvVmqxTmpINM3Awzl35bqcQPHJwG4yMSsg/xUxn+AR/Ic1njLbH7O6HiiDyOtEWlPph+
-sWCfDHrBiC47++z5ZTXsyXVmm3JqU982dPMfO0YrYY87g6kd6scKOwmefXZHLgYovRQbxUMc19SK
-X4PVSD0bsH+kHhp0ko0MELDUN8HFiQ7HUIybYSfYbIPQ8WTI0mPoqqMo+s4SENJDaILbd8vDjR1F
-prhyUtVyDA0uYbdpnpl6ZWaetyEFVYPxV107lGNCvadFjxJNL1M/B3x1LO7NCi7wyXcsFs84j8Jk
-9rlUiBcGMrLqhBCASkIemheoYVWnK3CDIsquELX7xKlH37jpJ14wjrQWimq+Me5ZobMk6XBfvutJ
-SDJH9KP8RhPgXqWnmkJl5uVeHLkL3koLmYAPyB6WMZSMCPOPi50x+ITG9Lg0DLZ4fZ1ywpS1xTkA
-IKWHLbBtzHAeTEACJfSLBkPblWqUrutlm8NH2UwXCxkDvYy6aD3DOZZdvXvOF+uFXowUX/1m
+AcLBcwQAAQoAHRYhBK1p6e/18ZZqDcT1BvlkgnR2/T1ZBQJqqVM9AAoJEPlkgnR2/T1Zmb4QAJOy
+JylUJuMnVxyFybKwsIkK7BmHekqYgbyVCnj9lOJn6IkpgUY6ogyVFE4r9C+bUkW57Fq7O7SRd1+7
+jxegginY5F8G0f4hVjJKaxzakTHeCyBzn9An3TGGJZwcIQC9/FH9bXc+Tqi/DfVwBpI/i4wUoL/u
+dc9AdycfN+0aV0As+mbnOr7rOxrOLGMUjcM3nS886X9sMfkPAv0f6+fp/mLO9Bmdc8bMiT0csvzG
+X4gkB5thdWchTWfZXol00ZNrRYjZsBKXYa0m+MknTDdPILLwZSytaTCqShWxODpqzIx3khKJkZzr
+oEXXn8qWL3Uex5pupbyW9XiHkGfmNPwFvSFP5jRNDG+chwqWaPn2vk/Np0mtNQP91Ll1BnDZ2VmF
+SGK/4lY75iWYk7dtHY8Zohl8z1ZNSIWvX33gLlnchqmUiDoXwldf9CIk4ZQylSir9DlS6b7Dp+/r
+N2XXnJ38Q5OafF0O1WcNPlVPIR5Cd8l4Ma5oXYWCuzaEZGyfbmzP5l0q97eZbndC1VSoik3s+VkL
+ChtqlanwA+27PbVeA8P2fby4uLoaQx9tjzFU93splwRMYW/1FYSyinJa4eGt3V3H+IOWRiu4iudb
+OIx96eafUwbo98yNSCJc6Dct+FLJikMRE/dAHd96MFyjnuHZVPw/AEDyRoQ6xWvm1QheJ6r+
