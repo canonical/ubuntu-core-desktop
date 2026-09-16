@@ -79,12 +79,6 @@
             "id": "jZLfBRzf1cYlYysIjD2bwSzNtngY0qit"
         },
         {
-            "name": "gnome-42-2204",
-            "default-channel": "latest/stable",
-            "type": "app",
-            "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
-        },
-        {
             "name": "gnome-46-2404",
             "default-channel": "latest/stable",
             "type": "app",
