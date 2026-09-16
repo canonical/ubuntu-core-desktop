@@ -43,12 +43,6 @@
             "id": "LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN"
         },
         {
-            "name": "core22",
-            "default-channel": "latest/stable",
-            "type": "base",
-            "id": "amcUKQILKXHHTlmSa7NMdnXSx02dNeeT"
-        },
-        {
             "name": "core24",
             "default-channel": "latest/stable",
             "type": "base",
@@ -89,18 +83,6 @@
             "default-channel": "latest/stable",
             "type": "app",
             "id": "HyhSEBPv3vHsW6uOHkQR384NgI7S6zpj"
-        },
-        {
-            "name": "cups",
-            "default-channel": "latest/stable",
-            "type": "app",
-            "id": "m1eQacDdXCthEwWQrESei3Zao3d5gfJF"
-        },
-        {
-            "name": "ipp-usb",
-            "default-channel": "latest/stable",
-            "type": "app",
-            "id": "WJKWBUuCDufOFw2p24tvkbbw02plGkbd"
         },
         {
             "name": "avahi",
