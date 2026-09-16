@@ -33,28 +33,36 @@ core26.img: ubuntu-core-26-amd64-dangerous.model auto-import.assert
 	  $<
 	mv dangerous/pc.img core26.img
 
-pc-dangerous.img: ubuntu-core-desktop-24-amd64-dangerous.model $(MODEL_ACCOUNT_KEY)
-      #	pc-desktop_26.assert
-	rm -rf dangerous/
-	ubuntu-image snap -v --validation=ignore \
-	  --assertion $(MODEL_ACCOUNT_KEY) \
-	  --output-dir dangerous \
-	  --image-size 20G \
-	  --assertion auto-import.assert \
-	  --snap custom-core24-desktop_36.snap \
-	  --snap custom-pc-desktop_26.snap \
-	  --snap snapd_2.66.1+git3159.gdc0543f_amd64.snap \
-	  $<
-	mv dangerous/pc.img pc-dangerous.img
 
-#	  --snap ubuntu-desktop-session_20260909+git_all.snap \
-#	  --snap custom-pc-desktop_24-0.1_amd64.snap \
-#	  --snap custom-pc-desktop_26.snap \
-#	  --snap core26-desktop_20260908_amd64.snap \
-#	  --snap core26_20260909_amd64.snap \
-#	  --snap pc-desktop_24-0.1_amd64.snap \
-#	  --snap snapd_2.66.1+git3159.gdc0543f_amd64.snap \
-#	  --assertion auto-import.assert
+24.img: ubuntu-core-desktop-24-amd64-dangerous.model $(MODEL_ACCOUNT_KEY) FORCE
+	rm -rf 24/
+	ubuntu-image snap -v \
+	  --assertion auto-import.assert \
+	  --assertion $(MODEL_ACCOUNT_KEY) \
+	  --validation=ignore \
+	  --output-dir 24 \
+	  --image-size 20G \
+	  --snap custom-core.snap \
+	  --snap gadget.snap \
+	  --snap snapd_2.66.1+git3159.gdc0543f_amd64.snap \
+	  --snap ubuntu-desktop-session.snap \
+	  $<
+	mv 24/pc.img $@
+
+26.img: ubuntu-core-desktop-26-amd64-dangerous.model $(MODEL_ACCOUNT_KEY) FORCE
+	rm -rf 26/
+	ubuntu-image snap -v \
+	  --assertion auto-import.assert \
+	  --assertion $(MODEL_ACCOUNT_KEY) \
+	  --validation=ignore \
+	  --output-dir 26 \
+	  --image-size 20G \
+	  --snap custom-core.snap \
+	  --snap gadget.snap \
+	  --snap snapd26.snap \
+	  --snap ubuntu-desktop-session.snap \
+	  $<
+	mv 26/pc.img $@
 
 pi.img: ubuntu-core-desktop-22-pi.model $(EXTRA_SNAPS)
 	rm -rf dangerous/
