@@ -97,13 +97,6 @@
             "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
         },
         {
-            "name": "firefox",
-            "default-channel": "latest/stable/ubuntu-24.04",
-            "type": "app",
-            "id": "3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk",
-            "presence": "optional"
-        },
-        {
             "name": "snap-store",
             "default-channel": "2/stable",
             "type": "app",
