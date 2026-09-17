@@ -49,10 +49,13 @@ core26.img: ubuntu-core-26-amd64-dangerous.model auto-import.assert
 	  $<
 	mv 24/pc.img $@
 
+# NOUSER=1 skips seeding the test system-user assertion, so the image
+# has no existing users at first boot and ubuntu-desktop-init's
+# first-boot wizard runs instead (see go-build-desktop26 --nouser).
 26.img: ubuntu-core-desktop-26-amd64-dangerous.model $(MODEL_ACCOUNT_KEY) FORCE
 	rm -rf 26/
 	ubuntu-image snap -v \
-	  --assertion auto-import.assert \
+	  $(if $(NOUSER),,--assertion auto-import.assert) \
 	  --assertion $(MODEL_ACCOUNT_KEY) \
 	  --validation=ignore \
 	  --output-dir 26 \
