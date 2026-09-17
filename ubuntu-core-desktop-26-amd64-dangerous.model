@@ -1,0 +1,104 @@
+type: model
+authority-id: UJySllegsYenHktWHqU1R1PAk9FzxMoj
+series: 16
+brand-id: UJySllegsYenHktWHqU1R1PAk9FzxMoj
+model: ubuntu-core-desktop-26-amd64-dangerous
+architecture: amd64
+base: core26-desktop
+display-name: Ubuntu Core Desktop 26 (amd64) (dangerous)
+grade: dangerous
+snaps:
+  -
+    default-channel: 24/stable
+    id: mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy
+    name: pc-desktop
+    type: gadget
+  -
+    default-channel: 26/stable
+    id: pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza
+    name: pc-kernel
+    type: kernel
+  -
+    default-channel: latest/stable
+    id: PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4
+    name: snapd
+    type: snapd
+  -
+    default-channel: latest/stable
+    id: j78KCOObDaxyocjOxyqkTSrYbwPeuBBg
+    name: core26-desktop
+    type: base
+  -
+    default-channel: 26/stable
+    id: LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN
+    name: ubuntu-desktop-session
+    type: app
+  -
+    default-channel: latest/stable
+    id: cUqM61hRuZAJYmIS898Ux66VY61gBbZf
+    name: core26
+    type: base
+  -
+    default-channel: latest/stable
+    id: dwTAh7MZZ01zyriOZErqd1JynQLiOGvM
+    name: core24
+    type: base
+  -
+    default-channel: 26/stable
+    id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
+    name: network-manager
+    type: app
+  -
+    default-channel: latest/stable
+    id: EISPgh06mRh1vordZY9OZ34QHdd7OrdR
+    name: bare
+    type: base
+  -
+    default-channel: latest/stable
+    id: jZLfBRzf1cYlYysIjD2bwSzNtngY0qit
+    name: gtk-common-themes
+    type: app
+  -
+    default-channel: latest/stable
+    id: ew7OxpbRTxfK7ImpIygRR85lkxvU7Pzt
+    name: gnome-46-2404
+    type: app
+  -
+    default-channel: latest/stable
+    id: HyhSEBPv3vHsW6uOHkQR384NgI7S6zpj
+    name: mesa-2404
+    type: app
+  -
+    default-channel: 26/stable
+    id: dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll
+    name: avahi
+    type: app
+  -
+    default-channel: 26/stable
+    id: JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS
+    name: bluez
+    type: app
+  -
+    default-channel: 2/stable
+    id: gjf3IPXoRiipCu9K0kVu52f0H56fIksg
+    name: snap-store
+    type: app
+  -
+    default-channel: latest/candidate
+    id: tBdYpKjXcW5farGGJaWiYXrxIwMVMtx5
+    name: ubuntu-desktop-init
+    type: app
+storage-safety: prefer-encrypted
+timestamp: 2026-09-17T10:37:31Z
+sign-key-sha3-384: B55Ji_hfo6XxL5cQQpl6ONjVDelaVrcT-K-trKU1ZzzplG2q1mw-8aDRTWyXza5S
+
+AcLBcwQAAQoAHRYhBK1p6e/18ZZqDcT1BvlkgnR2/T1ZBQJqq8LrAAoJEPlkgnR2/T1ZrA4QAJSS
++jVKsQypOEd6NcKa98i5n39P4iHFPWHpbjzTThH4HoQWv3m1Cr/1yIBFpO8G6H2514GZG2QO9fpp
+3RpewdYPc3QC8MJzpZGcQDdq5adl29ibtIEZ2DKQh0QNUkh+aSGJ8Geu1PQPHkliEbCvGU1mBOk5
+npq3XOJzzXbWSoRego+HUWTp611cNwrUzQj3Qh6ELlMoGsZ2gUhcYBmbA5yzI47GqV7B17wX/K+n
+hUapdbBo7Cii59jj8NPyVDY55T0PAfjEGaQUz4nTGliSaaix2kTWoi+kN9ZVknuNFBkq03pMoQuw
+Q+3ujZKX4pArubEao+u+BjANzojqpMEI+SDqjLiF0jCnQAkKlUVcsDJJorIOQjjqOXgjGlG1Q/Wj
+tpSaG5qn5k6WtYacVzYsbbyLIpr+DMaDjQfqOS7ez5hb5ZUdSaHmyVnpTiykw6j6VWJqwAGRGcyE
+zko3TZ0zZ6t+2Rj5beypPkjbjWMvpfV/zNmLzIuhCoiVjbBAs1kL+B3JsWTvDCuWj7zBAqxEmVRQ
+a1poQcCzK/lFQM7qROsjRuqYGSXJ7Os0HUBY4QG5/t0s5fv+7IizXWR+mr5C/S9rGna/14/vACFJ
+xt3GzQGxQ7t+4PyLI4bVykFrPrk2kWimE4ncf5URe5bPYTrIe+njbaz5Y4qsrz9rmI2ik0oA
