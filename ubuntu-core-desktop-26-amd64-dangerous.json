@@ -38,7 +38,7 @@
         },
         {
             "name": "ubuntu-desktop-session",
-            "default-channel": "24/stable",
+            "default-channel": "26/stable",
             "type": "app",
             "id": "LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN"
         },
