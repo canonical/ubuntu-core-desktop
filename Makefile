@@ -6,9 +6,6 @@ FORCE:
 
 all: pc.tar.gz
 
-auto-import.assert: system-user.json
-	snap sign system-user.json --chain > auto-import.assert
-
 pc-desktop_26.assert:
 	tmpdir=$$(mktemp -d); \
 	snap download pc-desktop --revision=26 --target-directory "$$tmpdir" >/dev/null; \
@@ -24,10 +21,9 @@ pc.img: ubuntu-core-desktop-24-amd64.model $(EXTRA_SNAPS)
 	$(foreach s,$(SNAPS),--snap $(s)) $<
 	mv img/pc.img .
 
-core26.img: ubuntu-core-26-amd64-dangerous.model auto-import.assert
+core26.img: ubuntu-core-26-amd64-dangerous.model
 	rm -rf dangerous/
 	ubuntu-image snap -v --validation=ignore \
-	  --assertion auto-import.assert \
 	  --output-dir dangerous \
 	  --image-size 20G \
 	  $<
@@ -37,7 +33,6 @@ core26.img: ubuntu-core-26-amd64-dangerous.model auto-import.assert
 24.img: ubuntu-core-desktop-24-amd64-dangerous.model $(MODEL_ACCOUNT_KEY) FORCE
 	rm -rf 24/
 	ubuntu-image snap -v \
-	  --assertion auto-import.assert \
 	  --assertion $(MODEL_ACCOUNT_KEY) \
 	  --validation=ignore \
 	  --output-dir 24 \
@@ -49,13 +44,15 @@ core26.img: ubuntu-core-26-amd64-dangerous.model auto-import.assert
 	  $<
 	mv 24/pc.img $@
 
-# NOUSER=1 skips seeding the test system-user assertion, so the image
-# has no existing users at first boot and ubuntu-desktop-init's
+# test is seeded at run time by go-cloud-init's NoCloud seed.iso
+# (attached by go-run-desktop26), not by any assertion baked into the
+# image. NOUSER=1 just drops a 26.img.nouser marker next to the image;
+# go-run-desktop26 checks for it and skips attaching seed.iso, so the
+# image has no existing user at first boot and ubuntu-desktop-init's
 # first-boot wizard runs instead (see go-build-desktop26 --nouser).
 26.img: ubuntu-core-desktop-26-amd64-dangerous.model $(MODEL_ACCOUNT_KEY) FORCE
 	rm -rf 26/
 	ubuntu-image snap -v \
-	  $(if $(NOUSER),,--assertion auto-import.assert) \
 	  --assertion $(MODEL_ACCOUNT_KEY) \
 	  --validation=ignore \
 	  --output-dir 26 \
@@ -67,6 +64,7 @@ core26.img: ubuntu-core-26-amd64-dangerous.model auto-import.assert
 	  --snap ubuntu-desktop-init.snap \
 	  $<
 	mv 26/pc.img $@
+	$(if $(NOUSER),touch 26.img.nouser,rm -f 26.img.nouser)
 
 pi.img: ubuntu-core-desktop-22-pi.model $(EXTRA_SNAPS)
 	rm -rf dangerous/
@@ -88,4 +86,4 @@ clean:
 	sudo rm -rf img
 	sudo rm -rf output
 	sudo rm -rf image
-	sudo rm -f pc*.img.xz pc*.img pc*.tar.gz ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml
+	sudo rm -f pc*.img.xz pc*.img pc*.tar.gz ubuntu-core-desktop-*.img ubuntu-core-desktop-*.img.xz ubuntu-core-desktop-*.iso image/install-sources.yaml 26.img.nouser
