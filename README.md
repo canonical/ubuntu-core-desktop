@@ -1,6 +1,6 @@
 # GDM on Ubuntu Core
 
-This directory contains an image of Ubuntu Core 22 with the GDM
+This directory contains an image of Ubuntu Core 26 with the GDM
 display manager loaded into the boot file system.  It can be launched
 in a Qemu virtual machine by following these instructions:
 
@@ -50,23 +50,11 @@ repositories. Namely:
 
 | Snap | Repo | Recipe | Notes |
 | ---- | ---- | ------ | ----- |
-| `core24-desktop` | [core-base-desktop:24](https://github.com/canonical/core-base-desktop/tree/24) | [via launchpad](https://launchpad.net/~desktop-snappers/ubuntu-core-desktop/+snap/core24-desktop) | base snap, forked from `core24` to integrate GDM graphical login |
-| `pc-desktop` | [pc-amd64-gadget-desktop:24](https://github.com/canonical/pc-amd64-gadget-desktop/tree/24) | [via launchpad](https://launchpad.net/~ubuntu-desktop/pc-gadget-desktop/+snap/pc-amd64-gadget-desktop-core24) | gadget snap, forked from `pc`, using `core24-desktop` as a base |
-| `ubuntu-desktop-session` | [ubuntu-desktop-session-snap:24](https://github.com/canonical/ubuntu-desktop-session-snap/tree/24) | [via launchpad](https://launchpad.net/~ubuntu-desktop/+snap/ubuntu-desktop-session-snap-core24) | provides the confined desktop session |
-| `snapd` | [ubuntu-core-desktop-snapd:master](https://github.com/canonical/ubuntu-core-desktop-snapd) | [via launchpad](https://launchpad.net/~snappy-dev/+snap/ubuntu-core-desktop-snapd) | a branch of snapd with additional changes not yet merged to mainline |
-
-<details>
-<summary>Core 22 Repositories</summary>
-
-| Snap | Repo | Recipe | Notes |
-| ---- | ---- | ------ | ----- |
-| `core22-desktop` | [core-base-desktop:22](https://github.com/canonical/core-base-desktop/tree/22) | [via launchpad](https://launchpad.net/~ubuntu-desktop/+snap/core22-desktop) | base snap, forked from `core22` to integrate GDM graphical login |
-| `pc-desktop` | [pc-amd64-gadget-desktop:22](https://github.com/canonical/pc-amd64-gadget-desktop/tree/22) | [via launchpad](https://launchpad.net/~ubuntu-desktop/pc-gadget-desktop/+snap/pc-amd64-gadget-desktop-core22) | gadget snap, forked from `pc`, using `core22-desktop` as a base |
-| `pi-desktop` | [pi-desktop](https://github.com/canonical/pi-desktop) | [via launchpad](https://launchpad.net/~desktop-snappers/+snap/pi-desktop) | Pi gadget snap, forked from `pi`, using `core22-desktop` as a base |
-| `ubuntu-desktop-session` | [ubuntu-desktop-session-snap:22](https://github.com/canonical/ubuntu-desktop-session-snap/tree/22) | [via launchpad](https://launchpad.net/~ubuntu-desktop/+snap/ubuntu-desktop-session-snap-core22) | provides the confined desktop session |
-| `snapd` | [ubuntu-core-desktop-snapd](https://github.com/canonical/ubuntu-core-desktop-snapd) | [via ~snappy-dev](https://launchpad.net/~snappy-dev/+snap/ubuntu-core-desktop-snapd) | a branch of snapd with additional changes not yet merged to mainline |
-
-</details>
+| `core26-desktop` | [core-base-desktop:26](https://github.com/canonical/core-base-desktop/tree/26) | [via launchpad](https://launchpad.net/~desktop-snappers/ubuntu-core-desktop/+snap/core26-desktop) | base snap, forked from `core26` to integrate GDM graphical login |
+| `pc-desktop` | [pc-amd64-gadget-desktop:26](https://github.com/canonical/pc-amd64-gadget-desktop/tree/26) | [via launchpad](https://launchpad.net/~ubuntu-desktop/pc-gadget-desktop/+snap/pc-amd64-gadget-desktop-core26) | gadget snap, forked from `pc`, using `core26-desktop` as a base |
+| `ubuntu-desktop-session` | [ubuntu-desktop-session-snap:26](https://github.com/canonical/ubuntu-desktop-session-snap/tree/26) | [via launchpad](https://launchpad.net/~ubuntu-desktop/+snap/ubuntu-desktop-session-snap-core26) | provides the confined desktop session |
+| `ubuntu-desktop-init` | [ubuntu-desktop-provision:snap/ubuntu-desktop-init/26.04](https://github.com/canonical/ubuntu-desktop-provision/tree/snap/ubuntu-desktop-init/26.04) | [via launchpad](https://launchpad.net/~ubuntu-desktop/+snap/ubuntu-desktop-init) | first-boot user setup wizard |
+| `snapd` | [ubuntu-core-desktop-snapd:26](https://github.com/canonical/ubuntu-core-desktop-snapd/tree/26) | [via launchpad](https://launchpad.net/~snappy-dev/+snap/ubuntu-core-desktop-snapd) | a branch of snapd with additional changes not yet merged to mainline |
 
 In addition, the base snap uses packages from the [desktop-snappers
 core-desktop
