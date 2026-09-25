@@ -1,0 +1,106 @@
+{
+    "type": "model",
+    "authority-id": "UJySllegsYenHktWHqU1R1PAk9FzxMoj",
+    "brand-id": "UJySllegsYenHktWHqU1R1PAk9FzxMoj",
+    "series": "16",
+    "model": "ubuntu-core-desktop-kde-26-amd64-dangerous",
+    "display-name": "Ubuntu Core Desktop KDE 26 (amd64) (dangerous)",
+    "architecture": "amd64",
+    "revision": "0",
+    "timestamp": "2026-09-21T10:00:00Z",
+    "grade": "dangerous",
+    "storage-safety": "prefer-encrypted",
+    "base": "core26-desktop",
+    "snaps": [
+        {
+            "name": "pc-desktop",
+            "default-channel": "24/stable",
+            "type": "gadget",
+            "id": "mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy"
+        },
+        {
+            "name": "pc-kernel",
+            "default-channel": "26/stable",
+            "type": "kernel",
+            "id": "pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza"
+        },
+        {
+            "name": "snapd",
+            "default-channel": "latest/stable",
+            "type": "snapd",
+            "id": "PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4"
+        },
+        {
+            "name": "core26-desktop",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "j78KCOObDaxyocjOxyqkTSrYbwPeuBBg"
+        },
+        {
+            "name": "plasma-desktop-session",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "shFM21t3gsBQnlceeTRrWEdNoaLD88my"
+        },
+        {
+            "name": "plasma-core26-desktop",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "YsIAEPpbeAuIUcNo6znKlIhaEnNbkinh"
+        },
+        {
+            "name": "kf6-core26",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "kvNmVu4h6kL6NMJjXqPyvG3K3EhDO1S9"
+        },
+        {
+            "name": "core24",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "dwTAh7MZZ01zyriOZErqd1JynQLiOGvM"
+        },
+        {
+            "name": "core26",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "cUqM61hRuZAJYmIS898Ux66VY61gBbZf"
+        },
+        {
+            "name": "network-manager",
+            "default-channel": "26/stable",
+            "type": "app",
+            "id": "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy"
+        },
+        {
+            "name": "bare",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "EISPgh06mRh1vordZY9OZ34QHdd7OrdR"
+        },
+        {
+            "name": "gtk-common-themes",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "jZLfBRzf1cYlYysIjD2bwSzNtngY0qit"
+        },
+        {
+            "name": "avahi",
+            "default-channel": "26/stable",
+            "type": "app",
+            "id": "dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll"
+        },
+        {
+            "name": "bluez",
+            "default-channel": "26/stable",
+            "type": "app",
+            "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
+        },
+        {
+            "name": "ubuntu-desktop-init",
+            "default-channel": "latest/candidate",
+            "type": "app",
+            "id": "tBdYpKjXcW5farGGJaWiYXrxIwMVMtx5"
+        }
+    ]
+}
