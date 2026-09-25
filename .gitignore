@@ -5,20 +5,21 @@
 /pc-gdm
 
 # Dangerous (dev-only) model assertions are regenerated when re-signed
-# (see build-gnome.sh) from their *.json source on every re-sign,
+# (see build.sh) from their *.json source on every re-sign,
 # producing a new signature/timestamp each time even when unchanged.
 # Only the *.json source needs to be tracked.
 *-dangerous.model
 
-# All build-gnome.sh output/scratch (disk images, signed model
+# All build.sh output/scratch (disk images, signed model
 # assertions, customized snaps, unsquashed trees, etc.) lives here.
 /build/
 
-# Lockfile created by the private go-run-gnome wrapper to serialize QEMU runs.
+# Lockfile created by the private go-run-gnome/go-run-kde wrappers to
+# serialize QEMU runs.
 /.qemu-core-desktop26.lock
 
 # Persistent per-developer files (e.g. the SSH host key passed to
-# build-gnome.sh --ssh-host-key, and the authorized_keys file passed to
+# build.sh --ssh-host-key, and the authorized_keys file passed to
 # --ssh-authorized-keys) that must survive a `rm -rf build` -- kept on
 # disk locally, never committed.
 /dev/
