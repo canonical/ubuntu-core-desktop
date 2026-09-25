@@ -5,17 +5,13 @@ that make up an Ubuntu Core Desktop system. The format is described here:
 
 https://ubuntu.com/core/docs/reference/assertions/model
 
-We currently have two model definitions:
+We currently have one model definition:
 
-* `ubuntu-core-desktop-22-amd64`
-* `ubuntu-core-desktop-22-amd64-dangerous`
+* `ubuntu-core-desktop-26-amd64-dangerous`
 
-They are identical except for the `grade` property: the regular model
-requires all snaps in the seed be signed and published by the store,
-while the dangerous model allows us to build with unpublished snaps.
-
-The dangerous model is primarily intended to allow testing of modified
-snaps prior to publishing them to the store.
+The dangerous model's `grade` property allows us to build with
+unpublished snaps, which is primarily intended to allow testing of
+modified snaps prior to publishing them to the store.
 
 ## Modifying the models
 
@@ -26,8 +22,6 @@ file. In addition, remember to make the following changes:
    `date -u --iso=seconds` will output it in the required format.
 2. increment the `revision` property. The default value for `revision`
    is `0`, so if the property doesn't currently exist set it to `1`.
-
-Then make the equivalent changes to the dangerous model.
 
 Next, it is necessary to get the model signed. The Canonical brand
 account key is controlled by IS, so this is done by filing an RT
