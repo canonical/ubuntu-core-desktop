@@ -20,12 +20,14 @@ jobs:
           sudo snap refresh --edge snapd || sudo snap install --edge snapd
           sudo snap install --classic ubuntu-image
       - name: Build image
-        # build-gnome.sh needs a base/gadget/snapd snap and a model
+        # build.sh needs a base/gadget/snapd snap and a model
         # account-key assertion -- there is no public source for these
-        # yet (see build-gnome.sh --help), so this step is not yet wired
+        # yet (see build.sh --help), so this step is not yet wired
         # up to run in CI. Once those inputs are available (e.g. as repo
         # secrets/artifacts), replace this with something like:
-        #   ./build-gnome.sh \
+        #   ./build.sh \
+        #     --desktop gnome \
+        #     --password "$IMAGE_PASSWORD" \
         #     --model-account-key "$MODEL_ACCOUNT_KEY" \
         #     --base-snap core26-desktop.snap \
         #     --gadget-snap pc-desktop.snap \
@@ -33,7 +35,7 @@ jobs:
         #     --snap ubuntu-desktop-session.snap \
         #     --snap ubuntu-desktop-init.snap
         run: |
-          ./build-gnome.sh --help
+          ./build.sh --help
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

@@ -1,25 +1,28 @@
 #!/bin/bash
 # Builds a NoCloud cloud-init seed ISO (cidata) for an Ubuntu Core (Desktop) VM:
-#  - creates a user (see --user) with password "x" (modern non-deprecated
-#    chpasswd syntax)
+#  - creates a user (see --user) with the password given via --password
+#    (modern non-deprecated chpasswd syntax)
 #  - tells cloud-init not to delete/regenerate SSH host keys, since
-#    build-gnome.sh --ssh-host-key already bakes a persistent one into
+#    build.sh --ssh-host-key already bakes a persistent one into
 #    the image itself (this script is not the source of truth for that
-#    key -- see build-gnome.sh --help)
+#    key -- see build.sh --help)
 set -euo pipefail
 
 usage() {
     cat <<'EOF'
-Usage: build-cloud-init.sh --user <name> [options]
+Usage: build-cloud-init.sh --user <name> --password <password> [options]
 
 Builds a NoCloud cloud-init seed ISO for an Ubuntu Core (Desktop) VM:
 creates a sudo-enabled user account, and preserves the persistent SSH
-host key build-gnome.sh already baked into the image (instead of
+host key build.sh already baked into the image (instead of
 letting cloud-init delete + regenerate one on every fresh instance-id).
 
 Required:
   --user <name>                Name of the sudo-enabled user account to
                                 create via cloud-init.
+  --password <password>        Login password for --user. No default,
+                                so no password ends up hardcoded in
+                                this script.
 
 Optional:
   --output <path>               Path to write the seed ISO to (default:
@@ -39,6 +42,7 @@ if [[ $# -eq 0 ]]; then
 fi
 
 build_user=""
+password=""
 OUT="seed.iso"
 AUTHKEYS_FILE="authorized_keys"
 
@@ -49,6 +53,7 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         --user) build_user="$2"; shift 2 ;;
+        --password) password="$2"; shift 2 ;;
         --output) OUT="$2"; shift 2 ;;
         --ssh-authorized-keys) AUTHKEYS_FILE="$2"; shift 2 ;;
         *)
@@ -61,6 +66,10 @@ done
 
 if [[ -z ${build_user} ]]; then
     echo "Missing required --user <name>." >&2
+    exit 1
+fi
+if [[ -z ${password} ]]; then
+    echo "Missing required --password <password>." >&2
     exit 1
 fi
 
@@ -97,13 +106,13 @@ cat <<EOF
 chpasswd:
   users:
     - name: ${build_user}
-      password: x
+      password: ${password}
       type: text
   expire: false
 
 ssh_pwauth: true
 
-# Don't wipe /etc/ssh/ssh_host_*key* on first boot -- build-gnome.sh
+# Don't wipe /etc/ssh/ssh_host_*key* on first boot -- build.sh
 # --ssh-host-key already baked a persistent keypair into the image
 # itself, so there is no ssh_keys: section here supplying key material;
 # this just stops cloud-init from deleting/replacing it.
