@@ -16,17 +16,29 @@ jobs:
           submodules: true
       - name: Install build dependencies
         run: |
-          sudo apt install -y make squashfs-tools dosfstools mtools
+          sudo apt install -y squashfs-tools dosfstools mtools fakeroot crudini
           sudo snap refresh --edge snapd || sudo snap install --edge snapd
           sudo snap install --classic ubuntu-image
       - name: Build image
+        # build-gnome.sh needs a base/gadget/snapd snap and a model
+        # account-key assertion -- there is no public source for these
+        # yet (see build-gnome.sh --help), so this step is not yet wired
+        # up to run in CI. Once those inputs are available (e.g. as repo
+        # secrets/artifacts), replace this with something like:
+        #   ./build-gnome.sh \
+        #     --model-account-key "$MODEL_ACCOUNT_KEY" \
+        #     --base-snap core26-desktop.snap \
+        #     --gadget-snap pc-desktop.snap \
+        #     --snapd-snap snapd.snap \
+        #     --snap ubuntu-desktop-session.snap \
+        #     --snap ubuntu-desktop-init.snap
         run: |
-          make
+          ./build-gnome.sh --help
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: image
           path: |
             README.md
-            *.tar.gz
+            build/*.img
           compression-level: 0 # content is already compressed
