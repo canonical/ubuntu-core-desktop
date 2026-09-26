@@ -229,6 +229,7 @@ for plug in \
   account-control \
   bluetooth-control \
   desktop-launch \
+  fuse-device \
   hardware-observe \
   home \
   hostname-control \
