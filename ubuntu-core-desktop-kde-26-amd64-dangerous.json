@@ -14,7 +14,7 @@
     "snaps": [
         {
             "name": "pc-desktop",
-            "default-channel": "24/stable",
+            "default-channel": "26/stable",
             "type": "gadget",
             "id": "mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy"
         },
