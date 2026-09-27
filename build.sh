@@ -116,54 +116,92 @@ EOF
 # --- Desktop-specific pieces -----------------------------------------
 #
 # Everything else in this script is identical between GNOME and KDE.
-# These three functions are the only places that differ, selected by
-# --desktop; each is called once with the extracted gadget/base
-# squashfs-root as context.
+# The gadget connection functions are selected by --desktop and each is
+# called once with the extracted gadget snap's gadget.yaml.
 
 # Patch squashfs-root/meta/gadget.yaml so the session snap's plugs get
-# their static (store-published-gadget-equivalent) connections. GNOME
-# only needs one connection here (everything else is handled at boot by
-# the ensure-*-session-connections oneshot below); KDE's plugin list is
-# added here in full as well as at boot (belt-and-braces, inherited
-# as-is from the original build-kde.sh prototype).
+# their connections during image seeding. Both desktops use snap-name
+# endpoints for locally built snaps without a SnapID, while retaining
+# store-ID references for asserted system providers.
 gnome_gadget_connections() {
     local gadget_yaml="$1"
     local sid=LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN
-    # Connect the ubuntu-desktop-session snap's systemd-user-control plug
-    # so gnome-session-init-worker's systemd --user D-Bus calls are
-    # permitted by AppArmor (see
-    # core-base-desktop/todo-gnome-session.txt). The downloaded store
-    # gadget snap doesn't ship this connection yet; add it here rather
-    # than waiting on a new gadget snap release.
-    if grep -q "plug:.*${sid}:systemd-user-control" "${gadget_yaml}"; then
-        return
+    if ! grep -q '^connections:' "${gadget_yaml}"; then
+        printf '\nconnections:\n' >> "${gadget_yaml}"
     fi
-    if grep -q '^connections:' "${gadget_yaml}"; then
-        sed -i "/^connections:\$/a\\  - plug: ${sid}:systemd-user-control" "${gadget_yaml}"
-    else
-        cat >> "${gadget_yaml}" << EOF
+    python3 - "${gadget_yaml}" "${sid}" <<'PYEOF'
+import sys
 
-connections:
-  - plug: ${sid}:systemd-user-control
-EOF
-    fi
+path, sid = sys.argv[1], sys.argv[2]
+session = "ubuntu-desktop-session"
+with open(path, "r", encoding="utf-8") as f:
+    lines = f.readlines()
+
+simple_plugs = [
+    "account-control", "bluetooth-control", "desktop-launch", "fuse-device",
+    "hardware-observe", "home", "hostname-control", "locale-control",
+    "login-session-control", "login-session-observe", "mount-observe",
+    "network-control", "network-observe", "dot-hidden",
+    "dot-local-share-nautilus", "shell-session-locale-files", "polkit-agent",
+    "process-control", "shutdown", "system-observe", "systemd-user-control",
+    "time-control", "timeserver-control", "timezone-control", "upower-observe",
+    "systemd-user-environment",
+]
+
+connections = [(f"{session}:{plug}", f"system:{plug}") for plug in simple_plugs]
+connections.append((f"{session}:shell-config-files", "system:system-files"))
+connections.extend([
+    (f"{sid}:systemd-user-control", "system:systemd-user-control"),
+    (f"{session}:session-environment-broker-client",
+     f"{session}:session-environment-broker-api"),
+    ("snap-store:desktop", f"{session}:desktop"),
+    ("snap-store:wayland", f"{session}:wayland"),
+    ("snap-store:x11", f"{session}:x11"),
+    ("firefox:desktop", f"{session}:desktop"),
+    ("firefox:wayland", f"{session}:wayland"),
+    ("firefox:x11", f"{session}:x11"),
+    (f"{session}:wayland-client", f"{session}:wayland"),
+])
+
+header = next(i for i, line in enumerate(lines) if line.strip() == "connections:")
+end = next((i for i in range(header + 1, len(lines))
+            if lines[i].strip() and not lines[i][0].isspace()
+            and not lines[i].lstrip().startswith("#")), len(lines))
+block = lines[header + 1:end]
+
+def has_connection(plug, slot):
+    for i, line in enumerate(block):
+        if line.strip() != f"- plug: {plug}":
+            continue
+        for following in block[i + 1:]:
+            if following.strip() and not following.startswith("    "):
+                break
+            if following.strip() == f"slot: {slot}":
+                return True
+    return False
+
+new_lines = []
+for plug, slot in connections:
+    if not has_connection(plug, slot):
+        new_lines.extend([f"  - plug: {plug}\n", f"    slot: {slot}\n"])
+
+lines[header + 1:header + 1] = new_lines
+with open(path, "w", encoding="utf-8") as f:
+    f.writelines(lines)
+PYEOF
 }
 
 kde_gadget_connections() {
     local gadget_yaml="$1"
-    local sid=shFM21t3gsBQnlceeTRrWEdNoaLD88my
-    if grep -q "plug:.*${sid}:desktop-launch" "${gadget_yaml}"; then
-        return
-    fi
     if ! grep -q '^connections:' "${gadget_yaml}"; then
-        echo 'connections:' >> "${gadget_yaml}"
+        printf '\nconnections:\n' >> "${gadget_yaml}"
     fi
-    python3 - "${gadget_yaml}" "${sid}" <<'PYEOF'
+    python3 - "${gadget_yaml}" <<'PYEOF'
 import sys
-path, sid = sys.argv[1], sys.argv[2]
-with open(path, "r") as f:
+path = sys.argv[1]
+session = "plasma-desktop-session"
+with open(path, "r", encoding="utf-8") as f:
     lines = f.readlines()
-idx = next(i for i, l in enumerate(lines) if l.strip() == "connections:")
 
 simple_plugs = [
     "desktop-launch", "hardware-observe", "home", "hostname-control",
@@ -173,298 +211,48 @@ simple_plugs = [
     "polkit-agent", "opengl", "pulseaudio", "pipewire", "network-bind",
     "ssh-keys", "dot-hidden", "shell-session-locale-files",
 ]
-slotted_plugs = [
-    ("avahi-control", "dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll:avahi-control"),
-    ("network-manager", "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy:service"),
-    ("bluez", "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS:service"),
-    ("shell-config-files", "system:system-files"),
-    ("cups-control", "m1eQacDdXCthEwWQrESei3Zao3d5gfJF:cups-control"),
-    ("x11", f"{sid}:x11-server"),
-]
+
+connections = [(f"{session}:{plug}", f"system:{plug}") for plug in simple_plugs]
+connections.extend([
+    (f"{session}:avahi-control", "dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll:avahi-control"),
+    (f"{session}:network-manager", "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy:service"),
+    (f"{session}:bluez", "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS:service"),
+    (f"{session}:shell-config-files", "system:system-files"),
+    (f"{session}:cups-control", "m1eQacDdXCthEwWQrESei3Zao3d5gfJF:cups-control"),
+    (f"{session}:x11", f"{session}:x11-server"),
+    (f"{session}:wayland-client", f"{session}:wayland"),
+    (f"{session}:plasma-core26", "plasma-core26-desktop:plasma-core26"),
+    (f"{session}:kf6-core26", "kf6-core26:kf6-core26"),
+])
+
+header = next(i for i, line in enumerate(lines) if line.strip() == "connections:")
+end = next((i for i in range(header + 1, len(lines))
+            if lines[i].strip() and not lines[i][0].isspace()
+            and not lines[i].lstrip().startswith("#")), len(lines))
+block = lines[header + 1:end]
+
+def has_connection(plug, slot):
+    for i, line in enumerate(block):
+        if line.strip() != f"- plug: {plug}":
+            continue
+        for following in block[i + 1:]:
+            if following.strip() and not following.startswith("    "):
+                break
+            if following.strip() == f"slot: {slot}":
+                return True
+    return False
 
 new_lines = []
-for plug in simple_plugs:
-    new_lines.append(f"  - plug: {sid}:{plug}\n")
-for plug, slot in slotted_plugs:
-    new_lines.append(f"  - plug: {sid}:{plug}\n")
-    new_lines.append(f"    slot: {slot}\n")
+for plug, slot in connections:
+    if not has_connection(plug, slot):
+        new_lines.extend([f"  - plug: {plug}\n", f"    slot: {slot}\n"])
 
-lines[idx + 1:idx + 1] = new_lines
-with open(path, "w") as f:
+lines[header + 1:header + 1] = new_lines
+with open(path, "w", encoding="utf-8") as f:
     f.writelines(lines)
 PYEOF
 }
 
-# Write the snap-id-independent "connect everything at boot" oneshot
-# unit for the session snap into $1/etc (or its writable-path factory
-# copy), plus a gdm.service.d drop-in ordering GDM after it. See the
-# long comment inherited into these functions' bodies for why this
-# exists: gadget.yaml connections: entries resolve purely by snap-id,
-# and locally sideloaded (--dangerous) session snaps never get a real
-# snap-id, so the gadget-patch functions above silently never apply on
-# a dev build -- this is the actual mechanism that makes plugs work.
-gnome_write_session_connections() {
-    local etc_dir="$1"
-    mkdir -p "${etc_dir}/systemd/system/multi-user.target.wants"
-    tee "${etc_dir}/ensure-desktop-session-connections.sh" >/dev/null << 'EOF'
-#!/bin/bash
-# Snap-id-independent workaround: reconnect all interfaces the gadget
-# would normally auto-connect for a store-published ubuntu-desktop-session,
-# which never fire for our locally sideloaded (--dangerous) copy.
-
-# NOTE: interface connections below (particularly snap-store:x11 /
-# firefox:x11 -> ubuntu-desktop-session:x11) used to intermittently corrupt
-# /tmp/snap-private-tmp/snap.ubuntu-desktop-session's permissions (0700 ->
-# 01777), causing snap-confine to die() with "unexpected ownership /
-# permissions" and leaving both autologin and manual login stuck at GDM.
-# Root cause was a snapd bug: cmd/snap-update-ns's MkPrefix applied the
-# mode intended for the leaf of a missing mount-point chain uniformly to
-# every intermediate directory it had to create, instead of consulting a
-# mode hint per segment. Fixed upstream in ubuntu-core-desktop-snapd on
-# branch fix-tmpdir-permissions-bug; snapd26.snap (built from that source)
-# now creates these directories with the correct per-segment modes, so no
-# workaround is needed here anymore.
-
-for plug in \
-  account-control \
-  bluetooth-control \
-  desktop-launch \
-  fuse-device \
-  hardware-observe \
-  home \
-  hostname-control \
-  locale-control \
-  login-session-control \
-  login-session-observe \
-  mount-observe \
-  network-control \
-  network-observe \
-  dot-hidden \
-  dot-local-share-nautilus \
-  shell-session-locale-files \
-  polkit-agent \
-  process-control \
-  shutdown \
-  shell-config-files \
-  system-observe \
-  systemd-user-control \
-  time-control \
-  timeserver-control \
-  timezone-control \
-  upower-observe \
-  systemd-user-environment
-do
-  # snapd only processes one "connect-snap" change at a time; at boot it
-  # may still be busy with its own seeding/auto-connect tasks, so a
-  # `snap connect` issued here can transiently fail with "has
-  # \"connect-snap\" change in progress" even though `snap connect`
-  # normally blocks until its own change completes. Retry a few times
-  # with a short backoff so a single boot-time race doesn't leave a
-  # plug permanently unconnected until someone notices and reruns this
-  # by hand.
-  for attempt in 1 2 3 4 5; do
-    if snap connect "ubuntu-desktop-session:${plug}"; then
-      break
-    fi
-    sleep 3
-  done
-done
-
-# Snap Store 2/stable uses the Core 24 GNOME platform and needs explicit
-# desktop-session slots when the custom gadget does not provide its usual
-# static connections.
-#
-# App Center-installed apps (e.g. firefox) need the same treatment: the
-# wayland/x11/desktop interfaces are snap-provided slots on
-# ubuntu-desktop-session here (not implicit system slots), so snapd does
-# not auto-connect them for arbitrary store snaps the way a stock Ubuntu
-# Desktop host would. Without an explicit connection, an app launches but
-# is denied access to the display and silently exits (AppArmor DENIED on
-# connect to $XDG_RUNTIME_DIR/wayland-0), which looks like "nothing
-# happens" when clicking Open in App Center. This loop only covers
-# firefox as the currently-tested reference app; any other store app will
-# hit the same silent failure until it is connected too -- the general
-# fix belongs in snapd/App Center (auto-connect on install), not here.
-#
-# gnome-terminal-server's wayland-client plug is a same-snap connection
-# (ubuntu-desktop-session:wayland-client -> ubuntu-desktop-session:wayland).
-# The single-arg `snap connect ubuntu-desktop-session:wayland-client` form
-# used in the loop above does NOT work for this: snapd's auto-resolution
-# does not pick the plugging snap's own slot, and instead tried to resolve
-# against the "snapd" pseudo-snap ("error: snap \"snapd\" has no \"wayland\"
-# interface slots"), so this needs the explicit two-sided form like the
-# snap-store/firefox connections below.
-for connection in \
-  "ubuntu-desktop-session:session-environment-broker-client ubuntu-desktop-session:session-environment-broker-api" \
-  "snap-store:desktop ubuntu-desktop-session:desktop" \
-  "snap-store:wayland ubuntu-desktop-session:wayland" \
-  "snap-store:x11 ubuntu-desktop-session:x11" \
-  "firefox:desktop ubuntu-desktop-session:desktop" \
-  "firefox:wayland ubuntu-desktop-session:wayland" \
-  "firefox:x11 ubuntu-desktop-session:x11" \
-  "ubuntu-desktop-session:wayland-client ubuntu-desktop-session:wayland"
-do
-  plug_snap="${connection%%:*}"
-  # Skip entirely (no retries/backoff) if the plug side's snap isn't
-  # even installed on this image (e.g. firefox/snap-store are optional
-  # App-Center installs, not guaranteed present) -- retrying a
-  # guaranteed-permanent "not installed" failure 5x with a 3s backoff
-  # each just adds dead time (up to ~75s for all three firefox
-  # connections) to every single boot, delaying GDM (see the
-  # gdm.service.d wait-for-this-unit drop-in below) for no benefit.
-  if [ "${plug_snap}" != "ubuntu-desktop-session" ] && ! snap list "${plug_snap}" >/dev/null 2>&1; then
-    continue
-  fi
-  for attempt in 1 2 3 4 5; do
-    if snap connect ${connection}; then
-      break
-    fi
-    sleep 3
-  done
-done
-EOF
-    chmod 0755 "${etc_dir}/ensure-desktop-session-connections.sh"
-    tee "${etc_dir}/systemd/system/ensure-desktop-session-connections.service" >/dev/null << 'EOF'
-[Unit]
-Description=Connect ubuntu-desktop-session interfaces (snap-id-independent workaround)
-After=snapd.service snapd.seeded.service
-Wants=snapd.service snapd.seeded.service
-
-[Service]
-Type=oneshot
-ExecStart=/bin/bash /etc/ensure-desktop-session-connections.sh
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    ln -sf ../ensure-desktop-session-connections.service \
-      "${etc_dir}/systemd/system/multi-user.target.wants/ensure-desktop-session-connections.service"
-
-    # Make GDM wait for the interface-connection workaround above to
-    # finish before it starts (and therefore before it can accept any
-    # login). Without this, GDM can let a user log in while
-    # ensure-desktop-session-connections.service is still mid-flight,
-    # so ubuntu-desktop-session's AppArmor profile is only partially
-    # updated (interfaces connect one at a time, each triggering a
-    # profile reload) -- observed to deny gnome-session-service's write
-    # to its systemd notify socket, which makes
-    # gnome-session-manager@ubuntu.service hang for the full
-    # StartupTimeoutSec (90s) and then get killed, and GDM report
-    # "Session never registered, failing": the "grey screen after
-    # password entry, logs back out" bug. A second login attempt after
-    # the loop has finished works immediately because the profile is by
-    # then complete. See
-    # notes/done/20260917-post-login-grey-screen-gnome-session-timeout.txt.
-    mkdir -p "${etc_dir}/systemd/system/gdm.service.d"
-    tee "${etc_dir}/systemd/system/gdm.service.d/99-wait-for-session-connections.conf" >/dev/null << 'EOF'
-[Unit]
-After=ensure-desktop-session-connections.service
-Wants=ensure-desktop-session-connections.service
-EOF
-}
-
-kde_write_session_connections() {
-    local etc_dir="$1"
-    mkdir -p "${etc_dir}/systemd/system/multi-user.target.wants"
-    tee "${etc_dir}/ensure-plasma-session-connections.sh" >/dev/null << 'EOF'
-#!/bin/bash
-# Snap-id-independent workaround: reconnect all interfaces the gadget
-# would normally auto-connect for a store-published
-# plasma-desktop-session, which never fire for our locally sideloaded
-# (--dangerous) copy. See comment in go-build-kde-desktop24 for how this
-# list was derived (mirrors the gadget.yaml connections: block added by
-# this same script's gadget-patching step).
-for plug in \
-  desktop-launch \
-  hardware-observe \
-  hostname-control \
-  locale-control \
-  login-session-observe \
-  login-session-control \
-  mount-observe \
-  network-control \
-  network-observe \
-  bluetooth-control \
-  systemd-user-control \
-  polkit-agent \
-  pulseaudio \
-  pipewire \
-  ssh-keys \
-  dot-hidden \
-  shell-session-locale-files
-do
-  # snapd only processes one "connect-snap" change at a time; at boot it
-  # may still be busy with its own seeding/auto-connect tasks, so a
-  # `snap connect` issued here can transiently fail with "has
-  # \"connect-snap\" change in progress" even though `snap connect`
-  # normally blocks until its own change completes. Retry a few times
-  # with a short backoff so a single boot-time race doesn't leave a
-  # plug permanently unconnected until someone notices and reruns this
-  # by hand. pulseaudio/pipewire have no provider slot on this image
-  # (no pulseaudio/pipewire snap installed) so these two are expected
-  # to keep failing harmlessly -- not fatal for basic desktop login.
-  for attempt in 1 2 3 4 5; do
-    if snap connect "plasma-desktop-session:${plug}"; then
-      break
-    fi
-    sleep 3
-  done
-done
-
-# These plugs need the explicit two-sided form: either the interface
-# has multiple candidate slots on this image (avahi-control is also
-# plugged by cups/ipp-usb) or the single-arg auto-resolution doesn't
-# reliably pick same-snap/cross-snap slots reliably here (see
-# notes/library/gdm-graphical-session.txt). Same-snap content
-# connection (plasma-desktop-session -> plasma-core26-desktop) also
-# never fires on its own for the snap-id reason above.
-for connection in \
-  "plasma-desktop-session:avahi-control avahi:avahi-control" \
-  "plasma-desktop-session:bluez bluez:service" \
-  "plasma-desktop-session:cups-control cups:cups-control" \
-  "plasma-desktop-session:network-manager network-manager:service" \
-  "plasma-desktop-session:shell-config-files :system-files" \
-  "plasma-desktop-session:wayland-client plasma-desktop-session:wayland" \
-  "plasma-desktop-session:x11 plasma-desktop-session:x11-server" \
-  "plasma-desktop-session:plasma-core26 plasma-core26-desktop:plasma-core26" \
-  "plasma-desktop-session:kf6-core26 kf6-core26:kf6-core26"
-do
-  for attempt in 1 2 3 4 5; do
-    if snap connect ${connection}; then
-      break
-    fi
-    sleep 3
-  done
-done
-EOF
-    chmod 0755 "${etc_dir}/ensure-plasma-session-connections.sh"
-    tee "${etc_dir}/systemd/system/ensure-plasma-session-connections.service" >/dev/null << 'EOF'
-[Unit]
-Description=Connect plasma-desktop-session interfaces (snap-id-independent workaround)
-After=snapd.service snapd.seeded.service
-Wants=snapd.service snapd.seeded.service
-
-[Service]
-Type=oneshot
-ExecStart=/bin/bash /etc/ensure-plasma-session-connections.sh
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    ln -sf ../ensure-plasma-session-connections.service \
-      "${etc_dir}/systemd/system/multi-user.target.wants/ensure-plasma-session-connections.service"
-
-    # Same GDM-races-the-connections-oneshot bug as GNOME's; fixed the
-    # same way (see gnome_write_session_connections above).
-    mkdir -p "${etc_dir}/systemd/system/gdm.service.d"
-    tee "${etc_dir}/systemd/system/gdm.service.d/99-wait-for-session-connections.conf" >/dev/null << 'EOF'
-[Unit]
-After=ensure-plasma-session-connections.service
-Wants=ensure-plasma-session-connections.service
-EOF
-}
 # ----------------------------------------------------------------------
 
 if [[ $# -eq 0 ]]; then
@@ -684,21 +472,8 @@ EOF
   done
 fi
 
-# The gadget.yaml static connections are keyed by the *store's* snap-id
-# for the session snap, so none of them ever fire for our locally
-# sideloaded (--dangerous) snap, which has no matching snap-id. Work
-# around this by connecting the session snap's interfaces ourselves on
-# every boot via a oneshot systemd unit, independent of snap-id
-# matching, plus a gdm.service.d drop-in so GDM waits for it (see the
-# desktop_write_session_connections functions above for the full
-# rationale/history). Written to both the squashfs and its
-# writable-path factory copy, like the sudoers/gdm3 files above.
-for etc_dir in \
-  "${BUILD_DIR}/squashfs-root/etc" \
-  "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc"
-do
-  "${desktop}_write_session_connections" "${etc_dir}"
-done
+# GNOME and KDE connections are declared in gadget.yaml and applied
+# during image seeding by snapd.
 
 # Bake a permanent, build-time equivalent of the
 # tools/confined-autologin-test.sh runtime shim. GDM's Wayland session
@@ -798,4 +573,3 @@ else
 fi
 
 echo "Built ${BUILD_DIR}/pc.img"
-
