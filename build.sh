@@ -251,7 +251,8 @@ for plug in \
   time-control \
   timeserver-control \
   timezone-control \
-  upower-observe
+  upower-observe \
+  systemd-user-environment
 do
   # snapd only processes one "connect-snap" change at a time; at boot it
   # may still be busy with its own seeding/auto-connect tasks, so a
@@ -294,6 +295,7 @@ done
 # interface slots"), so this needs the explicit two-sided form like the
 # snap-store/firefox connections below.
 for connection in \
+  "ubuntu-desktop-session:session-environment-broker-client ubuntu-desktop-session:session-environment-broker-api" \
   "snap-store:desktop ubuntu-desktop-session:desktop" \
   "snap-store:wayland ubuntu-desktop-session:wayland" \
   "snap-store:x11 ubuntu-desktop-session:x11" \
