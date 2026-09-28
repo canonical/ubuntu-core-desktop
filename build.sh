@@ -141,8 +141,7 @@ simple_plugs = [
     "account-control", "bluetooth-control", "desktop-launch", "fuse-device",
     "hardware-observe", "home", "hostname-control", "locale-control",
     "login-session-control", "login-session-observe", "mount-observe",
-    "network-control", "network-observe", "dot-hidden",
-    "dot-local-share-nautilus", "shell-session-locale-files", "polkit-agent",
+    "network-control", "network-observe", "polkit-agent",
     "process-control", "shutdown", "system-observe", "systemd-user-control",
     "time-control", "timeserver-control", "timezone-control", "upower-observe",
     "systemd-user-environment",
@@ -151,6 +150,8 @@ simple_plugs = [
 connections = [(f"{session}:{plug}", f"system:{plug}") for plug in simple_plugs]
 connections.append((f"{session}:shell-config-files", "system:system-files"))
 connections.extend([
+    (f"{session}:network-manager", "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy:service"),
+    (f"{session}:bluez", "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS:service"),
     (f"{sid}:systemd-user-control", "system:systemd-user-control"),
     (f"{session}:session-environment-broker-client",
      f"{session}:session-environment-broker-api"),
@@ -161,6 +162,10 @@ connections.extend([
     ("firefox:wayland", f"{session}:wayland"),
     ("firefox:x11", f"{session}:x11"),
     (f"{session}:wayland-client", f"{session}:wayland"),
+    (f"{session}:dot-hidden", "snapd:personal-files"),
+    (f"{session}:dot-local-share-nautilus", "snapd:personal-files"),
+    (f"{session}:dot-local-share-gvfs-metadata", "snapd:personal-files"),
+    (f"{session}:shell-session-locale-files", "snapd:personal-files"),
 ])
 
 header = next(i for i, line in enumerate(lines) if line.strip() == "connections:")
