@@ -143,8 +143,8 @@ simple_plugs = [
     "login-session-control", "login-session-observe", "mount-observe",
     "network-control", "network-observe", "polkit-agent",
     "process-control", "shutdown", "system-observe", "systemd-user-control",
-    "time-control", "timeserver-control", "timezone-control", "upower-observe",
-    "systemd-user-environment",
+    "time-control", "timeserver-control", "timezone-control", "udisks2",
+    "upower-observe", "systemd-user-environment",
 ]
 
 connections = [(f"{session}:{plug}", f"system:{plug}") for plug in simple_plugs]
