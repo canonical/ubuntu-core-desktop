@@ -167,6 +167,8 @@ connections.extend([
      f"{session}:dbus-freedesktop-impl-portal-permission-store"),
     (f"{session}:dbus-portal-secret",
      f"{session}:dbus-freedesktop-impl-portal-secret"),
+    (f"{session}:gnome-desktop-content",
+     "gnome-desktop-content:gnome-desktop-content"),
     (f"{sid}:systemd-user-control", "system:systemd-user-control"),
     (f"{session}:session-environment-broker-client",
      f"{session}:session-environment-broker-api"),
