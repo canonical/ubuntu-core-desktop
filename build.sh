@@ -425,9 +425,13 @@ mksquashfs "${BUILD_DIR}/squashfs-root" "${BUILD_DIR}/gadget.snap" -noappend -co
 
 rm -rf "${BUILD_DIR}/squashfs-root" "${BUILD_DIR}/custom-core.snap"
 unsquashfs -d "${BUILD_DIR}/squashfs-root" "${base_snap}"
-# polkit requires this helper to retain its setuid-root bit so graphical
-# authentication (for example, installing a snap from App Center) works.
-chmod 4755 "${BUILD_DIR}/squashfs-root/usr/lib/polkit-1/polkit-agent-helper-1"
+# Polkit 127 uses this socket-activated helper instead of requiring the
+# polkit-agent-helper-1 binary to be setuid root. /etc is seeded from the
+# factory writable tree, so enable the socket there for the first boot.
+polkit_socket_wants="${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/systemd/system/sockets.target.wants"
+mkdir -p "${polkit_socket_wants}"
+ln -sfn /usr/lib/systemd/system/polkit-agent-helper.socket \
+  "${polkit_socket_wants}/polkit-agent-helper.socket"
 # /etc and /root are entirely writable-paths, seeded at first boot from
 # usr/share/factory/writable/system-data/{etc,root} (see the gdm3/sudoers
 # handling below) -- so the squashfs's own /etc/ssh and /root/.ssh are
