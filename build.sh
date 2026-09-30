@@ -198,6 +198,7 @@ connections.extend([
     (f"{session}:dot-local-share-nautilus", "snapd:personal-files"),
     (f"{session}:dot-local-share-gvfs-metadata", "snapd:personal-files"),
     (f"{session}:shell-session-locale-files", "snapd:personal-files"),
+    (f"{session}:shell-startup-files", "snapd:personal-files"),
 ])
 
 header = next(i for i, line in enumerate(lines) if line.strip() == "connections:")
