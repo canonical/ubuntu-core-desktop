@@ -13,8 +13,8 @@
 # and base snaps, inject SSH keys, sign the model, run ubuntu-image);
 # the handful of steps that genuinely differ between them (which
 # gadget.yaml connections to add, which session-snap interfaces to
-# auto-connect at boot, and which session command --autologin should
-# launch) live in the desktop_* functions below, selected by --desktop.
+# auto-connect at boot, and which display manager/session command to
+# configure) live in the desktop_* functions below, selected by --desktop.
 
 set -e
 
@@ -104,9 +104,11 @@ Optional:
                               into --user's via the seed.iso above.
                               Without this flag, neither has
                               authorized_keys (password login only).
-  --autologin                 Bake in GDM autologin for --user (which
-                              becomes required). Without this, the
-                              first-boot wizard/login prompt is used.
+  --autologin                 Bake in display-manager autologin for
+                              --user (which becomes required). Without
+                              this, the login prompt is used.
+  --kde-session-snap <path>   KDE session snap supplying SDDM and its
+                              greeter runtime (required for --desktop kde).
   --debug                     Verbose kernel/snapd console logging
                               instead of the quiet default.
   -h, --help                  Show this help and exit.
@@ -291,6 +293,192 @@ with open(path, "w", encoding="utf-8") as f:
 PYEOF
 }
 
+kde_sddm_integration() {
+  local rootfs="$1"
+  local kde_session_snap="$2"
+  local runtime_root="${BUILD_DIR}/kde-session-snap-root"
+  local factory_etc="${rootfs}/usr/share/factory/writable/system-data/etc"
+  local triplet
+
+  triplet="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
+  unsquashfs -d "${runtime_root}" "${kde_session_snap}" >/dev/null
+  for path in \
+    sddm/usr/bin/sddm \
+    sddm/usr/bin/sddm-greeter-qt6 \
+    "sddm/usr/lib/${triplet}/sddm/sddm-helper" \
+    "sddm/usr/lib/${triplet}/sddm/sddm-helper-start-wayland" \
+    sddm/usr/lib/sysusers.d/sddm.conf \
+    sddm/usr/lib/tmpfiles.d/sddm.conf \
+    sddm/etc/pam.d/sddm \
+    sddm/etc/pam.d/sddm-autologin \
+    sddm/etc/pam.d/sddm-greeter \
+    sddm/etc/sddm/wayland-session
+  do
+    if [[ ! -e "${runtime_root}/${path}" ]]; then
+      echo "KDE session snap is missing required SDDM runtime file: ${path}" >&2
+      exit 1
+    fi
+  done
+
+  # SDDM is a host system service, but its runtime is owned and shipped
+  # by the KDE session snap. Keep PAM/account/service integration in the
+  # selected image rather than adding desktop-specific packages to the
+  # shared core-base-desktop snap.
+  install -D -m 0644 "${runtime_root}/sddm/usr/lib/sysusers.d/sddm.conf" \
+    "${rootfs}/usr/lib/sysusers.d/sddm.conf"
+  install -D -m 0644 "${runtime_root}/sddm/usr/lib/tmpfiles.d/sddm.conf" \
+    "${rootfs}/usr/lib/tmpfiles.d/sddm.conf"
+  for pam_service in sddm sddm-autologin sddm-greeter; do
+    install -D -m 0644 "${runtime_root}/sddm/etc/pam.d/${pam_service}" \
+      "${rootfs}/etc/pam.d/${pam_service}"
+    install -D -m 0644 "${runtime_root}/sddm/etc/pam.d/${pam_service}" \
+      "${factory_etc}/pam.d/${pam_service}"
+  done
+
+  systemd-sysusers --root="${rootfs}" \
+    "${rootfs}/usr/lib/sysusers.d/sddm.conf"
+  for account_file in passwd shadow group gshadow; do
+    cp -a "${rootfs}/etc/${account_file}" "${factory_etc}/${account_file}"
+  done
+
+  local sddm_home=/var/snap/plasma-desktop-session/common/sddm
+  local sddm_home_path="${rootfs}/var/lib/sddm"
+  if [[ -e ${sddm_home_path} && ! -L ${sddm_home_path} ]]; then
+    echo "Unexpected existing SDDM home at ${sddm_home_path}" >&2
+    return 1
+  fi
+  ln -sfn "${sddm_home}" "${sddm_home_path}"
+  sed -i "s|/var/lib/sddm|${sddm_home}|g" \
+    "${rootfs}/usr/lib/tmpfiles.d/sddm.conf"
+
+  mkdir -p "${rootfs}/usr/lib/${triplet}/sddm"
+  ln -sfn \
+    "/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/sddm/sddm-helper-start-wayland" \
+    "${rootfs}/usr/lib/${triplet}/sddm/sddm-helper-start-wayland"
+  cat >"${rootfs}/usr/lib/${triplet}/sddm/sddm-helper" <<EOF
+#!/bin/sh
+export LD_LIBRARY_PATH=/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}:/snap/kf6-core26/current/usr/lib/${triplet}:/snap/plasma-core26-desktop/current/usr/lib/${triplet}:/usr/lib/${triplet}:/usr/lib
+exec /snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/sddm/sddm-helper "\$@"
+EOF
+  chmod 0755 "${rootfs}/usr/lib/${triplet}/sddm/sddm-helper"
+  mkdir -p "${rootfs}/usr/libexec/sddm"
+  cat >"${rootfs}/usr/libexec/sddm/sddm-kwin-wayland" <<EOF
+#!/bin/sh
+export LD_LIBRARY_PATH=/snap/kf6-core26/current/usr/lib/${triplet}:/snap/plasma-core26-desktop/current/usr/lib/${triplet}:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}:/usr/lib/${triplet}:/usr/lib
+export QT_PLUGIN_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/plugins:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/plugins
+export QML2_IMPORT_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/qml:/snap/kf6-core26/current/usr/lib/${triplet}/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qml:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/qml
+export XCURSOR_THEME=breeze_cursors
+export XCURSOR_PATH=/snap/plasma-core26-desktop/current/usr/share/icons:/snap/kf6-core26/current/usr/share/icons
+export LIBINPUT_QUIRKS_DIR=/snap/plasma-core26-desktop/current/usr/share/libinput
+export PIPEWIRE_CONFIG_DIR=/snap/plasma-core26-desktop/current/usr/share/pipewire
+exec /snap/plasma-core26-desktop/current/usr/bin/kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1
+EOF
+  chmod 0755 "${rootfs}/usr/libexec/sddm/sddm-kwin-wayland"
+  ln -sfn /snap/plasma-desktop-session/current/sddm/usr/bin/sddm-greeter-qt6 \
+    "${rootfs}/usr/bin/sddm-greeter-qt6"
+  if [[ -e "${rootfs}/usr/share/sddm" && ! -L "${rootfs}/usr/share/sddm" ]]; then
+    rm -rf "${rootfs}/usr/share/sddm"
+  fi
+  mkdir -p "${rootfs}/usr/share"
+  ln -sfn /snap/plasma-desktop-session/current/sddm/usr/share/sddm \
+    "${rootfs}/usr/share/sddm"
+
+  local sddm_conf
+  for sddm_conf in \
+    "${rootfs}/etc/writable/sddm.conf" \
+    "${factory_etc}/writable/sddm.conf"
+  do
+    mkdir -p "$(dirname "${sddm_conf}")"
+    crudini --set "${sddm_conf}" General DisplayServer wayland
+    crudini --set "${sddm_conf}" Wayland CompositorCommand \
+      /usr/libexec/sddm/sddm-kwin-wayland
+    crudini --set "${sddm_conf}" Wayland SessionDir /usr/share/wayland-sessions
+    crudini --set "${sddm_conf}" Wayland SessionCommand \
+      /snap/plasma-desktop-session/current/sddm/etc/sddm/wayland-session
+    crudini --set "${sddm_conf}" Theme ThemeDir \
+      /snap/plasma-desktop-session/current/sddm/usr/share/sddm/themes
+    crudini --set "${sddm_conf}" Theme Current elarun
+    if [[ ${autologin} == 1 ]]; then
+      crudini --set "${sddm_conf}" Autologin User "${user}"
+      crudini --set "${sddm_conf}" Autologin Session plasma-desktop-session.desktop
+    else
+      crudini --del "${sddm_conf}" Autologin User
+      crudini --del "${sddm_conf}" Autologin Session
+    fi
+  done
+  ln -sfn writable/sddm.conf "${rootfs}/etc/sddm.conf"
+  ln -sfn writable/sddm.conf "${factory_etc}/sddm.conf"
+
+  local cursor_config
+  for cursor_config in \
+    "${rootfs}/etc/xdg/kcminputrc" \
+    "${factory_etc}/xdg/kcminputrc"
+  do
+    mkdir -p "$(dirname "${cursor_config}")"
+    crudini --set "${cursor_config}" Mouse cursorTheme breeze_cursors
+  done
+
+  cat >"${rootfs}/usr/lib/systemd/system/sddm.service" <<EOF
+[Unit]
+Description=Simple Desktop Display Manager
+After=systemd-user-sessions.service systemd-logind.service snapd.seeded.service cloud-config.service plymouth-quit-wait.service plymouth-quit.service
+Conflicts=getty@tty1.service gdm.service
+
+[Service]
+ExecStartPre=/usr/bin/install -d -o sddm -g sddm -m 0750 /var/snap/plasma-desktop-session/common/sddm
+ExecStartPre=/usr/bin/test -x /snap/plasma-desktop-session/current/sddm/usr/bin/sddm
+ExecStart=/snap/plasma-desktop-session/current/sddm/usr/bin/sddm
+Restart=always
+RestartSec=1s
+EnvironmentFile=-/etc/default/locale
+Environment=LD_LIBRARY_PATH=/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}:/snap/kf6-core26/current/usr/lib/${triplet}:/snap/plasma-core26-desktop/current/usr/lib/${triplet}:/usr/lib/${triplet}:/usr/lib
+Environment=QT_PLUGIN_PATH=/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/plugins:/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/plugins
+Environment=QML2_IMPORT_PATH=/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/qml:/snap/kf6-core26/current/usr/lib/${triplet}/qt6/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/qml:/snap/kf6-core26/current/usr/lib/${triplet}/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qml
+Environment=XDG_CONFIG_DIRS=/snap/kf6-core26/current/etc/xdg:/snap/plasma-core26-desktop/current/etc/xdg:/etc/xdg
+Environment=XDG_DATA_DIRS=/snap/kf6-core26/current/usr/share:/snap/plasma-core26-desktop/current/usr/share:/usr/share
+Environment=XCURSOR_THEME=breeze_cursors
+Environment=XCURSOR_PATH=/snap/plasma-core26-desktop/current/usr/share/icons:/snap/kf6-core26/current/usr/share/icons
+Environment=QT_QPA_PLATFORM=wayland
+Environment=KWIN_WAYLAND_NO_PERMISSION_CHECKS=1
+Environment=QT_QUICK_CONTROLS_STYLE=org.kde.desktop
+Environment=XKB_CONFIG_ROOT=/snap/kf6-core26/current/usr/share/X11/xkb
+Environment=XLOCALEDIR=/snap/kf6-core26/current/usr/share/X11/locale
+
+[Install]
+Alias=display-manager.service
+WantedBy=graphical.target
+EOF
+
+  # The base image is GNOME-capable. Mask GDM and select SDDM only in
+  # this KDE image; installing another session later does not switch the
+  # system display manager.
+  rm -f "${rootfs}/usr/lib/systemd/system/display-manager.service"
+  ln -s sddm.service "${rootfs}/usr/lib/systemd/system/display-manager.service"
+  for etc_root in "${rootfs}/etc" "${factory_etc}"; do
+    mkdir -p "${etc_root}/systemd/system"
+    rm -rf "${etc_root}/systemd/system/gdm.service.d"
+    find "${etc_root}/systemd/system" -type l \
+      \( -name gdm.service -o -name display-manager.service \) -delete
+    ln -sfn /dev/null "${etc_root}/systemd/system/gdm.service"
+    ln -sfn /usr/lib/systemd/system/sddm.service \
+      "${etc_root}/systemd/system/display-manager.service"
+    mkdir -p "${etc_root}/systemd/system/graphical.target.wants"
+    ln -sfn /usr/lib/systemd/system/sddm.service \
+      "${etc_root}/systemd/system/graphical.target.wants/sddm.service"
+    mkdir -p "${etc_root}/systemd/user/user-session-migration.service.d"
+    cat >"${etc_root}/systemd/user/user-session-migration.service.d/kde-override.conf" <<'EOF'
+[Unit]
+ConditionGroup=
+ConditionGroup=!gdm
+ConditionGroup=!sddm
+
+[Service]
+ExecStart=
+ExecStart=/usr/bin/user-session-migration
+EOF
+  done
+}
+
 # ----------------------------------------------------------------------
 
 if [[ $# -eq 0 ]]; then
@@ -314,6 +502,7 @@ gadget_snap=""
 snapd_snap=""
 extra_snaps=()
 desktop=""
+kde_session_snap=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -333,6 +522,7 @@ while [[ $# -gt 0 ]]; do
         --base-snap) base_snap="$2"; shift 2 ;;
         --gadget-snap) gadget_snap="$2"; shift 2 ;;
         --snapd-snap) snapd_snap="$2"; shift 2 ;;
+        --kde-session-snap) kde_session_snap="$2"; shift 2 ;;
         --snap) extra_snaps+=("$2"); shift 2 ;;
         *)
             echo "Unknown flag: ${1}" >&2
@@ -363,6 +553,14 @@ esac
 
 if [[ ${autologin} == 1 && -z ${user} ]]; then
     echo "--autologin requires --user <name> to be set." >&2
+    exit 1
+fi
+if [[ ${desktop} == kde && -z ${kde_session_snap} ]]; then
+    echo "--desktop kde requires --kde-session-snap <path>." >&2
+    exit 1
+fi
+if [[ ${desktop} != kde && -n ${kde_session_snap} ]]; then
+    echo "--kde-session-snap is only valid with --desktop kde." >&2
     exit 1
 fi
 if [[ -z ${password} ]]; then
@@ -403,7 +601,7 @@ if [[ ! -e "${ssh_host_key}.pub" ]]; then
     echo "private key path with a matching '.pub' file alongside it)" >&2
     exit 1
 fi
-for f in "${model_account_key}" "${base_snap}" "${gadget_snap}" "${snapd_snap}" "${ssh_host_key}" "${model_json}" "${extra_snaps[@]:-}"; do
+for f in "${model_account_key}" "${base_snap}" "${gadget_snap}" "${snapd_snap}" "${ssh_host_key}" "${model_json}" "${kde_session_snap}" "${extra_snaps[@]:-}"; do
     if [[ -n "${f}" && ! -e "${f}" ]]; then
         echo "File not found: ${f}" >&2
         exit 1
@@ -488,16 +686,26 @@ usermod --prefix "$(pwd)/${BUILD_DIR}/squashfs-root" --password ${pw} root
 # fix the serial console
 ./fix-console "${BUILD_DIR}/squashfs-root"
 
-for gdm_conf in \
-  "${BUILD_DIR}/squashfs-root/etc/writable/gdm3/custom.conf" \
-  "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/writable/gdm3/custom.conf"
-do
-  crudini --set "${gdm_conf}" daemon InitialSetupEnable false
-  if [[ ${autologin} == 1 ]]; then
-    crudini --set "${gdm_conf}" daemon AutomaticLoginEnable true
-    crudini --set "${gdm_conf}" daemon AutomaticLogin "${user}"
-  fi
-done
+if [[ ${desktop} == gnome ]]; then
+  for gdm_conf in \
+    "${BUILD_DIR}/squashfs-root/etc/writable/gdm3/custom.conf" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/writable/gdm3/custom.conf"
+  do
+    crudini --set "${gdm_conf}" daemon InitialSetupEnable false
+    if [[ ${autologin} == 1 ]]; then
+      crudini --set "${gdm_conf}" daemon AutomaticLoginEnable true
+      crudini --set "${gdm_conf}" daemon AutomaticLogin "${user}"
+    fi
+  done
+  rm -f \
+    "${BUILD_DIR}/squashfs-root/usr/share/wayland-sessions/plasma-desktop-session.desktop" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/usr/share/wayland-sessions/plasma-desktop-session.desktop"
+else
+  kde_sddm_integration "${BUILD_DIR}/squashfs-root" "${kde_session_snap}"
+  rm -f \
+    "${BUILD_DIR}/squashfs-root/usr/share/wayland-sessions/ubuntu-desktop-session.desktop" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/usr/share/wayland-sessions/ubuntu-desktop-session.desktop"
+fi
 # /etc is entirely a writable-path, seeded at first boot from
 # usr/share/factory/writable/system-data/etc, so the squashfs's own
 # /etc/sudoers.d is shadowed at runtime. Write to both, like the gdm3
@@ -551,7 +759,7 @@ fi
 # full root-cause chain. $SNAP_NAME is set for every confined process,
 # so checking it lets the internal call through to the real binary
 # instead of looping back through the wrapper.
-if [[ -n ${user} ]]; then
+if [[ -n ${user} && ${desktop} == gnome ]]; then
   mv "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session" "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session.real"
   tee "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session" > /dev/null << EOF
 #!/bin/sh
@@ -581,6 +789,9 @@ snap_args=(
   --snap "${BUILD_DIR}/gadget.snap"
   --snap "${snapd_snap}"
 )
+if [[ ${desktop} == kde ]]; then
+  snap_args+=(--snap "${kde_session_snap}")
+fi
 for extra_snap in "${extra_snaps[@]:-}"; do
   [[ -n ${extra_snap} ]] && snap_args+=(--snap "${extra_snap}")
 done
