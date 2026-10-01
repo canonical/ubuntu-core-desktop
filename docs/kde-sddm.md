@@ -7,16 +7,13 @@ GNOME and KDE sessions on one image is not a supported configuration.
 
 ## Runtime ownership
 
-`plasma-desktop-session` owns the SDDM runtime. Its `sddm-runtime` part
-stages Ubuntu's `sddm` package with its Qt 6.10.2 libraries, QPA/Wayland
-plugins, and required QML modules under the snap's `sddm/` subtree. This
-keeps SDDM on its package-matched Qt runtime instead of the newer Qt 6.11.1
-runtime used by Plasma. The KDE image wraps SDDM's privileged helper to
-restore the Qt library path SDDM sanitizes, and launches the KWin greeter
-compositor with the Plasma provider runtime. The Elarun greeter theme is
-staged alongside SDDM so it uses the same Qt 6.10.2 runtime; the Breeze
-theme supplied by `plasma-core26-desktop` targets Qt 6.11.1 and is not
-compatible with SDDM's runtime.
+`plasma-desktop-session` owns the SDDM binaries and non-Qt runtime
+dependencies. Qt libraries, QPA plugins, and QML modules come from the
+KDE content snaps' Qt 6.11.1 runtime. The image wraps SDDM's privileged
+helper to restore these paths after SDDM sanitizes its environment, and
+launches the KWin greeter compositor with that same runtime. The Breeze
+greeter theme is supplied by `plasma-core26-desktop`, matching the Qt
+version used by the greeter.
 
 The session snap exposes `xkbcomp` from `kf6-core26` at `/usr/bin/xkbcomp`
 inside its confined app layouts. Xwayland invokes that helper by absolute
@@ -77,7 +74,7 @@ the viewer.
 
 The image builder verifies that the KDE session snap was built from the
 current `26-dev` source revision. On the booted VM, verify the selected
-manager and autologin Plasma session with:
+manager, Qt runtime, and autologin Plasma session with:
 
 ```sh
 scp tools/test-kde-sddm.sh chrb@<vm-address>:/tmp/
@@ -87,13 +84,14 @@ ssh chrb@<vm-address> 'sudo bash /tmp/test-kde-sddm.sh chrb'
 Run the test without a username when autologin is disabled; it then requires
 the SDDM greeter PID to remain stable for 10 seconds. The test checks manager
 enablement, GDM masking, the active display-manager alias, SDDM runtime
-availability, visible Elarun theme assets, and either the greeter process
-or an SDDM-created Wayland Plasma session. For a logged-in desktop user, it
-also waits for KSMServer to own `org.kde.ksmserver` on the user's session
-bus; an activatable-but-not-running service does not pass this check. It
-waits up to two minutes for the session manager to start, confirms
-user-session-migration completed with the native binary, and rejects the
-known missing-runtime messages in the boot journal.
+availability, visible Breeze theme assets, the absence of bundled Qt
+libraries, and Qt 6.11.1 in the live SDDM process. It also checks either the
+greeter process or an SDDM-created Wayland Plasma session. For a logged-in
+desktop user, it waits for KSMServer to own `org.kde.ksmserver` on the user's
+session bus; an activatable-but-not-running service does not pass this
+check. It waits up to two minutes for the session manager to start, confirms
+user-session-migration completed with the native binary, and rejects known
+startup and incompatible-Qt messages in the boot journal.
 
 ## Source/runtime versions
 
@@ -101,9 +99,9 @@ The verified local source set for this build is:
 
 | Component | Source/revision | Runtime version |
 | --- | --- | --- |
-| `plasma-desktop-session` | branch `26-dev`, HEAD `5178930` (the SDDM part is a local working-tree change) | `20261001+git5178930` |
+| `plasma-desktop-session` | branch `26-dev`, HEAD `356621b` | `20261001+git356621b` |
 | SDDM package | Ubuntu Resolute archive | `0.21.0+git20250502.4fe234b-2ubuntu3` |
-| SDDM Elarun theme | Ubuntu Resolute archive, staged with SDDM | `0.21.0+git20250502.4fe234b-2ubuntu3` |
+| SDDM Breeze theme | `plasma-core26-desktop` content snap | Plasma 6.7.5 / Qt 6.11.1 |
 | `plasma-core26-desktop` | branch `26-dev`, HEAD `7f268220` (local Milou-module and unit-cleanup changes) | `20261001` (Plasma 6.7.5) |
 | `kf6-core26` | branch `26-dev`, HEAD `48e49fc` | `6.11.1-6.30.0-6.7.5-26.04.2` (Qt 6.11.1 / KF6 6.30.0) |
 
@@ -112,9 +110,5 @@ revisions. Refresh this table when any package or content snap is rebuilt;
 the SDDM package's authoritative version is its staged Debian changelog.
 
 Known limitation: SDDM's Wayland greeter mode is marked experimental by the
-Ubuntu SDDM 0.21 package. The rebuilt KDE image passed the booted-guest smoke
-test for the autologin Wayland session, native user-session migration,
-KSMServer, and Polkit agent; no failed system units or targeted startup
-errors remained. The greeter uses the SDDM package-matched Qt 6.10.2 runtime,
-while its KWin compositor uses Qt 6.11.1. Update/recovery paths remain
-untested.
+Ubuntu SDDM 0.21 package. The greeter and Breeze theme use the Qt 6.11.1
+runtime from the KDE content snaps. Update/recovery paths remain untested.

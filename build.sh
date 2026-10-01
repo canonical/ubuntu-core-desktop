@@ -357,7 +357,12 @@ kde_sddm_integration() {
     "${rootfs}/usr/lib/${triplet}/sddm/sddm-helper-start-wayland"
   cat >"${rootfs}/usr/lib/${triplet}/sddm/sddm-helper" <<EOF
 #!/bin/sh
-export LD_LIBRARY_PATH=/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}:/snap/kf6-core26/current/usr/lib/${triplet}:/snap/plasma-core26-desktop/current/usr/lib/${triplet}:/usr/lib/${triplet}:/usr/lib
+export LD_LIBRARY_PATH=/snap/kf6-core26/current/usr/lib/${triplet}:/snap/plasma-core26-desktop/current/usr/lib/${triplet}:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}:/usr/lib/${triplet}:/usr/lib
+export QT_PLUGIN_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/plugins
+export QT_QPA_PLATFORM_PLUGIN_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins/platforms
+export QML2_IMPORT_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/qml:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/qml:/snap/kf6-core26/current/usr/lib/${triplet}/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qml
+export QT_QPA_PLATFORM=wayland
+export QT_QUICK_CONTROLS_STYLE=org.kde.desktop
 exec /snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/sddm/sddm-helper "\$@"
 EOF
   chmod 0755 "${rootfs}/usr/lib/${triplet}/sddm/sddm-helper"
@@ -365,8 +370,9 @@ EOF
   cat >"${rootfs}/usr/libexec/sddm/sddm-kwin-wayland" <<EOF
 #!/bin/sh
 export LD_LIBRARY_PATH=/snap/kf6-core26/current/usr/lib/${triplet}:/snap/plasma-core26-desktop/current/usr/lib/${triplet}:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}:/usr/lib/${triplet}:/usr/lib
-export QT_PLUGIN_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/plugins:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/plugins
-export QML2_IMPORT_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/qml:/snap/kf6-core26/current/usr/lib/${triplet}/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qml:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/qml
+export QT_PLUGIN_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/plugins
+export QT_QPA_PLATFORM_PLUGIN_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins/platforms
+export QML2_IMPORT_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/qml:/snap/kf6-core26/current/usr/lib/${triplet}/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qml
 export XCURSOR_THEME=breeze_cursors
 export XCURSOR_PATH=/snap/plasma-core26-desktop/current/usr/share/icons:/snap/kf6-core26/current/usr/share/icons
 export LIBINPUT_QUIRKS_DIR=/snap/plasma-core26-desktop/current/usr/share/libinput
@@ -380,8 +386,17 @@ EOF
     rm -rf "${rootfs}/usr/share/sddm"
   fi
   mkdir -p "${rootfs}/usr/share"
-  ln -sfn /snap/plasma-desktop-session/current/sddm/usr/share/sddm \
+  ln -sfn /snap/plasma-core26-desktop/current/usr/share/sddm \
     "${rootfs}/usr/share/sddm"
+  mkdir -p "${rootfs}/usr/share/wallpapers"
+  if [[ -e "${rootfs}/usr/share/wallpapers/Next" \
+    && ! -L "${rootfs}/usr/share/wallpapers/Next" ]]; then
+    echo "Unexpected existing Breeze wallpaper path: ${rootfs}/usr/share/wallpapers/Next" >&2
+    return 1
+  fi
+  # The Breeze theme references Next, which is not shipped in our content snaps.
+  ln -sfn /snap/plasma-core26-desktop/current/usr/share/wallpapers/Altai \
+    "${rootfs}/usr/share/wallpapers/Next"
 
   local sddm_conf
   for sddm_conf in \
@@ -395,9 +410,8 @@ EOF
     crudini --set "${sddm_conf}" Wayland SessionDir /usr/share/wayland-sessions
     crudini --set "${sddm_conf}" Wayland SessionCommand \
       /snap/plasma-desktop-session/current/sddm/etc/sddm/wayland-session
-    crudini --set "${sddm_conf}" Theme ThemeDir \
-      /snap/plasma-desktop-session/current/sddm/usr/share/sddm/themes
-    crudini --set "${sddm_conf}" Theme Current elarun
+    crudini --set "${sddm_conf}" Theme ThemeDir /usr/share/sddm/themes
+    crudini --set "${sddm_conf}" Theme Current breeze
     if [[ ${autologin} == 1 ]]; then
       crudini --set "${sddm_conf}" Autologin User "${user}"
       crudini --set "${sddm_conf}" Autologin Session plasma-desktop-session.desktop
@@ -431,9 +445,10 @@ ExecStart=/snap/plasma-desktop-session/current/sddm/usr/bin/sddm
 Restart=always
 RestartSec=1s
 EnvironmentFile=-/etc/default/locale
-Environment=LD_LIBRARY_PATH=/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}:/snap/kf6-core26/current/usr/lib/${triplet}:/snap/plasma-core26-desktop/current/usr/lib/${triplet}:/usr/lib/${triplet}:/usr/lib
-Environment=QT_PLUGIN_PATH=/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/plugins:/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/plugins
-Environment=QML2_IMPORT_PATH=/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/qml:/snap/kf6-core26/current/usr/lib/${triplet}/qt6/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/qml:/snap/kf6-core26/current/usr/lib/${triplet}/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qml
+Environment=LD_LIBRARY_PATH=/snap/kf6-core26/current/usr/lib/${triplet}:/snap/plasma-core26-desktop/current/usr/lib/${triplet}:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}:/usr/lib/${triplet}:/usr/lib
+Environment=QT_PLUGIN_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/plugins
+Environment=QT_QPA_PLATFORM_PLUGIN_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins/platforms
+Environment=QML2_IMPORT_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/qml:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/qml:/snap/kf6-core26/current/usr/lib/${triplet}/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qml
 Environment=XDG_CONFIG_DIRS=/snap/kf6-core26/current/etc/xdg:/snap/plasma-core26-desktop/current/etc/xdg:/etc/xdg
 Environment=XDG_DATA_DIRS=/snap/kf6-core26/current/usr/share:/snap/plasma-core26-desktop/current/usr/share:/usr/share
 Environment=XCURSOR_THEME=breeze_cursors

@@ -26,8 +26,25 @@ systemctl is-active --quiet sddm.service \
   || fail "display-manager.service does not resolve to SDDM"
 [[ -x /snap/plasma-desktop-session/current/sddm/usr/bin/sddm ]] \
   || fail "SDDM runtime is missing from plasma-desktop-session"
-[[ -r /usr/share/sddm/themes/elarun/theme.conf ]] \
-  || fail "Elarun theme is not visible at /usr/share/sddm"
+[[ -r /usr/share/sddm/themes/breeze/theme.conf ]] \
+  || fail "Breeze SDDM theme is not visible at /usr/share/sddm"
+[[ -r /usr/share/wallpapers/Next/contents/images/5120x2880.png ]] \
+  || fail "Breeze's configured wallpaper is not available"
+if find /snap/plasma-desktop-session/current/sddm/usr/lib \
+  \( -type f -o -type l \) -name 'libQt6*.so*' -print -quit | grep -q .; then
+  fail "Qt libraries are still bundled in the SDDM runtime"
+fi
+sddm_pid="$(systemctl show sddm.service -p MainPID --value)"
+[[ ${sddm_pid} =~ ^[1-9][0-9]*$ && -r /proc/${sddm_pid}/maps ]] \
+  || fail "SDDM process is not available for Qt runtime verification"
+sddm_maps="$(cat "/proc/${sddm_pid}/maps")"
+grep -Fq 'libQt6Core.so.6.11.1' <<<"${sddm_maps}" \
+  || fail "SDDM is not using the Qt 6.11.1 runtime"
+! grep -Eq 'libQt6[^/]*\.so\.6\.10\.2' <<<"${sddm_maps}" \
+  || fail "SDDM is still using Qt 6.10.2"
+grep -Eq '^[[:space:]]*Current[[:space:]]*=[[:space:]]*breeze$' \
+  /etc/writable/sddm.conf \
+  || fail "Breeze is not selected as the SDDM theme"
 grep -Eq '^cursorTheme[[:space:]]*=[[:space:]]*breeze_cursors$' \
   /etc/xdg/kcminputrc \
   || fail "KDE's system cursor theme is not set to breeze_cursors"
@@ -94,7 +111,7 @@ if [[ -n ${desktop_user} ]]; then
 
   boot_errors="$(journalctl -b --no-pager -o cat)"
   if grep -Eq \
-    'drkonqi-sentry-postman\.path: Refusing to start|user-session-migration\.service: (Failed at step EXEC|Failed with result)|Failed to load the device quirks|pw\.conf: can.t load config client\.conf|Failed to load overview:.*org\.kde\.milou|Failed to load cursor theme|snap\.plasma-desktop-session\.plasma-polkit-agent\.service: Failed|snap-update-ns failed with code 1|cannot create symbolic link "/usr/share/(libinput|pipewire)"' \
+    'drkonqi-sentry-postman\.path: Refusing to start|user-session-migration\.service: (Failed at step EXEC|Failed with result)|Failed to load the device quirks|pw\.conf: can.t load config client\.conf|Failed to load overview:.*org\.kde\.milou|Failed to load cursor theme|snap\.plasma-desktop-session\.plasma-polkit-agent\.service: Failed|snap-update-ns failed with code 1|cannot create symbolic link "/usr/share/(libinput|pipewire)"|Plugin uses incompatible Qt library' \
     <<<"${boot_errors}"; then
     fail "KDE boot journal still contains a fixed desktop-session error"
   fi
@@ -108,4 +125,4 @@ else
     || fail "SDDM greeter restarted or exited during the 10-second stability check"
 fi
 
-echo "KDE SDDM boot, manager selection, and ${desktop_user:-greeter} checks passed."
+echo "KDE SDDM boot, Qt 6.11.1, Breeze theme, manager selection, and ${desktop_user:-greeter} checks passed."
