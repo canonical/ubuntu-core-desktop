@@ -1,8 +1,14 @@
-# GDM on Ubuntu Core
+# Ubuntu Core Desktop
 
-This directory contains an image of Ubuntu Core 26 with the GDM
-display manager loaded into the boot file system.  It can be launched
-in a Qemu virtual machine by following these instructions:
+This repository builds Ubuntu Core 26 desktop images for GNOME and KDE.
+Each image selects one display manager and its matching session: GNOME
+uses GDM, while KDE uses SDDM. Installing another desktop session onto
+an existing image does not switch its display manager; mixed
+manager/session configurations are not supported.
+
+KDE SDDM packaging and runtime integration is documented in
+[`docs/kde-sddm.md`](docs/kde-sddm.md). The built KDE image can be
+launched with `./go-run-kde`.
 
 1. Download and decompress the two image files and place them in the
    same directory.
@@ -53,6 +59,8 @@ repositories. Namely:
 | `core26-desktop` | [core-base-desktop:26](https://github.com/canonical/core-base-desktop/tree/26) | [via launchpad](https://launchpad.net/~desktop-snappers/ubuntu-core-desktop/+snap/core26-desktop) | base snap, forked from `core26` to integrate GDM graphical login |
 | `pc-desktop` | [pc-amd64-gadget-desktop:26](https://github.com/canonical/pc-amd64-gadget-desktop/tree/26) | [via launchpad](https://launchpad.net/~ubuntu-desktop/pc-gadget-desktop/+snap/pc-amd64-gadget-desktop-core26) | gadget snap, forked from `pc`, using `core26-desktop` as a base |
 | `ubuntu-desktop-session` | [ubuntu-desktop-session-snap:26](https://github.com/canonical/ubuntu-desktop-session-snap/tree/26) | [via launchpad](https://launchpad.net/~ubuntu-desktop/+snap/ubuntu-desktop-session-snap-core26) | provides the confined desktop session |
+| `plasma-desktop-session` | [plasma-desktop-session:26](https://invent.kde.org/neon/plasma-desktop-session/-/tree/26) | local KDE image build | provides the confined Plasma session and SDDM runtime |
+| `plasma-core26-desktop` | [plasma-core-desktop:26](https://invent.kde.org/neon/plasma-core-desktop/-/tree/26) | local KDE image build | provides Plasma runtime content and Breeze SDDM theme assets |
 | `ubuntu-desktop-init` | [ubuntu-desktop-provision:snap/ubuntu-desktop-init/26.04](https://github.com/canonical/ubuntu-desktop-provision/tree/snap/ubuntu-desktop-init/26.04) | [via launchpad](https://launchpad.net/~ubuntu-desktop/+snap/ubuntu-desktop-init) | first-boot user setup wizard |
 | `snapd` | [ubuntu-core-desktop-snapd:26](https://github.com/canonical/ubuntu-core-desktop-snapd/tree/26) | [via launchpad](https://launchpad.net/~snappy-dev/+snap/ubuntu-core-desktop-snapd) | a branch of snapd with additional changes not yet merged to mainline |
 
