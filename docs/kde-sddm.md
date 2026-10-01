@@ -8,12 +8,14 @@ GNOME and KDE sessions on one image is not a supported configuration.
 ## Runtime ownership
 
 `plasma-desktop-session` owns the SDDM binaries and non-Qt runtime
-dependencies. Qt libraries, QPA plugins, and QML modules come from the
-KDE content snaps' Qt 6.11.1 runtime. The image wraps SDDM's privileged
-helper to restore these paths after SDDM sanitizes its environment, and
-launches the KWin greeter compositor with that same runtime. The Breeze
-greeter theme is supplied by `plasma-core26-desktop`, matching the Qt
-version used by the greeter.
+dependencies. Its `go-build` rebuilds the pinned Ubuntu SDDM source against
+the KDE Neon Qt 6.11.1 SDK and locked KF6 6.30.0 / Plasma 6.7.5 matrix.
+The installed executables have no developer-SDK RPATH; Qt libraries, QPA
+plugins, and QML modules come from the KDE content snaps' Qt 6.11.1 runtime.
+The image wraps SDDM's privileged helper to restore these paths after SDDM
+sanitizes its environment, and launches the KWin greeter compositor with
+that same runtime. The Breeze greeter theme is supplied by
+`plasma-core26-desktop`, matching the Qt version used by the greeter.
 
 The session snap exposes `xkbcomp` from `kf6-core26` at `/usr/bin/xkbcomp`
 inside its confined app layouts. Xwayland invokes that helper by absolute
@@ -68,6 +70,10 @@ cd ~/git/plasma-desktop-session && ./go-build
 cd ~/git/ubuntu-core-desktop && ./go-build kde && VM_DISPLAY=vnc ./go-run-kde
 ./go-vnc
 ```
+
+The session snap's SDDM pre-build requires CMake, Ninja, and `readelf` on the
+build host; it consumes the existing KDE SDK directly and does not copy the
+SDK into the snap.
 
 `VM_DISPLAY=vnc` serves the guest on `localhost:5901`; `./go-vnc` opens
 the viewer.
