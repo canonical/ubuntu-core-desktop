@@ -3,6 +3,7 @@
 *.xz
 *~
 /pc-gdm
+/go-*
 
 # Dangerous (dev-only) model assertions are regenerated when re-signed
 # (see build.sh) from their *.json source on every re-sign,
