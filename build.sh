@@ -25,8 +25,9 @@ Usage: build.sh --desktop gnome|kde --model-account-key <path> \
            --ssh-host-key <path> \
            [--snap <path>]... [options]
 
-Builds build/pc.img (an Ubuntu Core Desktop disk image) using
-ubuntu-image. If --user is given, also builds build/seed.iso (a
+Builds <build-dir>/pc.img (an Ubuntu Core Desktop disk image) using
+ubuntu-image. The default build directory is "build". If --user is
+given, also builds <build-dir>/seed.iso (a
 cloud-init NoCloud seed -- see build-cloud-init.sh --help) that creates
 that login account at first boot; attach it as a cdrom drive when
 booting the image. Without --user, no seed.iso is built and
@@ -109,6 +110,8 @@ Optional:
                               this, the login prompt is used.
   --kde-session-snap <path>   KDE session snap supplying SDDM and its
                               greeter runtime (required for --desktop kde).
+  --build-dir <name>          Output directory under the project root
+                              (default: build); recreated on each build.
   --debug                     Verbose kernel/snapd console logging
                               instead of the quiet default.
   -h, --help                  Show this help and exit.
@@ -520,6 +523,7 @@ snapd_snap=""
 extra_snaps=()
 desktop=""
 kde_session_snap=""
+build_dir="build"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -540,6 +544,7 @@ while [[ $# -gt 0 ]]; do
         --gadget-snap) gadget_snap="$2"; shift 2 ;;
         --snapd-snap) snapd_snap="$2"; shift 2 ;;
         --kde-session-snap) kde_session_snap="$2"; shift 2 ;;
+        --build-dir) build_dir="$2"; shift 2 ;;
         --snap) extra_snaps+=("$2"); shift 2 ;;
         *)
             echo "Unknown flag: ${1}" >&2
@@ -548,6 +553,11 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [[ ! ${build_dir} =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    echo "--build-dir must be a simple directory name under the project root." >&2
+    exit 1
+fi
 
 case "${desktop}" in
     gnome)
@@ -635,7 +645,7 @@ fi
 
 set -x
 
-BUILD_DIR=build
+BUILD_DIR="${build_dir}"
 rm -rf "${BUILD_DIR}"
 mkdir -p "${BUILD_DIR}"
 
@@ -704,6 +714,30 @@ usermod --prefix "$(pwd)/${BUILD_DIR}/squashfs-root" --password ${pw} root
 ./fix-console "${BUILD_DIR}/squashfs-root"
 
 if [[ ${desktop} == gnome ]]; then
+  # Snapd validates homedirs in initramfs, before the regular root is
+  # available. Configure it after seeding, once the path can be created.
+  gdm_homedirs_unit="${BUILD_DIR}/squashfs-root/usr/lib/systemd/system/gdm-homedirs.service"
+  mkdir -p "$(dirname "${gdm_homedirs_unit}")"
+  cat > "${gdm_homedirs_unit}" <<'EOF'
+[Unit]
+Description=Configure GDM home directories in Snapd
+Requires=snapd.seeded.service
+After=snapd.seeded.service
+Before=gdm.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/bin/mkdir -p /run/gdm3/home
+ExecStart=/usr/bin/snap set system homedirs=/run/gdm3/home
+RemainAfterExit=yes
+EOF
+  gdm_dropin_dir="${BUILD_DIR}/squashfs-root/usr/lib/systemd/system/gdm.service.d"
+  mkdir -p "${gdm_dropin_dir}"
+  cat > "${gdm_dropin_dir}/gdm-homedirs.conf" <<'EOF'
+[Unit]
+Requires=gdm-homedirs.service
+After=gdm-homedirs.service
+EOF
   for gdm_conf in \
     "${BUILD_DIR}/squashfs-root/etc/writable/gdm3/custom.conf" \
     "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/writable/gdm3/custom.conf"
