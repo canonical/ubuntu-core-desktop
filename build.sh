@@ -190,6 +190,8 @@ connections.extend([
     ("gnome-desktop-content:dbus-portal-desktop",
      f"{session}:dbus-freedesktop-portal-desktop"),
     ("gnome-desktop-content:hardware-observe", "system:hardware-observe"),
+    ("gnome-desktop-content:systemd-user-control",
+     "system:systemd-user-control"),
     (f"{sid}:systemd-user-control", "system:systemd-user-control"),
     (f"{session}:session-environment-broker-client",
      f"{session}:session-environment-broker-api"),
