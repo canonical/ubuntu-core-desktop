@@ -152,6 +152,8 @@ simple_plugs = [
 connections = [(f"{session}:{plug}", f"system:{plug}") for plug in simple_plugs]
 connections.append((f"{session}:shell-config-files", "system:system-files"))
 connections.append((f"{session}:user-dirs-defaults", "system:system-files"))
+connections.append((f"{session}:gnome-content-launch", "system:system-files"))
+connections.append((f"{session}:gdm-session-control", "system:gdm-session-control"))
 connections.extend([
     (f"{session}:network-manager", "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy:service"),
     (f"{session}:bluez", "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS:service"),
