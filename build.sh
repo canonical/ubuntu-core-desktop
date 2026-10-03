@@ -790,10 +790,10 @@ fi
 # unconfined upstream gnome-session, which then falls back to guessing
 # a default session (observed to be "ubuntu" regardless of which
 # desktop was actually built) instead of the confined session actually
-# installed -- so this must be installed whenever a login --user is
-# configured at all, not just for --autologin. The username check is
-# required because GDM's own greeter also execs plain gnome-session and
-# must not be intercepted.
+# installed -- so this must be installed in every GNOME image, including
+# images where the first user is created during first-boot setup. The
+# greeter runs under a separate system account, so exempt its role rather
+# than baking the build-time user into the shim.
 #
 # The $SNAP_NAME check is required to avoid an infinite-loop-shaped bug:
 # the confined ubuntu-desktop-session snap's own run-session.sh ends by
@@ -812,16 +812,21 @@ fi
 # full root-cause chain. $SNAP_NAME is set for every confined process,
 # so checking it lets the internal call through to the real binary
 # instead of looping back through the wrapper.
-if [[ -n ${user} && ${desktop} == gnome ]]; then
+if [[ ${desktop} == gnome ]]; then
   mv "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session" "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session.real"
   tee "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session" > /dev/null << EOF
 #!/bin/sh
 if [ -n "\$SNAP_NAME" ]; then
   exec /usr/bin/gnome-session.real "\$@"
-elif [ "\$(id -un)" = "${user}" ]; then
-  exec /usr/bin/core-desktop-session-wrapper.sh ${session_wrapper_args[*]}
 else
-  exec /usr/bin/gnome-session.real "\$@"
+  case "\$(id -un)" in
+    gdm|gdm-greeter|gdm-greeter-[0-9]*)
+      exec /usr/bin/gnome-session.real "\$@"
+      ;;
+    *)
+      exec /usr/bin/core-desktop-session-wrapper.sh ${session_wrapper_args[*]}
+      ;;
+  esac
 fi
 EOF
   chmod 0755 "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session"
