@@ -97,6 +97,12 @@
             "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
         },
         {
+            "name": "upower",
+            "default-channel": "24/stable",
+            "type": "app",
+            "id": "XRBwbVdB9HsebMqoM9H9SKw5DRAfc4is"
+        },
+        {
             "name": "snap-store",
             "default-channel": "2/stable",
             "type": "app",
