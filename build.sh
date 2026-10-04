@@ -149,7 +149,7 @@ simple_plugs = [
     "network-control", "network-observe", "polkit-agent",
     "process-control", "shutdown", "system-observe", "systemd-user-control",
     "time-control", "timeserver-control", "timezone-control",
-    "upower-observe", "systemd-user-environment",
+    "systemd-user-environment",
 ]
 
 connections = [(f"{session}:{plug}", f"system:{plug}") for plug in simple_plugs]
@@ -169,6 +169,13 @@ connections.extend([
     ("udisks2:hardware-observe", "system:hardware-observe"),
     ("udisks2:mount-observe", "system:mount-observe"),
     ("udisks2:block-devices", "system:block-devices"),
+    # UPower provider snap: the session's upower-observe plug (gsd-power)
+    # connects to the provider's upower-observe slot; upowerd itself
+    # needs hardware observation and BlueZ for battery reporting.
+    (f"{session}:upower-observe", "upower:upower"),
+    ("upower:hardware-observe", "system:hardware-observe"),
+    ("upower:bluez", "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS:service"),
+    ("upower:upower-client", "upower:upower"),
     (f"{session}:dbus-portal-desktop",
      f"{session}:dbus-freedesktop-portal-desktop"),
     (f"{session}:dbus-portal-documents",
