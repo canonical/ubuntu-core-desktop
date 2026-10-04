@@ -199,6 +199,7 @@ connections.extend([
     (f"{session}:gnome-desktop-content",
      "gnome-desktop-content:gnome-desktop-content"),
     (f"{session}:pipewire", "gnome-desktop-content:pipewire"),
+    (f"{session}:audio-playback", "gnome-desktop-content:audio-playback"),
     ("gnome-desktop-content:pipewire-client",
      "gnome-desktop-content:pipewire"),
     ("gnome-desktop-content:dbus-portal-permission-store",
