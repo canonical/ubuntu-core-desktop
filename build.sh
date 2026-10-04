@@ -148,7 +148,7 @@ simple_plugs = [
     "login-session-control", "login-session-observe", "mount-observe",
     "network-control", "network-observe", "polkit-agent",
     "process-control", "shutdown", "system-observe", "systemd-user-control",
-    "time-control", "timeserver-control", "timezone-control", "udisks2",
+    "time-control", "timeserver-control", "timezone-control",
     "upower-observe", "systemd-user-environment",
 ]
 
@@ -160,6 +160,15 @@ connections.append((f"{session}:gdm-session-control", "system:gdm-session-contro
 connections.extend([
     (f"{session}:network-manager", "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy:service"),
     (f"{session}:bluez", "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS:service"),
+    # UDisks2/UPower moved out of the core base into their own provider
+    # snaps (Stage 3B); the session monitor is a client of the provider's
+    # standard interface slot instead of the implicit system slot.
+    (f"{session}:udisks2", "udisks2:udisks2"),
+    ("udisks2:polkit", "system:polkit"),
+    ("udisks2:udisks2-client", "udisks2:udisks2"),
+    ("udisks2:hardware-observe", "system:hardware-observe"),
+    ("udisks2:mount-observe", "system:mount-observe"),
+    ("udisks2:block-devices", "system:block-devices"),
     (f"{session}:dbus-portal-desktop",
      f"{session}:dbus-freedesktop-portal-desktop"),
     (f"{session}:dbus-portal-documents",
