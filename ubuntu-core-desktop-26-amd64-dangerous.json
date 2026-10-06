@@ -1,52 +1,52 @@
 {
     "type": "model",
-    "authority-id": "canonical",
-    "brand-id": "canonical",
+    "authority-id": "UJySllegsYenHktWHqU1R1PAk9FzxMoj",
+    "brand-id": "UJySllegsYenHktWHqU1R1PAk9FzxMoj",
     "series": "16",
-    "model": "ubuntu-core-desktop-24-amd64-dangerous",
-    "display-name":"Ubuntu Core Desktop 24 (amd64) (dangerous)",
+    "model": "ubuntu-core-desktop-26-amd64-dangerous",
+    "display-name":"Ubuntu Core Desktop 26 (amd64) (dangerous)",
     "architecture": "amd64",
     "revision": "0",
-    "timestamp": "2024-07-04T10:33:44+08:00",
+    "timestamp": "2026-09-01T14:00:00Z",
     "grade": "dangerous",
     "storage-safety": "prefer-encrypted",
-    "base": "core24-desktop",
+    "base": "core26-desktop",
     "snaps": [
         {
             "name": "pc-desktop",
-            "default-channel": "24/stable",
+            "default-channel": "26/stable",
             "type": "gadget",
             "id": "mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy"
         },
         {
             "name": "pc-kernel",
-            "default-channel": "24-hwe/stable",
+            "default-channel": "26/stable",
             "type": "kernel",
             "id": "pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza"
         },
         {
             "name": "snapd",
-            "default-channel": "latest/edge/ubuntu-core-desktop",
+            "default-channel": "latest/stable",
             "type": "snapd",
             "id": "PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4"
         },
         {
-            "name": "core24-desktop",
+            "name": "core26-desktop",
             "default-channel": "latest/stable",
             "type": "base",
-            "id": "GY5GohJ4F1ZsWpkosG0joeZyDfHzTZrD"
+            "id": "j78KCOObDaxyocjOxyqkTSrYbwPeuBBg"
         },
         {
             "name": "ubuntu-desktop-session",
-            "default-channel": "24/stable",
+            "default-channel": "26/stable",
             "type": "app",
             "id": "LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN"
         },
         {
-            "name": "core22",
+            "name": "core26",
             "default-channel": "latest/stable",
             "type": "base",
-            "id": "amcUKQILKXHHTlmSa7NMdnXSx02dNeeT"
+            "id": "cUqM61hRuZAJYmIS898Ux66VY61gBbZf"
         },
         {
             "name": "core24",
@@ -56,7 +56,7 @@
         },
         {
             "name": "network-manager",
-            "default-channel": "24/stable",
+            "default-channel": "26/stable",
             "type": "app",
             "id": "RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy"
         },
@@ -73,51 +73,38 @@
             "id": "jZLfBRzf1cYlYysIjD2bwSzNtngY0qit"
         },
         {
-            "name": "gnome-42-2204",
+            "name": "gnome-46-2404",
             "default-channel": "latest/stable",
             "type": "app",
-            "id": "lATO8HzwVvrAPrlZRAWpfyrJKlAJrZS3"
+            "id": "ew7OxpbRTxfK7ImpIygRR85lkxvU7Pzt"
         },
         {
-            "name": "cups",
+            "name": "mesa-2404",
             "default-channel": "latest/stable",
             "type": "app",
-            "id": "m1eQacDdXCthEwWQrESei3Zao3d5gfJF"
-        },
-        {
-            "name": "ipp-usb",
-            "default-channel": "latest/stable",
-            "type": "app",
-            "id": "WJKWBUuCDufOFw2p24tvkbbw02plGkbd"
+            "id": "HyhSEBPv3vHsW6uOHkQR384NgI7S6zpj"
         },
         {
             "name": "avahi",
-            "default-channel": "24/stable",
+            "default-channel": "26/stable",
             "type": "app",
             "id": "dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll"
         },
         {
             "name": "bluez",
-            "default-channel": "24/stable",
+            "default-channel": "26/stable",
             "type": "app",
             "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
         },
         {
-            "name": "firefox",
-            "default-channel": "latest/stable/ubuntu-24.04",
+            "name": "upower",
+            "default-channel": "24/stable",
             "type": "app",
-            "id": "3wdHCAVyZEmYsCMFDE9qt92UV8rC8Wdk",
-            "presence": "optional"
-        },
-        {
-            "name": "snapd-desktop-integration",
-            "default-channel": "latest/edge/ubuntu-core-desktop",
-            "type": "app",
-            "id": "IrwRHakqtzhFRHJOOPxKVPU0Kk7Erhcu"
+            "id": "XRBwbVdB9HsebMqoM9H9SKw5DRAfc4is"
         },
         {
             "name": "snap-store",
-            "default-channel": "latest/stable/ubuntu-24.04",
+            "default-channel": "2/stable",
             "type": "app",
             "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
         },
