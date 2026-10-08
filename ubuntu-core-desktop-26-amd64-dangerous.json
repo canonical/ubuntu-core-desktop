@@ -103,6 +103,12 @@
             "id": "XRBwbVdB9HsebMqoM9H9SKw5DRAfc4is"
         },
         {
+            "name": "udisks2",
+            "default-channel": "26/stable",
+            "type": "app",
+            "id": "KTyDAsgNZg4u9UBJ63MHn6q12fmUjOfn"
+        },
+        {
             "name": "snap-store",
             "default-channel": "2/stable",
             "type": "app",
