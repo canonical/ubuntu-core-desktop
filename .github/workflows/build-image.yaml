@@ -3,8 +3,13 @@ on:
   pull_request:
   push:
     branches:
-      - main
+      - desktop/26
   workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * *"
+
+permissions:
+  contents: write
 
 jobs:
   image:
@@ -12,35 +17,81 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-        with:
-          submodules: true
+
+      - name: Download snap inputs (desktop-26-latest release assets)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p snaps
+          for spec in \
+            canonical/pc-amd64-gadget-desktop:pc-desktop.snap \
+            canonical/core-base-desktop:core26-desktop.snap \
+            canonical/ubuntu-core-desktop-snapd:snapd.snap \
+            canonical/ubuntu-desktop-session-snap:ubuntu-desktop-session.snap \
+            canonical/gnome-desktop-runtime:gnome-desktop-runtime.snap \
+            canonical/pipewire-snap:pipewire.snap \
+            chris-bainbridge/ubuntu-desktop-provision:ubuntu-desktop-init.snap
+          do
+            repo=${spec%%:*}; asset=${spec##*:}
+            gh release download desktop-26-latest -R "$repo" -p "$asset" \
+              -O "snaps/$asset" --clobber
+          done
+          ls -la snaps/
+
       - name: Install build dependencies
         run: |
-          sudo apt install -y squashfs-tools dosfstools mtools fakeroot crudini
-          sudo snap refresh --edge snapd || sudo snap install --edge snapd
+          sudo apt-get update
+          sudo apt-get install -y squashfs-tools dosfstools mtools fakeroot crudini zstd
           sudo snap install --classic ubuntu-image
+
       - name: Build image
-        # build.sh needs a base/gadget/snapd snap and a model
-        # account-key assertion -- there is no public source for these
-        # yet (see build.sh --help), so this step is not yet wired
-        # up to run in CI. Once those inputs are available (e.g. as repo
-        # secrets/artifacts), replace this with something like:
-        #   ./build.sh \
-        #     --desktop gnome \
-        #     --root-password "$IMAGE_PASSWORD" \
-        #     --model-account-key "$MODEL_ACCOUNT_KEY" \
-        #     --base-snap core26-desktop.snap \
-        #     --gadget-snap pc-desktop.snap \
-        #     --snapd-snap snapd.snap \
-        #     --snap ubuntu-desktop-session.snap \
-        #     --snap ubuntu-desktop-init.snap
+        # No --user / --autologin / --root-password: the published image
+        # has no baked credentials; first boot runs the
+        # ubuntu-desktop-init wizard via GDM initial-setup.  The model is
+        # pre-signed and committed (see ci/), so no signing key is needed
+        # here.  See todo/20261009-build-and-publish-gnome-dangerous.txt.
         run: |
-          ./build.sh --help
-      - name: Upload artifacts
+          ./build.sh \
+            --desktop gnome \
+            --model-account-key ci/account-key.assert \
+            --base-snap snaps/core26-desktop.snap \
+            --gadget-snap snaps/pc-desktop.snap \
+            --snapd-snap snaps/snapd.snap \
+            --snap snaps/ubuntu-desktop-session.snap \
+            --snap snaps/gnome-desktop-runtime.snap \
+            --snap snaps/pipewire.snap \
+            --snap snaps/ubuntu-desktop-init.snap \
+            ci/ubuntu-core-desktop-26-amd64-dangerous.model
+
+      - name: Compress
+        run: |
+          zstd -T0 -19 build/pc.img \
+            -o "ubuntu-core-desktop-gnome-$(date -u +%Y%m%d).img.zst"
+          sha256sum ubuntu-core-desktop-gnome-*.img.zst > SHA256SUMS
+
+      - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
           name: image
           path: |
-            README.md
-            build/*.img
-          compression-level: 0 # content is already compressed
+            ubuntu-core-desktop-gnome-*.img.zst
+            SHA256SUMS
+          compression-level: 0
+          retention-days: 14
+
+      - name: Publish dated release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          day=$(date -u +%Y%m%d)
+          tag="gnome-${day}"
+          if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # Same-day rebuild: replace that date's release entirely so the
+            # tag always points at the newest run of the day.
+            gh release delete "$tag" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag
+          fi
+          gh release create "$tag" -R "$GITHUB_REPOSITORY" \
+            --title "Ubuntu Core Desktop 26 GNOME (dangerous) - ${day}" \
+            --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed; no credentials are baked in (first boot runs the ubuntu-desktop-init wizard). Boot with virt-install or qemu per README.md." \
+            "ubuntu-core-desktop-gnome-${day}.img.zst" SHA256SUMS

@@ -875,12 +875,22 @@ fi
 mksquashfs "${BUILD_DIR}/squashfs-root" "${BUILD_DIR}/custom-core.snap" -noappend -comp zstd -Xcompression-level 1
 rm -rf "${BUILD_DIR}/squashfs-root"
 
-# Sign the model assertion (see --model) with the local "test" brand key
-# so ubuntu-image can build a --dangerous image from it. Override the
-# signing key with the SNAP_SIGN_KEY environment variable if you have
-# your own registered key.
-snap sign -k "${SNAP_SIGN_KEY:-test}" --update-timestamp "${model_json}" \
-  > "${BUILD_DIR}/$(basename "${model_json}" .json).model"
+if [[ ${model_json} == *.model ]]; then
+  # Pre-signed model assertion: use it as-is.  This is the CI path - no
+  # signing key needs to exist on the build machine.  Refresh a committed
+  # .model locally when its JSON changes:
+  #   snap sign -k test --update-timestamp <model>.json > <model>.model
+  model_assert="${BUILD_DIR}/$(basename "${model_json}")"
+  cp "${model_json}" "${model_assert}"
+else
+  # Sign the model assertion (see --model) with the local "test" brand key
+  # so ubuntu-image can build a --dangerous image from it. Override the
+  # signing key with the SNAP_SIGN_KEY environment variable if you have
+  # your own registered key.
+  model_assert="${BUILD_DIR}/$(basename "${model_json}" .json).model"
+  snap sign -k "${SNAP_SIGN_KEY:-test}" --update-timestamp "${model_json}" \
+    > "${model_assert}"
+fi
 
 snap_args=(
   --snap "${BUILD_DIR}/custom-core.snap"
@@ -900,7 +910,7 @@ ubuntu-image snap -v \
   --output-dir "${BUILD_DIR}" \
   --image-size 20G \
   "${snap_args[@]}" \
-  "${BUILD_DIR}/$(basename "${model_json}" .json).model"
+  "${model_assert}"
 
 if [[ -n ${user} ]]; then
   # The account itself is created by cloud-init at first boot from this
