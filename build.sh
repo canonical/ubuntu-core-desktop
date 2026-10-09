@@ -772,7 +772,15 @@ EOF
     "${BUILD_DIR}/squashfs-root/etc/writable/gdm3/custom.conf" \
     "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/writable/gdm3/custom.conf"
   do
-    crudini --set "${gdm_conf}" daemon InitialSetupEnable false
+    # With a build-time user, cloud-init creates the account before GDM
+    # starts, so GDM's initial setup has nothing to do -- disable it to
+    # keep GDM on the plain greeter. Without --user, first boot must run
+    # GDM's initial-setup session, which launches the ubuntu-desktop-init
+    # first-boot wizard (via launch-desktop-provision-init), so
+    # InitialSetupEnable is left at its gdm.schemas default (true).
+    if [[ -n ${user} ]]; then
+      crudini --set "${gdm_conf}" daemon InitialSetupEnable false
+    fi
     if [[ ${autologin} == 1 ]]; then
       crudini --set "${gdm_conf}" daemon AutomaticLoginEnable true
       crudini --set "${gdm_conf}" daemon AutomaticLogin "${user}"
@@ -820,8 +828,12 @@ fi
 # desktop was actually built) instead of the confined session actually
 # installed -- so this must be installed in every GNOME image, including
 # images where the first user is created during first-boot setup. The
-# greeter runs under a separate system account, so exempt its role rather
-# than baking the build-time user into the shim.
+# greeter and GDM's initial-setup session (which launches the
+# ubuntu-desktop-init first-boot wizard) run under separate system
+# accounts, so exempt their roles rather than baking the build-time user
+# into the shim. GDM may run initial setup as the static
+# "gnome-initial-setup" account or as its own transient
+# "gnome-initial-setup-<n>" account, hence both patterns.
 #
 # The $SNAP_NAME check is required to avoid an infinite-loop-shaped bug:
 # the confined ubuntu-desktop-session snap's own run-session.sh ends by
@@ -848,7 +860,7 @@ if [ -n "\$SNAP_NAME" ]; then
   exec /usr/bin/gnome-session.real "\$@"
 else
   case "\$(id -un)" in
-    gdm|gdm-greeter|gdm-greeter-[0-9]*)
+    gdm|gdm-greeter|gdm-greeter-[0-9]*|gnome-initial-setup|gnome-initial-setup-[0-9]*)
       exec /usr/bin/gnome-session.real "\$@"
       ;;
     *)
