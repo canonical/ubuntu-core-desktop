@@ -23,6 +23,24 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p snaps
+          # Wait for the rolling snap releases to exist: snap builds take
+          # up to ~40min, and a schedule/push trigger can race with one.
+          for i in $(seq 1 15); do
+            ok=1
+            for repo in canonical/pc-amd64-gadget-desktop \
+                        canonical/core-base-desktop \
+                        canonical/ubuntu-core-desktop-snapd \
+                        canonical/ubuntu-desktop-session-snap \
+                        canonical/gnome-desktop-runtime \
+                        canonical/pipewire-snap \
+                        chris-bainbridge/ubuntu-desktop-provision; do
+              gh release view desktop-26-latest -R "$repo" >/dev/null 2>&1 || ok=0
+            done
+            [ "$ok" = 1 ] && break
+            echo "desktop-26-latest releases not all present yet; waiting ($i/15)"
+            sleep 120
+          done
+          [ "$ok" = 1 ] || { echo "timed out waiting for snap releases" >&2; exit 1; }
           for spec in \
             canonical/pc-amd64-gadget-desktop:pc-desktop.snap \
             canonical/core-base-desktop:core26-desktop.snap \
