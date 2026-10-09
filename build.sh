@@ -22,7 +22,6 @@ usage() {
     cat <<'EOF'
 Usage: build.sh --desktop gnome|kde --model-account-key <path> \
            --base-snap <path> --gadget-snap <path> --snapd-snap <path> \
-           --ssh-host-key <path> \
            [--snap <path>]... [options]
 
 Builds <build-dir>/pc.img (an Ubuntu Core Desktop disk image) using
@@ -40,14 +39,6 @@ Required:
                               auto-connections and the --autologin
                               session command; everything else is
                               identical between the two.
-  --password <password>      Root's login password, baked into the
-                              image (as a SHA-512 crypt hash via
-                              openssl passwd). Also used as --user's
-                              password (if --user is given) via the
-                              seed.iso build-cloud-init.sh generates --
-                              see --user below. No default, so no
-                              password ends up hardcoded in this
-                              script.
   --model-account-key <path>  Account-key assertion for the key that
                               signed the model (see --model). Needed so
                               ubuntu-image can validate the model's
@@ -66,16 +57,6 @@ Required:
   --snapd-snap <path>         snapd snap, included in the image
                               unmodified. There is no public place to
                               get this yet.
-  --ssh-host-key <path>       Private ed25519 key (with matching
-                              <path>.pub) baked into the image as its
-                              persistent SSH host key, so rebuilt/
-                              reflashed VMs keep the same SSH identity
-                              instead of a new one every build. Keep
-                              this outside the build tree (e.g. under a
-                              gitignored dev/ dir) so it survives a
-                              `rm -rf build`. Generate one once with:
-                                ssh-keygen -t ed25519 -N '' \
-                                  -f dev/ssh_host_ed25519_key
 
 Optional:
   --snap <path>               Extra snap to include in the image
@@ -96,15 +77,40 @@ Optional:
                               that creates that account (with
                               --password and --ssh-authorized-keys,
                               if given) via cloud-init at first boot.
-                              Without this flag no login account is
-                              configured and no seed.iso is built (this
-                              is the default).
+                              Requires --password. Without this flag
+                              no login account is configured and no
+                              seed.iso is built (this is the default).
   --ssh-authorized-keys <path> File of SSH public keys (one per line)
                               to install into root's authorized_keys in
                               the image, and (if --user is also given)
                               into --user's via the seed.iso above.
                               Without this flag, neither has
                               authorized_keys (password login only).
+  --root-password <password>  Root's login password, baked into the
+                              image (as a SHA-512 crypt hash via
+                              openssl passwd). Without this flag,
+                              root's password stays locked (as the
+                              base snap ships it), so no password
+                              ends up hardcoded or defaulted. Does
+                              not require --user/no seed.iso.
+  --password <password>       --user's login password, created via the
+                              seed.iso build-cloud-init.sh generates --
+                              see --user above. Must be given together
+                              with --user.
+  --ssh-host-key <path>       Private ed25519 key (with matching
+                              <path>.pub) baked into the image as its
+                              persistent SSH host key, so rebuilt/
+                              reflashed VMs keep the same SSH identity
+                              instead of a new one every build. Keep
+                              this outside the build tree (e.g. under a
+                              gitignored dev/ dir) so it survives a
+                              `rm -rf build`. Generate one once with:
+                                ssh-keygen -t ed25519 -N '' \
+                                  -f dev/ssh_host_ed25519_key
+                              Without this flag no host key is baked
+                              in; the image generates fresh host keys
+                              on first boot (sshd-keygen.service), so
+                              each build gets a new SSH identity.
   --autologin                 Bake in display-manager autologin for
                               --user (which becomes required). Without
                               this, the login prompt is used.
@@ -530,6 +536,7 @@ debug=0
 autologin=0
 user=""
 password=""
+root_password=""
 ssh_authorized_keys=""
 ssh_host_key=""
 model_account_key=""
@@ -553,6 +560,7 @@ while [[ $# -gt 0 ]]; do
         --desktop) desktop="$2"; shift 2 ;;
         --user) user="$2"; shift 2 ;;
         --password) password="$2"; shift 2 ;;
+        --root-password) root_password="$2"; shift 2 ;;
         --ssh-authorized-keys) ssh_authorized_keys="$2"; shift 2 ;;
         --ssh-host-key) ssh_host_key="$2"; shift 2 ;;
         --model-account-key) model_account_key="$2"; shift 2 ;;
@@ -599,18 +607,20 @@ if [[ ${autologin} == 1 && -z ${user} ]]; then
     echo "--autologin requires --user <name> to be set." >&2
     exit 1
 fi
+if [[ -n ${password} && -z ${user} ]]; then
+    echo "--password requires --user <name> to be set." >&2
+    exit 1
+fi
+if [[ -n ${user} && -z ${password} ]]; then
+    echo "--user requires --password <password> to be set." >&2
+    exit 1
+fi
 if [[ ${desktop} == kde && -z ${kde_session_snap} ]]; then
     echo "--desktop kde requires --kde-session-snap <path>." >&2
     exit 1
 fi
 if [[ ${desktop} != kde && -n ${kde_session_snap} ]]; then
     echo "--kde-session-snap is only valid with --desktop kde." >&2
-    exit 1
-fi
-if [[ -z ${password} ]]; then
-    echo "Missing required --password <password>." >&2
-    echo "Sets root's login password inside the image. There is no" >&2
-    echo "default so no password ends up hardcoded in this script." >&2
     exit 1
 fi
 if [[ -z ${model_account_key} ]]; then
@@ -630,17 +640,7 @@ if [[ -z ${snapd_snap} ]]; then
     echo "Missing required --snapd-snap <path>." >&2
     exit 1
 fi
-if [[ -z ${ssh_host_key} ]]; then
-    echo "Missing required --ssh-host-key <path>." >&2
-    echo "This should be a persistent ed25519 private key (with a" >&2
-    echo "matching <path>.pub) baked into the image as its SSH host" >&2
-    echo "key, so re-flashed/rebuilt VMs keep the same SSH identity" >&2
-    echo "instead of your ssh client warning about a changed host key" >&2
-    echo "on every rebuild. Generate one once with, e.g.:" >&2
-    echo "  ssh-keygen -t ed25519 -N '' -f dev/ssh_host_ed25519_key" >&2
-    exit 1
-fi
-if [[ ! -e "${ssh_host_key}.pub" ]]; then
+if [[ -n ${ssh_host_key} && ! -e "${ssh_host_key}.pub" ]]; then
     echo "File not found: ${ssh_host_key}.pub (--ssh-host-key expects a" >&2
     echo "private key path with a matching '.pub' file alongside it)" >&2
     exit 1
@@ -699,17 +699,25 @@ for etc_ssh_dir in \
   "${BUILD_DIR}/squashfs-root/etc/ssh" \
   "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/ssh"
 do
-  cp "${ssh_host_key}" "${etc_ssh_dir}/ssh_host_ed25519_key"
-  cp "${ssh_host_key}.pub" "${etc_ssh_dir}/ssh_host_ed25519_key.pub"
-  # sshd refuses to load a private host key that is group/world readable
-  # ("Permissions ... too open"), so the copy must be locked down
-  # regardless of the source file's permissions on disk.
-  chmod 600 "${etc_ssh_dir}/ssh_host_ed25519_key"
-  chmod 644 "${etc_ssh_dir}/ssh_host_ed25519_key.pub"
-  tee -a "${etc_ssh_dir}/sshd_config" > /dev/null << 'EOF'
+  if [[ -n ${ssh_host_key} ]]; then
+    cp "${ssh_host_key}" "${etc_ssh_dir}/ssh_host_ed25519_key"
+    cp "${ssh_host_key}.pub" "${etc_ssh_dir}/ssh_host_ed25519_key.pub"
+    # sshd refuses to load a private host key that is group/world readable
+    # ("Permissions ... too open"), so the copy must be locked down
+    # regardless of the source file's permissions on disk.
+    chmod 600 "${etc_ssh_dir}/ssh_host_ed25519_key"
+    chmod 644 "${etc_ssh_dir}/ssh_host_ed25519_key.pub"
+    tee -a "${etc_ssh_dir}/sshd_config" > /dev/null << 'EOF'
 HostKey /etc/ssh/ssh_host_ed25519_key
 PermitRootLogin yes
 EOF
+  else
+    # No baked host key: sshd-keygen.service generates the default key
+    # set on first boot, so no HostKey directive is added.
+    tee -a "${etc_ssh_dir}/sshd_config" > /dev/null << 'EOF'
+PermitRootLogin yes
+EOF
+  fi
 done
 
 for root_home_dir in \
@@ -724,8 +732,13 @@ do
   fi
 done
 
-pw="$(openssl passwd -6 "${password}")"
-usermod --prefix "$(pwd)/${BUILD_DIR}/squashfs-root" --password ${pw} root
+# Only set root's password when --root-password is given; without it, root
+# keeps the locked password the base snap ships with, so no password
+# is ever hardcoded or defaulted here.
+if [[ -n ${root_password} ]]; then
+  pw="$(openssl passwd -6 "${root_password}")"
+  usermod --prefix "$(pwd)/${BUILD_DIR}/squashfs-root" --password "${pw}" root
+fi
 
 # fix the serial console
 ./fix-console "${BUILD_DIR}/squashfs-root"
@@ -884,10 +897,11 @@ if [[ -n ${user} ]]; then
   # the same already-validated --user/--password/--ssh-authorized-keys,
   # so the image and its companion seed ISO can never end up describing
   # two different accounts/passwords/keys (as they could when this was
-  # a separate manual step). --ssh-authorized-keys defaults to /dev/null
-  # (never non-empty) when build.sh's own --ssh-authorized-keys wasn't
-  # given, matching build.sh's own "no keys -> password login only"
-  # behavior for root above, rather than falling back to
+  # a separate manual step). --user and --password are required
+  # together (validated above). --ssh-authorized-keys defaults to
+  # /dev/null (never non-empty) when build.sh's own --ssh-authorized-
+  # keys wasn't given, matching build.sh's own "no keys -> password
+  # login only" behavior for root above, rather than falling back to
   # build-cloud-init.sh's own unrelated default (./authorized_keys).
   ./build-cloud-init.sh \
     --user "${user}" \

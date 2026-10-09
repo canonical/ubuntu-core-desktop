@@ -27,7 +27,7 @@ jobs:
         # secrets/artifacts), replace this with something like:
         #   ./build.sh \
         #     --desktop gnome \
-        #     --password "$IMAGE_PASSWORD" \
+        #     --root-password "$IMAGE_PASSWORD" \
         #     --model-account-key "$MODEL_ACCOUNT_KEY" \
         #     --base-snap core26-desktop.snap \
         #     --gadget-snap pc-desktop.snap \

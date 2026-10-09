@@ -41,7 +41,7 @@ if [[ $# -eq 0 ]]; then
     exit 0
 fi
 
-build_user=""
+user=""
 password=""
 OUT="seed.iso"
 AUTHKEYS_FILE="authorized_keys"
@@ -52,7 +52,7 @@ while [[ $# -gt 0 ]]; do
             usage
             exit 0
             ;;
-        --user) build_user="$2"; shift 2 ;;
+        --user) user="$2"; shift 2 ;;
         --password) password="$2"; shift 2 ;;
         --output) OUT="$2"; shift 2 ;;
         --ssh-authorized-keys) AUTHKEYS_FILE="$2"; shift 2 ;;
@@ -64,7 +64,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [[ -z ${build_user} ]]; then
+if [[ -z ${user} ]]; then
     echo "Missing required --user <name>." >&2
     exit 1
 fi
@@ -85,7 +85,7 @@ cat <<EOF
 # NOTE: on Ubuntu Core, cloud-init writes users to /var/lib/extrausers/*
 # (via --extrausers), not /etc/passwd, since the base OS is read-only.
 users:
-  - name: ${build_user}
+  - name: ${user}
     groups: [sudo]
     shell: /bin/bash
     lock_passwd: false
@@ -105,7 +105,7 @@ cat <<EOF
 
 chpasswd:
   users:
-    - name: ${build_user}
+    - name: ${user}
       password: ${password}
       type: text
   expire: false
