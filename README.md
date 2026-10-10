@@ -11,7 +11,19 @@ KDE SDDM packaging and runtime integration is documented in
 launched with `./go-run-kde`.
 
 1. Download and decompress the two image files and place them in the
-   same directory.
+   same directory.  Pass `--sparse` to zstd when decompressing: the
+   image is mostly holes, and without it the decompressed file
+   allocates the full ~20G (zstd 1.5.x does not enable sparse writing
+   by default during decompression).
+
+   For example:
+
+   ```
+   zstd -T0 -d --sparse ubuntu-core-desktop-gnome-YYYYMMDD.img.zst -o pc.img
+   ```
+
+   (If you already decompressed without it, `fallocate --dig-holes
+   pc.img` reclaims the space.)
 
 2. Add an image as a VM launchable from GNOME Boxes or virt-manager:
     ```
