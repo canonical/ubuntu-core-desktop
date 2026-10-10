@@ -79,7 +79,7 @@ jobs:
             --snap snaps/gnome-desktop-runtime.snap \
             --snap snaps/pipewire.snap \
             --snap snaps/ubuntu-desktop-init.snap \
-            ci/ubuntu-core-desktop-26-amd64-dangerous.model
+            --model ci/ubuntu-core-desktop-26-amd64-dangerous.model
 
       - name: Compress
         run: |
