@@ -13,7 +13,11 @@ permissions:
 
 jobs:
   image:
-    runs-on: ubuntu-latest
+    # 26.04 on purpose: every locally-proven build of this image runs on
+    # resolute; on the 24.04 runner `calculate_rootfs_size` died with an
+    # instant SIGABRT inside the du-based sizing (todo/20261009-...,
+    # ubuntu-image 3.10.10, GH run 38010415300).
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -69,6 +73,7 @@ jobs:
         # pre-signed and committed (see ci/), so no signing key is needed
         # here.  See todo/20261009-build-and-publish-gnome-dangerous.txt.
         run: |
+          du --version | head -1
           ./build.sh \
             --desktop gnome \
             --model-account-key ci/account-key.assert \
