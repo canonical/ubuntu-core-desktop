@@ -116,6 +116,9 @@ Optional:
                               this, the login prompt is used.
   --kde-session-snap <path>   KDE session snap supplying SDDM and its
                               greeter runtime (required for --desktop kde).
+  --kde-plasma-snap <path>    KDE plasma content snap supplying the
+                              screen-locker PAM service files
+                              (required for --desktop kde).
   --build-dir <name>          Output directory under the project root
                               (default: build); recreated on each build.
   --debug                     Verbose kernel/snapd console logging
@@ -324,7 +327,9 @@ PYEOF
 kde_sddm_integration() {
   local rootfs="$1"
   local kde_session_snap="$2"
+  local kde_plasma_snap="$3"
   local runtime_root="${BUILD_DIR}/kde-session-snap-root"
+  local plasma_root="${BUILD_DIR}/kde-plasma-snap-root"
   local factory_etc="${rootfs}/usr/share/factory/writable/system-data/etc"
   local triplet
 
@@ -360,6 +365,30 @@ kde_sddm_integration() {
     install -D -m 0644 "${runtime_root}/sddm/etc/pam.d/${pam_service}" \
       "${rootfs}/etc/pam.d/${pam_service}"
     install -D -m 0644 "${runtime_root}/sddm/etc/pam.d/${pam_service}" \
+      "${factory_etc}/pam.d/${pam_service}"
+  done
+
+  # The screen locker's greeter (and any kcheckpass-style helper) in the
+  # plasma content snap authenticates against the PAM "kde" service
+  # (plus kde-fingerprint/kde-smartcard for the biometric paths). PAM
+  # resolves services from the host /etc/pam.d, which the content snap
+  # cannot provide at runtime, so install them into the image the same
+  # way as the sddm services above. Without this, pam_start falls
+  # through to the deny-by-default "other" service, the greeter's PAM
+  # worker never initialises ("Worker not ready yet, cannot
+  # authenticate"), the greeter exits, and kwin fail-safes by unlocking
+  # on any input -- i.e. a lock screen that does not actually lock.
+  unsquashfs -d "${plasma_root}" "${kde_plasma_snap}" >/dev/null
+  for path in usr/lib/pam.d/kde usr/lib/pam.d/kde-fingerprint usr/lib/pam.d/kde-smartcard; do
+    if [[ ! -e "${plasma_root}/${path}" ]]; then
+      echo "Plasma content snap is missing required PAM service file: ${path}" >&2
+      exit 1
+    fi
+  done
+  for pam_service in kde kde-fingerprint kde-smartcard; do
+    install -D -m 0644 "${plasma_root}/usr/lib/pam.d/${pam_service}" \
+      "${rootfs}/etc/pam.d/${pam_service}"
+    install -D -m 0644 "${plasma_root}/usr/lib/pam.d/${pam_service}" \
       "${factory_etc}/pam.d/${pam_service}"
   done
 
@@ -547,6 +576,7 @@ snapd_snap=""
 extra_snaps=()
 desktop=""
 kde_session_snap=""
+kde_plasma_snap=""
 build_dir="build"
 
 while [[ $# -gt 0 ]]; do
@@ -569,6 +599,7 @@ while [[ $# -gt 0 ]]; do
         --gadget-snap) gadget_snap="$2"; shift 2 ;;
         --snapd-snap) snapd_snap="$2"; shift 2 ;;
         --kde-session-snap) kde_session_snap="$2"; shift 2 ;;
+        --kde-plasma-snap) kde_plasma_snap="$2"; shift 2 ;;
         --build-dir) build_dir="$2"; shift 2 ;;
         --snap) extra_snaps+=("$2"); shift 2 ;;
         *)
@@ -623,6 +654,14 @@ if [[ ${desktop} != kde && -n ${kde_session_snap} ]]; then
     echo "--kde-session-snap is only valid with --desktop kde." >&2
     exit 1
 fi
+if [[ ${desktop} == kde && -z ${kde_plasma_snap} ]]; then
+    echo "--desktop kde requires --kde-plasma-snap <path>." >&2
+    exit 1
+fi
+if [[ ${desktop} != kde && -n ${kde_plasma_snap} ]]; then
+    echo "--kde-plasma-snap is only valid with --desktop kde." >&2
+    exit 1
+fi
 if [[ -z ${model_account_key} ]]; then
     echo "Missing required --model-account-key <path>." >&2
     echo "See 'build.sh --help' for how to obtain one." >&2
@@ -645,7 +684,7 @@ if [[ -n ${ssh_host_key} && ! -e "${ssh_host_key}.pub" ]]; then
     echo "private key path with a matching '.pub' file alongside it)" >&2
     exit 1
 fi
-for f in "${model_account_key}" "${base_snap}" "${gadget_snap}" "${snapd_snap}" "${ssh_host_key}" "${model_json}" "${kde_session_snap}" "${extra_snaps[@]:-}"; do
+for f in "${model_account_key}" "${base_snap}" "${gadget_snap}" "${snapd_snap}" "${ssh_host_key}" "${model_json}" "${kde_session_snap}" "${kde_plasma_snap}" "${extra_snaps[@]:-}"; do
     if [[ -n "${f}" && ! -e "${f}" ]]; then
         echo "File not found: ${f}" >&2
         exit 1
@@ -790,7 +829,7 @@ EOF
     "${BUILD_DIR}/squashfs-root/usr/share/wayland-sessions/plasma-desktop-session.desktop" \
     "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/usr/share/wayland-sessions/plasma-desktop-session.desktop"
 else
-  kde_sddm_integration "${BUILD_DIR}/squashfs-root" "${kde_session_snap}"
+  kde_sddm_integration "${BUILD_DIR}/squashfs-root" "${kde_session_snap}" "${kde_plasma_snap}"
   rm -f \
     "${BUILD_DIR}/squashfs-root/usr/share/wayland-sessions/ubuntu-desktop-session.desktop" \
     "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/usr/share/wayland-sessions/ubuntu-desktop-session.desktop"
