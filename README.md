@@ -25,11 +25,13 @@ GitHub release assets are capped at 2GiB; the KDE image (which carries
 extra snaps beyond GNOME's) can land just over that, so the CI release
 may ship it split into `ubuntu-core-desktop-kde-YYYYMMDD.img.zst.part00`,
 `.part01`, etc. instead of a single `.img.zst`. Reassemble before
-decompressing:
+decompressing, then verify against the release's `SHA256SUMS`:
 ```
 cat ubuntu-core-desktop-kde-YYYYMMDD.img.zst.part* > ubuntu-core-desktop-kde-YYYYMMDD.img.zst
+sha256sum -c SHA256SUMS
+zstd -T0 -d --sparse ubuntu-core-desktop-kde-YYYYMMDD.img.zst -o pc.img
 ```
-then verify against the release's `SHA256SUMS` before decompressing.
+(see step 1 below for why `--sparse` is required.)
 
 1. Download and decompress the two image files and place them in the
    same directory.  Pass `--sparse` to zstd when decompressing: the

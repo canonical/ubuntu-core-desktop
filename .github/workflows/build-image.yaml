@@ -116,5 +116,5 @@ jobs:
           fi
           gh release create "$tag" -R "$GITHUB_REPOSITORY" \
             --title "Ubuntu Core Desktop 26 GNOME (dangerous) - ${day}" \
-            --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed; no credentials are baked in (first boot runs the ubuntu-desktop-init wizard). Boot with virt-install or qemu per README.md." \
+            --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed; no credentials are baked in (first boot runs the ubuntu-desktop-init wizard). Decompress with: \`zstd -T0 -d --sparse ubuntu-core-desktop-gnome-${day}.img.zst -o pc.img\` (the --sparse flag is required or the output allocates the full ~20G). Boot with virt-install or qemu per README.md." \
             "ubuntu-core-desktop-gnome-${day}.img.zst" SHA256SUMS
