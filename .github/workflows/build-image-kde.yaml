@@ -1,0 +1,129 @@
+name: build-image-kde
+on:
+  pull_request:
+  push:
+    branches:
+      - desktop/26
+  workflow_dispatch:
+  schedule:
+    # Staggered from build-image.yaml's GNOME cron (0 5) so the two
+    # image builds don't contend for runner capacity.
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  image:
+    # 26.04 on purpose: matches build-image.yaml (GNOME) - on the 24.04
+    # runner `calculate_rootfs_size` died with an instant SIGABRT inside
+    # the du-based sizing (todo/20261009-..., ubuntu-image 3.10.10, GH
+    # run 38010415300).
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Download snap inputs (desktop-26-latest release assets)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p snaps
+          # Wait for the rolling snap releases to exist: snap builds take
+          # up to ~40min, and a schedule/push trigger can race with one.
+          for i in $(seq 1 15); do
+            ok=1
+            for repo in canonical/pc-amd64-gadget-desktop \
+                        canonical/core-base-desktop \
+                        canonical/ubuntu-core-desktop-snapd \
+                        chris-bainbridge/ubuntu-desktop-provision \
+                        chris-bainbridge/kf6-core26 \
+                        chris-bainbridge/plasma-core-desktop \
+                        chris-bainbridge/plasma-desktop-session; do
+              gh release view desktop-26-latest -R "$repo" >/dev/null 2>&1 || ok=0
+            done
+            [ "$ok" = 1 ] && break
+            echo "desktop-26-latest releases not all present yet; waiting ($i/15)"
+            sleep 120
+          done
+          [ "$ok" = 1 ] || { echo "timed out waiting for snap releases" >&2; exit 1; }
+          for spec in \
+            canonical/pc-amd64-gadget-desktop:pc-desktop.snap \
+            canonical/core-base-desktop:core26-desktop.snap \
+            canonical/ubuntu-core-desktop-snapd:snapd.snap \
+            chris-bainbridge/ubuntu-desktop-provision:ubuntu-desktop-init.snap \
+            chris-bainbridge/kf6-core26:kf6-core26.snap \
+            chris-bainbridge/plasma-core-desktop:plasma-core-desktop.snap \
+            chris-bainbridge/plasma-desktop-session:plasma-desktop-session.snap
+          do
+            repo=${spec%%:*}; asset=${spec##*:}
+            gh release download desktop-26-latest -R "$repo" -p "$asset" \
+              -O "snaps/$asset" --clobber
+          done
+          ls -la snaps/
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y squashfs-tools dosfstools mtools fakeroot crudini zstd
+          sudo snap install --classic ubuntu-image
+
+      - name: Build image
+        # --autologin/--user guest/--password guest: unlike the GNOME
+        # image, KDE has no first-boot account-creation wizard wired up
+        # (SDDM gap), so the guest account is baked in instead. This
+        # MUST be called out prominently in the release notes below
+        # alongside the "dangerous" (unasserted snaps, individually
+        # signed model) label. The model is pre-signed and committed
+        # (see ci/), so no signing key is needed here.  See
+        # todo/20261009-build-and-publish-kde-dangerous.txt.
+        run: |
+          du --version | head -1
+          ./build.sh \
+            --desktop kde \
+            --autologin \
+            --user guest \
+            --password "guest" \
+            --model-account-key ci/account-key.assert \
+            --base-snap snaps/core26-desktop.snap \
+            --gadget-snap snaps/pc-desktop.snap \
+            --snapd-snap snaps/snapd.snap \
+            --snap snaps/plasma-core-desktop.snap \
+            --snap snaps/kf6-core26.snap \
+            --snap snaps/ubuntu-desktop-init.snap \
+            --kde-session-snap snaps/plasma-desktop-session.snap \
+            --kde-plasma-snap snaps/plasma-core-desktop.snap \
+            --model ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model
+
+      - name: Compress
+        run: |
+          zstd -T0 -19 build/pc.img \
+            -o "ubuntu-core-desktop-kde-$(date -u +%Y%m%d).img.zst"
+          sha256sum ubuntu-core-desktop-kde-*.img.zst > SHA256SUMS
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-kde
+          path: |
+            ubuntu-core-desktop-kde-*.img.zst
+            SHA256SUMS
+          compression-level: 0
+          retention-days: 14
+
+      - name: Publish dated release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          day=$(date -u +%Y%m%d)
+          tag="kde-${day}"
+          if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # Same-day rebuild: replace that date's release entirely so the
+            # tag always points at the newest run of the day.
+            gh release delete "$tag" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag
+          fi
+          gh release create "$tag" -R "$GITHUB_REPOSITORY" \
+            --title "Ubuntu Core Desktop 26 KDE (dangerous) - ${day}" \
+            --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed. UNLIKE the GNOME image, this image BAKES IN a guest/guest account with autologin enabled (no first-boot wizard for KDE yet) - anyone with access to a booted instance has a known-password account. Boot with virt-install or qemu per README.md." \
+            "ubuntu-core-desktop-kde-${day}.img.zst" SHA256SUMS

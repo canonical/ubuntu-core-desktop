@@ -1,0 +1,104 @@
+type: model
+authority-id: UJySllegsYenHktWHqU1R1PAk9FzxMoj
+series: 16
+brand-id: UJySllegsYenHktWHqU1R1PAk9FzxMoj
+model: ubuntu-core-desktop-kde-26-amd64-dangerous
+architecture: amd64
+base: core26-desktop
+display-name: Ubuntu Core Desktop KDE 26 (amd64) (dangerous)
+grade: dangerous
+snaps:
+  -
+    default-channel: 26/stable
+    id: mZqHskGgGDECRCKP7h7ef3Rl2wTwyNfy
+    name: pc-desktop
+    type: gadget
+  -
+    default-channel: 26/stable
+    id: pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza
+    name: pc-kernel
+    type: kernel
+  -
+    default-channel: latest/stable
+    id: PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4
+    name: snapd
+    type: snapd
+  -
+    default-channel: latest/stable
+    id: j78KCOObDaxyocjOxyqkTSrYbwPeuBBg
+    name: core26-desktop
+    type: base
+  -
+    default-channel: latest/stable
+    id: shFM21t3gsBQnlceeTRrWEdNoaLD88my
+    name: plasma-desktop-session
+    type: app
+  -
+    default-channel: latest/stable
+    id: YsIAEPpbeAuIUcNo6znKlIhaEnNbkinh
+    name: plasma-core26-desktop
+    type: app
+  -
+    default-channel: latest/stable
+    id: kvNmVu4h6kL6NMJjXqPyvG3K3EhDO1S9
+    name: kf6-core26
+    type: app
+  -
+    default-channel: latest/stable
+    id: dwTAh7MZZ01zyriOZErqd1JynQLiOGvM
+    name: core24
+    type: base
+  -
+    default-channel: latest/stable
+    id: cUqM61hRuZAJYmIS898Ux66VY61gBbZf
+    name: core26
+    type: base
+  -
+    default-channel: 26/stable
+    id: RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy
+    name: network-manager
+    type: app
+  -
+    default-channel: latest/stable
+    id: EISPgh06mRh1vordZY9OZ34QHdd7OrdR
+    name: bare
+    type: base
+  -
+    default-channel: latest/stable
+    id: jZLfBRzf1cYlYysIjD2bwSzNtngY0qit
+    name: gtk-common-themes
+    type: app
+  -
+    default-channel: 26/stable
+    id: dVK2PZeOLKA7vf1WPCap9F8luxTk9Oll
+    name: avahi
+    type: app
+  -
+    default-channel: 26/stable
+    id: JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS
+    name: bluez
+    type: app
+  -
+    default-channel: 26/stable
+    id: KTyDAsgNZg4u9UBJ63MHn6q12fmUjOfn
+    name: udisks2
+    type: app
+  -
+    default-channel: latest/candidate
+    id: tBdYpKjXcW5farGGJaWiYXrxIwMVMtx5
+    name: ubuntu-desktop-init
+    type: app
+storage-safety: prefer-encrypted
+timestamp: 2026-10-13T01:09:47Z
+sign-key-sha3-384: B55Ji_hfo6XxL5cQQpl6ONjVDelaVrcT-K-trKU1ZzzplG2q1mw-8aDRTWyXza5S
+
+AcLBcwQAAQoAHRYhBK1p6e/18ZZqDcT1BvlkgnR2/T1ZBQJqzYTbAAoJEPlkgnR2/T1ZiNAP/3dz
+tHx+XYt5Z3KEazuQLQz4CtEoVyYyUTf6kurrGm61dTKN4WJUT7Z0k59zI3OwmE4ybtsaq94Kfuqc
+9gP16C1wKhYgVGyyTW/Aa+BdUDIlp7Xg+zYNGlgFWdGV+bW2Hh+Pswg8ZnCvB4UAU+ZT5JSHQccg
+u71ODRbborJXd0SHS7z+gDdRLjBGZbVZ4JNhN4tsBO8iOnLHFtJZ9DfF0q3QLCvyo27VwwRULrVA
+pe6hhvIo2jBSzI3pd5HZld/7NNRfx3qMKENjd8Q32PhX7lo5LMboG1PLX/VUcDW+vewx5ZayMyno
+uDmLx/CDUCpZGTjH7ayKQzoM+gyg+idOGyqTfWxFW1Lg/8fiOWy33QwFLTDd/ZY6zbVa3x2e4iqn
+mxGqYYq93G6ZhOyb/xNq5xNcsvKiqwrWMQXaDlpwtbY6IvOBKiA2yUnzFfqg/Xha+xoiW2ytyfxv
+q6DgUnP+X+R1/99pn3Q5kcrcWtxY/DDBSdF1/9kH8IEPgSOMUusZlrjOHymTUi8g4WSRNbd4H+8C
+LMb/6kyLbNTmJ8XTz1v3yfDGQtzRYKknNVcX7adPLeAp6k5Eby00ezSntXuGU2cSKi2oh5CGNTZ0
+BAiIuJOEiKFiAoWd7jYyGw2QU4FCVa7VZeqahmotjih4I3hmaiBC24f5Mq5yaLyNOtKUy8CE
