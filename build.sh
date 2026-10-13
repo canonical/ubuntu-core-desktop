@@ -551,6 +551,273 @@ EOF
   done
 }
 
+# Wires up KDE's upstream first-boot account-creation wizard
+# (plasma-setup, formerly known as "KDE KISS") for --desktop kde builds
+# with no --user. Mirrors kde_sddm_integration's pattern of copying
+# runtime files out of the plasma-desktop-session snap's isolated
+# plasma-setup/ subdir into the image, since plasma-setup (like SDDM)
+# runs unconfined in the base rootfs rather than inside snap
+# confinement -- see notes/todo/20261013-kde-use-plasma-setup.txt for
+# the upstream architecture this mirrors.
+kde_plasma_setup_integration() {
+  local rootfs="$1"
+  local kde_session_snap="$2"
+  local runtime_root="${BUILD_DIR}/kde-plasma-setup-snap-root"
+  local factory_etc="${rootfs}/usr/share/factory/writable/system-data/etc"
+  local factory_usr="${rootfs}/usr/share/factory/writable/system-data/usr"
+  local triplet
+
+  triplet="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
+  unsquashfs -d "${runtime_root}" "${kde_session_snap}" >/dev/null
+  for path in \
+    "sddm/usr/lib/${triplet}/libexec/plasma-setup" \
+    "sddm/usr/lib/${triplet}/libexec/plasma-setup-bootutil" \
+    "sddm/usr/lib/${triplet}/libexec/kf6/kauth/plasma-setup-auth-helper" \
+    sddm/usr/lib/systemd/system/plasma-setup.service \
+    sddm/usr/lib/sysusers.d/plasma-setup-sysuser.conf \
+    sddm/usr/lib/tmpfiles.d/plasma-setup-tmpfiles.conf \
+    sddm/etc/xdg/plasmasetuprc \
+    sddm/usr/share/dbus-1/system-services/org.kde.plasmasetup.service \
+    sddm/usr/share/dbus-1/system.d/org.kde.plasmasetup.conf \
+    sddm/usr/share/polkit-1/actions/org.kde.plasmasetup.policy \
+    sddm/usr/share/polkit-1/rules.d/plasma-setup-polkit.rules \
+    sddm/usr/share/plasma-setup/plasma-setup.desktop \
+    sddm/usr/share/plasma-setup/kglobalaccelrc
+  do
+    if [[ ! -e "${runtime_root}/${path}" ]]; then
+      echo "KDE session snap is missing required plasma-setup runtime file: ${path}" >&2
+      exit 1
+    fi
+  done
+
+  # sysusers.d/tmpfiles.d/systemd unit + static data files, installed
+  # verbatim (unlike the libexec binaries below, these need no Qt/KF6
+  # environment of their own).
+  install -D -m 0644 \
+    "${runtime_root}/sddm/usr/lib/sysusers.d/plasma-setup-sysuser.conf" \
+    "${rootfs}/usr/lib/sysusers.d/plasma-setup-sysuser.conf"
+  install -D -m 0644 \
+    "${runtime_root}/sddm/usr/lib/tmpfiles.d/plasma-setup-tmpfiles.conf" \
+    "${rootfs}/usr/lib/tmpfiles.d/plasma-setup-tmpfiles.conf"
+  install -D -m 0644 \
+    "${runtime_root}/sddm/usr/share/dbus-1/system-services/org.kde.plasmasetup.service" \
+    "${rootfs}/usr/share/dbus-1/system-services/org.kde.plasmasetup.service"
+  install -D -m 0644 \
+    "${runtime_root}/sddm/usr/share/dbus-1/system.d/org.kde.plasmasetup.conf" \
+    "${rootfs}/usr/share/dbus-1/system.d/org.kde.plasmasetup.conf"
+  # /usr/share/polkit-1 is a writable-path too (bind-mounted from the
+  # writable data partition, same as /etc), seeded at first boot from
+  # usr/share/factory/writable/system-data/usr -- so these two files
+  # also need installing into factory_usr, or they're invisible on a
+  # freshly-initialized disk even though they're present in the snap.
+  for policy_file in \
+    "${rootfs}/usr/share/polkit-1/actions/org.kde.plasmasetup.policy" \
+    "${factory_usr}/share/polkit-1/actions/org.kde.plasmasetup.policy"
+  do
+    install -D -m 0644 \
+      "${runtime_root}/sddm/usr/share/polkit-1/actions/org.kde.plasmasetup.policy" \
+      "${policy_file}"
+  done
+  for rules_file in \
+    "${rootfs}/usr/share/polkit-1/rules.d/plasma-setup-polkit.rules" \
+    "${factory_usr}/share/polkit-1/rules.d/plasma-setup-polkit.rules"
+  do
+    install -D -m 0644 \
+      "${runtime_root}/sddm/usr/share/polkit-1/rules.d/plasma-setup-polkit.rules" \
+      "${rules_file}"
+  done
+  install -D -m 0644 \
+    "${runtime_root}/sddm/usr/share/plasma-setup/plasma-setup.desktop" \
+    "${rootfs}/usr/share/plasma-setup/plasma-setup.desktop"
+  install -D -m 0644 \
+    "${runtime_root}/sddm/usr/share/plasma-setup/kglobalaccelrc" \
+    "${rootfs}/usr/share/plasma-setup/kglobalaccelrc"
+
+  # /etc is a writable-path, seeded at first boot from
+  # usr/share/factory/writable/system-data/etc -- same pattern as the
+  # gdm3 custom.conf/sddm.conf handling elsewhere in this script.
+  for plasmasetuprc in \
+    "${rootfs}/etc/xdg/plasmasetuprc" \
+    "${factory_etc}/xdg/plasmasetuprc"
+  do
+    install -D -m 0644 \
+      "${runtime_root}/sddm/etc/xdg/plasmasetuprc" "${plasmasetuprc}"
+  done
+
+  # KAuth's BackendsManager loads its backend/helper plugins from a
+  # hardcoded absolute install path baked in at compile time (derived
+  # from KDE_INSTALL_FULL_QTPLUGINDIR), not via Qt's generic
+  # QT_PLUGIN_PATH-driven QFactoryLoader directory scan -- so setting
+  # QT_PLUGIN_PATH in the env_prefix below is not enough for it.
+  # plasma-desktop-session's snapcraft.yaml adds a "layout:" symlink
+  # for this, but that only takes effect inside that snap's own
+  # confined mount namespace. org.kde.plasmasetup's actual KAuth
+  # *helper* process runs unconfined as root, D-Bus-system-activated
+  # (see org.kde.plasmasetup.service above) -- i.e. in the plain host
+  # mount namespace, where that layout: fix is invisible. Make the
+  # same absolute path resolve there too, by symlinking it straight at
+  # the kf6-core26 content snap (which is mounted at a fixed /snap/...
+  # path visible from every mount namespace, confined or not).
+  mkdir -p "${rootfs}/usr/lib/${triplet}/qt6/plugins/kf6"
+  ln -sfn "/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins/kf6/kauth" \
+    "${rootfs}/usr/lib/${triplet}/qt6/plugins/kf6/kauth"
+
+  # The libexec binaries need the same content-snap Qt/KF6/QML
+  # environment as the sddm-helper wrapper above, plus plasma-setup's
+  # own Qt plugin (the "plasmasetup" KPackage structure plugin) and QML
+  # modules (account/keyboard/wifi/etc.), which are first-party to this
+  # package and not provided by any content snap -- so they're added on
+  # top of, not instead of, the kf6-core26/plasma-core26-desktop paths.
+  local env_prefix="\
+export LD_LIBRARY_PATH=/snap/kf6-core26/current/usr/lib/${triplet}:/snap/plasma-core26-desktop/current/usr/lib/${triplet}:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}:/usr/lib/${triplet}:/usr/lib
+export QT_PLUGIN_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/plugins:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/plugins
+export QT_QPA_PLATFORM_PLUGIN_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins/platforms
+export QML2_IMPORT_PATH=/snap/kf6-core26/current/usr/lib/${triplet}/qt6/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qt6/qml:/snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/qt6/qml:/snap/kf6-core26/current/usr/lib/${triplet}/qml:/snap/plasma-core26-desktop/current/usr/lib/${triplet}/qml
+export XDG_CONFIG_DIRS=/snap/kf6-core26/current/etc/xdg:/snap/plasma-core26-desktop/current/etc/xdg:/etc/xdg
+export XDG_DATA_DIRS=/snap/kf6-core26/current/usr/share:/snap/plasma-core26-desktop/current/usr/share:/snap/plasma-desktop-session/current/sddm/usr/share:/usr/share
+export QT_QPA_PLATFORM=wayland
+export QT_QUICK_CONTROLS_STYLE=org.kde.desktop"
+
+  mkdir -p "${rootfs}/usr/lib/${triplet}/libexec/kf6/kauth"
+  # plasma-setup (the GUI wizard) is a genuine Wayland client: it must
+  # render inside the already-running kwin_wayland compositor session,
+  # whose socket lives under a per-snap private directory
+  # (/run/user/<uid>/snap.plasma-desktop-session/wayland-0) that is only
+  # visible to processes sharing that snap's mount namespace. Run
+  # unconfined (like the wrapper below used to), it fails with "Failed
+  # to create wl_display (No such file or directory)" no matter how long
+  # it waits -- the path genuinely isn't visible outside the namespace,
+  # this isn't a startup-ordering race. So, unlike
+  # plasma-setup-bootutil/plasma-setup-auth-helper below (which never
+  # touch Wayland and stay unconfined), the GUI wizard is wired up as a
+  # proper confined app of the plasma-desktop-session snap itself (see
+  # its "plasma-setup" app stanza, which reuses that snap's own
+  # run-after.sh org.kde.KWin wait/WAYLAND_DISPLAY fallback) and this
+  # wrapper just hands off to it.
+  cat >"${rootfs}/usr/lib/${triplet}/libexec/plasma-setup" <<EOF
+#!/bin/sh
+exec /snap/bin/plasma-desktop-session.plasma-setup "\$@"
+EOF
+  cat >"${rootfs}/usr/lib/${triplet}/libexec/plasma-setup-bootutil" <<EOF
+#!/bin/sh
+${env_prefix}
+exec /snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/libexec/plasma-setup-bootutil "\$@"
+EOF
+  cat >"${rootfs}/usr/lib/${triplet}/libexec/kf6/kauth/plasma-setup-auth-helper" <<EOF
+#!/bin/sh
+${env_prefix}
+exec /snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/libexec/kf6/kauth/plasma-setup-auth-helper "\$@"
+EOF
+  chmod 0755 \
+    "${rootfs}/usr/lib/${triplet}/libexec/plasma-setup" \
+    "${rootfs}/usr/lib/${triplet}/libexec/plasma-setup-bootutil" \
+    "${rootfs}/usr/lib/${triplet}/libexec/kf6/kauth/plasma-setup-auth-helper"
+
+  # authhelper.cpp's createuser() shells out to a plain `useradd -m -U
+  # [-c fullName] <username>` with no --extrausers, so it would create
+  # the account in /etc/passwd instead of /var/lib/extrausers. There is
+  # no legitimate case for a *human* account outside extrausers on this
+  # image's design (see notes/library/diagnostics-methodology.txt), so
+  # shadow a useradd wrapper ahead of the real binary on PATH for this
+  # unconfined root-level helper's lookups. usermod/chpasswd need no
+  # such wrapper: the archive's shadow build (ucd-ppa patch 1017 plus
+  # the extrausers series it has since absorbed, see
+  # core-base-desktop/patches/README.txt) already makes both
+  # extrausers-aware without a CLI flag for existing accounts.
+  if [[ ! -e "${rootfs}/usr/sbin/useradd.real" ]]; then
+    mv "${rootfs}/usr/sbin/useradd" "${rootfs}/usr/sbin/useradd.real"
+    cat >"${rootfs}/usr/sbin/useradd" <<'EOF'
+#!/bin/sh
+exec /usr/sbin/useradd.real --extrausers "$@"
+EOF
+    chmod 0755 "${rootfs}/usr/sbin/useradd"
+  fi
+
+  systemd-sysusers --root="${rootfs}" \
+    "${rootfs}/usr/lib/sysusers.d/plasma-setup-sysuser.conf"
+  for account_file in passwd shadow group gshadow; do
+    cp -a "${rootfs}/etc/${account_file}" "${factory_etc}/${account_file}"
+  done
+
+  install -D -m 0644 \
+    "${runtime_root}/sddm/usr/lib/systemd/system/plasma-setup.service" \
+    "${rootfs}/usr/lib/systemd/system/plasma-setup.service"
+  mkdir -p "${rootfs}/usr/lib/systemd/system/multi-user.target.wants"
+  ln -sfn ../plasma-setup.service \
+    "${rootfs}/usr/lib/systemd/system/multi-user.target.wants/plasma-setup.service"
+
+  # bootutil.cpp hardcodes "Session=plasma" (no .desktop suffix, and
+  # the bare upstream Plasma session name) when writing SDDM's
+  # autologin drop-in for the plasma-setup user -- it has no knowledge
+  # of this image's custom plasma-desktop-session.desktop session. Add
+  # a "plasma" alias pointing at the real session so that autologin
+  # resolves to it either way.
+  for sessions_dir in \
+    "${rootfs}/usr/share/wayland-sessions" \
+    "${factory_usr}/share/wayland-sessions"
+  do
+    mkdir -p "${sessions_dir}"
+    ln -sfn plasma-desktop-session.desktop "${sessions_dir}/plasma.desktop"
+  done
+
+  # bootutil.cpp writes SDDM's autologin drop-in to /etc/sddm.conf.d/
+  # (a directory, created on demand with QDir::mkpath) once account
+  # creation finishes. /etc is read-only on Ubuntu Core except for the
+  # specific paths mirrored from writable/ at first boot (see
+  # hooks/011-etc-writable.chroot in core-base-desktop and the
+  # sddm.conf handling above) -- sddm.conf.d isn't one of them by
+  # default, so that mkpath() call silently fails (plasma-setup-bootutil
+  # logs "Failed to create directory" but still exits 0) and SDDM never
+  # gets the autologin config, leaving the normal login screen instead
+  # of the wizard. Pre-create the directory in both the writable tree
+  # and its first-boot factory mirror, and symlink /etc/sddm.conf.d to
+  # it, the same pattern as /etc/sddm.conf itself.
+  for sddm_conf_d in \
+    "${rootfs}/etc/writable/sddm.conf.d" \
+    "${factory_etc}/writable/sddm.conf.d"
+  do
+    mkdir -p "${sddm_conf_d}"
+  done
+  ln -sfn writable/sddm.conf.d "${rootfs}/etc/sddm.conf.d"
+  ln -sfn writable/sddm.conf.d "${factory_etc}/sddm.conf.d"
+
+  # plasma-setup's own sysusers.d entry gives the plasma-setup user a
+  # home dir of /run/plasma-setup directly (see
+  # plasma-setup-sysuser.conf), unlike regular human accounts under
+  # /home. snap-confine's own AppArmor profile only allows opening a
+  # user's $HOME if it falls under a directory snapd knows about via
+  # its "homedirs" system option (@{HOMEDIRS} apparmor tunable,
+  # default just /home); otherwise every snap command run by that user
+  # (plasma-kwin-wayland, plasmashell, etc., all shipped as snap apps
+  # here) is denied with "AppArmor DENIED ... name=/run/plasma-setup/"
+  # and the session never starts. Register /run itself as a homedirs
+  # root, the same way GNOME's gdm-homedirs.service does for gdm3's
+  # own non-standard /run/gdm3/home -- see that unit above for the
+  # snapd-validates-in-initramfs caveat this also works around.
+  plasma_setup_homedirs_unit="${rootfs}/usr/lib/systemd/system/plasma-setup-homedirs.service"
+  mkdir -p "$(dirname "${plasma_setup_homedirs_unit}")"
+  cat > "${plasma_setup_homedirs_unit}" <<'EOF'
+[Unit]
+Description=Configure plasma-setup's home directory in Snapd
+Requires=snapd.seeded.service
+After=snapd.seeded.service
+Before=sddm.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/bin/mkdir -p /run/plasma-setup
+ExecStart=/usr/bin/snap set system homedirs=/run
+RemainAfterExit=yes
+EOF
+  plasma_setup_homedirs_dropin_dir="${rootfs}/usr/lib/systemd/system/sddm.service.d"
+  mkdir -p "${plasma_setup_homedirs_dropin_dir}"
+  cat > "${plasma_setup_homedirs_dropin_dir}/plasma-setup-homedirs.conf" <<'EOF'
+[Unit]
+Requires=plasma-setup-homedirs.service
+After=plasma-setup-homedirs.service
+EOF
+}
+
 # ----------------------------------------------------------------------
 
 if [[ $# -eq 0 ]]; then
@@ -830,6 +1097,13 @@ EOF
     "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/usr/share/wayland-sessions/plasma-desktop-session.desktop"
 else
   kde_sddm_integration "${BUILD_DIR}/squashfs-root" "${kde_session_snap}" "${kde_plasma_snap}"
+  # Same gating as GNOME's InitialSetupEnable above: with a build-time
+  # user, cloud-init creates the account before SDDM starts, so there's
+  # nothing for the first-boot wizard to do. Without --user, wire up
+  # plasma-setup so first boot can create the account instead.
+  if [[ -z ${user} ]]; then
+    kde_plasma_setup_integration "${BUILD_DIR}/squashfs-root" "${kde_session_snap}"
+  fi
   rm -f \
     "${BUILD_DIR}/squashfs-root/usr/share/wayland-sessions/ubuntu-desktop-session.desktop" \
     "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/usr/share/wayland-sessions/ubuntu-desktop-session.desktop"
