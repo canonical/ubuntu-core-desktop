@@ -48,17 +48,25 @@ jobs:
           done
           [ "$ok" = 1 ] || { echo "timed out waiting for snap releases" >&2; exit 1; }
           for spec in \
-            canonical/pc-amd64-gadget-desktop:pc-desktop.snap \
-            canonical/core-base-desktop:core26-desktop.snap \
-            canonical/ubuntu-core-desktop-snapd:snapd.snap \
-            chris-bainbridge/ubuntu-desktop-provision:ubuntu-desktop-init.snap \
-            chris-bainbridge/kf6-core26:kf6-core26.snap \
-            chris-bainbridge/plasma-core-desktop:plasma-core-desktop.snap \
-            chris-bainbridge/plasma-desktop-session:plasma-desktop-session.snap
+            canonical/pc-amd64-gadget-desktop:pc-desktop.snap:pc-desktop.snap \
+            canonical/core-base-desktop:core26-desktop-cloudinit.snap:core26-desktop.snap \
+            canonical/ubuntu-core-desktop-snapd:snapd.snap:snapd.snap \
+            chris-bainbridge/ubuntu-desktop-provision:ubuntu-desktop-init.snap:ubuntu-desktop-init.snap \
+            chris-bainbridge/kf6-core26:kf6-core26.snap:kf6-core26.snap \
+            chris-bainbridge/plasma-core-desktop:plasma-core-desktop.snap:plasma-core-desktop.snap \
+            chris-bainbridge/plasma-desktop-session:plasma-desktop-session.snap:plasma-desktop-session.snap
           do
-            repo=${spec%%:*}; asset=${spec##*:}
+            repo=$(printf '%s' "$spec" | cut -d: -f1)
+            asset=$(printf '%s' "$spec" | cut -d: -f2)
+            local_name=$(printf '%s' "$spec" | cut -d: -f3)
+            # core-base-desktop publishes two base-snap variants (see its
+            # build-github.sh): KDE needs the cloud-init one (its guest
+            # account is created by cloud-init from a seed.iso at first
+            # boot - GNOME's plain variant has no cloud-init at all to
+            # process one), downloaded here under the plain name so the
+            # rest of this workflow/build.sh doesn't need to care.
             gh release download desktop-26-latest -R "$repo" -p "$asset" \
-              -O "snaps/$asset" --clobber
+              -O "snaps/$local_name" --clobber
           done
           ls -la snaps/
 
