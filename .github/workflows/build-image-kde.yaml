@@ -65,7 +65,12 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y squashfs-tools dosfstools mtools fakeroot crudini zstd
+          # cloud-image-utils provides cloud-localds: with --user given,
+          # build.sh generates a companion seed.iso (build-cloud-init.sh)
+          # that cloud-init uses to actually create the guest account at
+          # first boot - build.sh only bakes in sudoers/autologin config,
+          # not the account itself.
+          sudo apt-get install -y squashfs-tools dosfstools mtools fakeroot crudini zstd cloud-image-utils
           sudo snap install --classic ubuntu-image
 
       - name: Build image
@@ -99,7 +104,14 @@ jobs:
         run: |
           zstd -T0 -19 build/pc.img \
             -o "ubuntu-core-desktop-kde-$(date -u +%Y%m%d).img.zst"
-          sha256sum ubuntu-core-desktop-kde-*.img.zst > SHA256SUMS
+          # seed.iso is small (cloud-init NoCloud data) and already
+          # minimal; ship it uncompressed as its own asset. It MUST be
+          # attached as a cdrom/virtual CD-ROM drive on first boot
+          # (see go-run-kde): it's what actually creates the guest
+          # account (build.sh only bakes in sudoers/autologin config,
+          # not the account itself).
+          cp build/seed.iso "ubuntu-core-desktop-kde-$(date -u +%Y%m%d)-seed.iso"
+          sha256sum ubuntu-core-desktop-kde-*.img.zst ubuntu-core-desktop-kde-*-seed.iso > SHA256SUMS
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
@@ -107,6 +119,7 @@ jobs:
           name: image-kde
           path: |
             ubuntu-core-desktop-kde-*.img.zst
+            ubuntu-core-desktop-kde-*-seed.iso
             SHA256SUMS
           compression-level: 0
           retention-days: 14
@@ -125,5 +138,5 @@ jobs:
           fi
           gh release create "$tag" -R "$GITHUB_REPOSITORY" \
             --title "Ubuntu Core Desktop 26 KDE (dangerous) - ${day}" \
-            --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed. UNLIKE the GNOME image, this image BAKES IN a guest/guest account with autologin enabled (no first-boot wizard for KDE yet) - anyone with access to a booted instance has a known-password account. Boot with virt-install or qemu per README.md." \
-            "ubuntu-core-desktop-kde-${day}.img.zst" SHA256SUMS
+            --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed. UNLIKE the GNOME image, this image ships a companion *-seed.iso: attach it as a virtual CD-ROM on first boot (see go-run-kde / README.md) - cloud-init uses it to create a guest/guest account with autologin enabled (no first-boot wizard for KDE yet). Without the seed.iso attached on first boot, no account exists. Boot with virt-install or qemu per README.md." \
+            "ubuntu-core-desktop-kde-${day}.img.zst" "ubuntu-core-desktop-kde-${day}-seed.iso" SHA256SUMS

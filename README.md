@@ -10,6 +10,17 @@ KDE SDDM packaging and runtime integration is documented in
 [`docs/kde-sddm.md`](docs/kde-sddm.md). The built KDE image can be
 launched with `./go-run-kde`.
 
+The published KDE image ships as two files: the `.img.zst` and a
+companion `*-seed.iso`. Unlike the GNOME image, the KDE image has no
+first-boot wizard yet - the `seed.iso` (a cloud-init NoCloud seed) MUST
+be attached as a virtual CD-ROM on first boot, or no user account will
+exist. It creates a `guest`/`guest` account with autologin enabled
+(**dangerous**: anyone with access to a booted instance can log in).
+For example, with qemu: add `-drive
+file=ubuntu-core-desktop-kde-YYYYMMDD-seed.iso,if=virtio,format=raw,media=cdrom`
+to the qemu command line below (see `go-run-kde` for the full
+invocation this project uses for local testing).
+
 1. Download and decompress the two image files and place them in the
    same directory.  Pass `--sparse` to zstd when decompressing: the
    image is mostly holes, and without it the decompressed file
