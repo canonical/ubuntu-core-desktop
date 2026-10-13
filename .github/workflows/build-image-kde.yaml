@@ -76,11 +76,14 @@ jobs:
       - name: Build image
         # --autologin/--user guest/--password guest: unlike the GNOME
         # image, KDE has no first-boot account-creation wizard wired up
-        # (SDDM gap), so the guest account is baked in instead. This
-        # MUST be called out prominently in the release notes below
-        # alongside the "dangerous" (unasserted snaps, individually
-        # signed model) label. The model is pre-signed and committed
-        # (see ci/), so no signing key is needed here.  See
+        # (SDDM gap). build.sh bakes sudoers/autologin config into the
+        # image itself, but the guest account is actually created at
+        # first boot by cloud-init from the companion seed.iso it also
+        # generates (see the Compress step below). This MUST be called
+        # out prominently in the release notes below alongside the
+        # "dangerous" (unasserted snaps, individually signed model)
+        # label. The model is pre-signed and committed (see ci/), so no
+        # signing key is needed here. See
         # todo/20261009-build-and-publish-kde-dangerous.txt.
         run: |
           du --version | head -1
@@ -101,26 +104,54 @@ jobs:
             --model ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model
 
       - name: Compress
+        id: compress
         run: |
-          zstd -T0 -19 build/pc.img \
-            -o "ubuntu-core-desktop-kde-$(date -u +%Y%m%d).img.zst"
+          day=$(date -u +%Y%m%d)
+          echo "day=$day" >> "$GITHUB_OUTPUT"
+          img="ubuntu-core-desktop-kde-${day}.img.zst"
+          seed="ubuntu-core-desktop-kde-${day}-seed.iso"
+          zstd -T0 -19 build/pc.img -o "$img"
           # seed.iso is small (cloud-init NoCloud data) and already
           # minimal; ship it uncompressed as its own asset. It MUST be
           # attached as a cdrom/virtual CD-ROM drive on first boot
           # (see go-run-kde): it's what actually creates the guest
           # account (build.sh only bakes in sudoers/autologin config,
           # not the account itself).
-          cp build/seed.iso "ubuntu-core-desktop-kde-$(date -u +%Y%m%d)-seed.iso"
-          sha256sum ubuntu-core-desktop-kde-*.img.zst ubuntu-core-desktop-kde-*-seed.iso > SHA256SUMS
+          cp build/seed.iso "$seed"
+
+          # GitHub release/API assets are capped at 2GiB
+          # (2147483648 bytes). KDE's image carries extra snaps
+          # (kf6-core26/plasma-core-desktop/plasma-desktop-session) so
+          # it can land just over that cap where GNOME's doesn't (GH
+          # run 38333363452: 422 "size must be less than 2147483648").
+          # Split into <2GiB parts when needed; reassemble with:
+          #   cat ubuntu-core-desktop-kde-DATE.img.zst.part* > ubuntu-core-desktop-kde-DATE.img.zst
+          assets=("$seed")
+          size=$(stat -c%s "$img")
+          limit=$((1950*1000*1000))
+          if [ "$size" -ge "$limit" ]; then
+            split -b 1900M -d -a2 "$img" "${img}.part"
+            rm -f "$img"
+            mapfile -t parts < <(ls "${img}".part??)
+            assets+=("${parts[@]}")
+          else
+            assets+=("$img")
+          fi
+
+          sha256sum "${assets[@]}" > SHA256SUMS
+          assets+=("SHA256SUMS")
+
+          {
+            echo "assets<<EOF"
+            printf '%s\n' "${assets[@]}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
           name: image-kde
-          path: |
-            ubuntu-core-desktop-kde-*.img.zst
-            ubuntu-core-desktop-kde-*-seed.iso
-            SHA256SUMS
+          path: ${{ steps.compress.outputs.assets }}
           compression-level: 0
           retention-days: 14
 
@@ -128,8 +159,9 @@ jobs:
         if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
+          ASSETS: ${{ steps.compress.outputs.assets }}
         run: |
-          day=$(date -u +%Y%m%d)
+          day="${{ steps.compress.outputs.day }}"
           tag="kde-${day}"
           if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             # Same-day rebuild: replace that date's release entirely so the
@@ -138,5 +170,5 @@ jobs:
           fi
           gh release create "$tag" -R "$GITHUB_REPOSITORY" \
             --title "Ubuntu Core Desktop 26 KDE (dangerous) - ${day}" \
-            --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed. UNLIKE the GNOME image, this image ships a companion *-seed.iso: attach it as a virtual CD-ROM on first boot (see go-run-kde / README.md) - cloud-init uses it to create a guest/guest account with autologin enabled (no first-boot wizard for KDE yet). Without the seed.iso attached on first boot, no account exists. Boot with virt-install or qemu per README.md." \
-            "ubuntu-core-desktop-kde-${day}.img.zst" "ubuntu-core-desktop-kde-${day}-seed.iso" SHA256SUMS
+            --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed. UNLIKE the GNOME image, this image ships a companion *-seed.iso: attach it as a virtual CD-ROM on first boot (see go-run-kde / README.md) - cloud-init uses it to create a guest/guest account with autologin enabled (no first-boot wizard for KDE yet). Without the seed.iso attached on first boot, no account exists. If the image was split into *.img.zst.partNN files (GitHub's 2GiB asset cap), reassemble with: cat ubuntu-core-desktop-kde-${day}.img.zst.part* > ubuntu-core-desktop-kde-${day}.img.zst - then verify against SHA256SUMS. Boot with virt-install or qemu per README.md." \
+            $ASSETS
