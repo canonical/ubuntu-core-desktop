@@ -720,11 +720,11 @@ EOF
   # no legitimate case for a *human* account outside extrausers on this
   # image's design (see notes/library/diagnostics-methodology.txt), so
   # shadow a useradd wrapper ahead of the real binary on PATH for this
-  # unconfined root-level helper's lookups. usermod/chpasswd need no
-  # such wrapper: the archive's shadow build (ucd-ppa patch 1017 plus
-  # the extrausers series it has since absorbed, see
-  # core-base-desktop/patches/README.txt) already makes both
-  # extrausers-aware without a CLI flag for existing accounts.
+  # unconfined root-level helper's lookups. usermod needs no such
+  # wrapper: the archive's shadow build (ucd-ppa patch 1010, absorbed
+  # into the archive's own series, see core-base-desktop/patches/
+  # README.txt) already retries against extrausers whenever the target
+  # user isn't found in /etc/passwd.
   if [[ ! -e "${rootfs}/usr/sbin/useradd.real" ]]; then
     mv "${rootfs}/usr/sbin/useradd" "${rootfs}/usr/sbin/useradd.real"
     cat >"${rootfs}/usr/sbin/useradd" <<'EOF'
@@ -732,6 +732,37 @@ EOF
 exec /usr/sbin/useradd.real --extrausers "$@"
 EOF
     chmod 0755 "${rootfs}/usr/sbin/useradd"
+  fi
+
+  # authhelper.cpp's createuser() also pipes "username:password\n" into
+  # plain `chpasswd` to set the new account's password. Unlike usermod,
+  # our chpasswd extrausers patch (ucd-ppa 1017, see
+  # core-base-desktop/patches/ucd-ppa/shadow/1017_extrausers_chpasswd.patch)
+  # only falls back to /var/lib/extrausers when *locking* /etc/passwd
+  # fails -- it never checks whether the named user actually exists
+  # there, unlike usermod/passwd's more complete 1010 patch. Since
+  # /etc/passwd always exists and is lockable on this image, chpasswd's
+  # fallback never triggers for an extrausers-only account: it silently
+  # "succeeds" against /etc/passwd/shadow (where the user doesn't
+  # exist), leaving the extrausers shadow entry exactly as useradd left
+  # it (locked, no usable password) -- this was the actual root cause of
+  # the "account exists but any password is 'Login incorrect'" bug.
+  # Work around it by re-implementing chpasswd's job on top of usermod
+  # (which IS correctly extrausers-aware): read "user:password" lines
+  # from stdin, hash each password ourselves, and apply it with
+  # `usermod -p`.
+  if [[ ! -e "${rootfs}/usr/sbin/chpasswd.real" ]]; then
+    mv "${rootfs}/usr/sbin/chpasswd" "${rootfs}/usr/sbin/chpasswd.real"
+    cat >"${rootfs}/usr/sbin/chpasswd" <<'EOF'
+#!/bin/sh
+set -e
+while IFS=: read -r user pass; do
+  [ -z "${user}" ] && continue
+  hash=$(openssl passwd -6 "${pass}")
+  usermod -p "${hash}" "${user}"
+done
+EOF
+    chmod 0755 "${rootfs}/usr/sbin/chpasswd"
   fi
 
   systemd-sysusers --root="${rootfs}" \
