@@ -276,6 +276,7 @@ with open(path, "r", encoding="utf-8") as f:
 
 simple_plugs = [
     "desktop-launch", "hardware-observe", "home", "hostname-control",
+    "kde-kauth", "pam-unix-chkpwd",
     "locale-control", "login-session-observe", "login-session-control",
     "mount-observe", "network-control", "network-observe",
     "bluetooth-control", "upower-observe", "systemd-user-control",
