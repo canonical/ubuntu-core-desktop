@@ -1,140 +1,98 @@
 # Ubuntu Core Desktop
 
-This repository builds Ubuntu Core 26 desktop images for GNOME and KDE.
-Each image selects one display manager and its matching session: GNOME
-uses GDM, while KDE uses SDDM. Installing another desktop session onto
-an existing image does not switch its display manager; mixed
-manager/session configurations are not supported.
+Ubuntu Core Desktop explores a new foundation for Ubuntu desktops: a modular, confined system built on Ubuntu Core's transactional, snap-based architecture. The goal is to make desktop systems easier to assemble, manage, and update reliably across a range of devices and use cases.
 
-KDE SDDM packaging and runtime integration is documented in
-[`docs/kde-sddm.md`](docs/kde-sddm.md). The built KDE image can be
-launched with `./go-run-kde`.
+The current developer preview provides an **Ubuntu Core 26 image with a GNOME desktop session**. The image is assembled from independently maintained snaps, with the desktop session delivered as a confined component rather than through a traditional mutable installation.
 
-The published KDE image ships as two files: the `.img.zst` and a
-companion `*-seed.iso`. Unlike the GNOME image, the KDE image has no
-first-boot wizard yet - the `seed.iso` (a cloud-init NoCloud seed) MUST
-be attached as a virtual CD-ROM on first boot, or no user account will
-exist. It creates a `guest`/`guest` account with autologin enabled
-(**dangerous**: anyone with access to a booted instance can log in).
-For example, with qemu: add `-drive
-file=ubuntu-core-desktop-kde-YYYYMMDD-seed.iso,if=virtio,format=raw,media=cdrom`
-to the qemu command line below (see `go-run-kde` for the full
-invocation this project uses for local testing).
+Potential uses include kiosks and information displays, managed workstations, and other purpose-built desktop environments. The project also provides a testbed for developing and evaluating desktop confinement, image composition, and update workflows.
 
-GitHub release assets are capped at 2GiB; the KDE image (which carries
-extra snaps beyond GNOME's) can land just over that, so the CI release
-may ship it split into `ubuntu-core-desktop-kde-YYYYMMDD.img.zst.part00`,
-`.part01`, etc. instead of a single `.img.zst`. Reassemble before
-decompressing, then verify against the release's `SHA256SUMS`:
+> **Developer preview — not for production use.** This is an experimental image, not a supported general-purpose Ubuntu Desktop release. See [Current limitations](#current-limitations) before trying it.
+
+## Get started
+
+You can download a prebuilt GNOME image and run it in QEMU without installing Ubuntu Core Desktop on physical hardware.
+
+### 1. Install the prerequisites
+
+On an Ubuntu host, install QEMU, UEFI firmware, and the decompression utility:
+
+```bash
+sudo apt update
+sudo apt install qemu-system-x86 ovmf zstd
 ```
-cat ubuntu-core-desktop-kde-YYYYMMDD.img.zst.part* > ubuntu-core-desktop-kde-YYYYMMDD.img.zst
+
+For the configuration below, use a host with KVM acceleration available and enough resources to allocate **2 vCPUs and 4 GiB of RAM** to the guest.
+
+### 2. Download and extract an image
+
+Visit the [GitHub Releases page](https://github.com/canonical/ubuntu-core-desktop/releases) and download:
+
+- The latest GNOME image (`ubuntu-core-desktop-gnome-YYYYMMDD.img.zst`)
+- The corresponding `SHA256SUMS` file
+
+From the directory containing the downloaded files, verify the archive and extract the disk image. Replace `YYYYMMDD` with the date in the filename:
+
+```bash
 sha256sum -c SHA256SUMS
-zstd -T0 -d --sparse ubuntu-core-desktop-kde-YYYYMMDD.img.zst -o pc.img
-```
-(see step 1 below for why `--sparse` is required.)
-
-1. Download and decompress the two image files and place them in the
-   same directory.  Pass `--sparse` to zstd when decompressing: the
-   image is mostly holes, and without it the decompressed file
-   allocates the full ~20G (zstd 1.5.x does not enable sparse writing
-   by default during decompression).
-
-   For example:
-
-   ```
-   zstd -T0 -d --sparse ubuntu-core-desktop-gnome-YYYYMMDD.img.zst -o pc.img
-   ```
-
-   (If you already decompressed without it, `fallocate --dig-holes
-   pc.img` reclaims the space.)
-
-2. Add an image as a VM launchable from GNOME Boxes or virt-manager:
-    ```
-    # Delete VM if already registered
-    virsh --connect qemu:///session undefine --nvram core-desktop
-    virt-install --connect qemu:///session --name core-desktop \
-      --memory 2048 --vcpus 2 --boot uefi --os-variant ubuntu24.04 \
-      --video virtio,accel3d=no --graphics spice \
-      --import --disk path=$(pwd)/pc.img,format=raw
-    ```
-    (We use the virt-install because the GNOME Boxes seems to create a
-    legacy BIOS VM when adding the image).
-
-3. Let the VM boot and and automatically restart once as part of the
-   setup process.  Once it settles, you can close the virt-viewer
-   window and manage the VM with GNOME Boxes.
-
-4. Follow the `gnome-initial-setup` wizard to create a user, and
-   you'll be dropped into an unconfined desktop session.
-
-At present, the wizard fails to make the created user an
-administrator, limiting what is possible.  For now, I've left the root
-account open with a blank password as a stop-gap measure.
-
-It is also possible to launch the image outside of GNOME Boxes or
-virt-manager with a command like the following:
-
-```
-    qemu-system-x86_64 -smp 2 -m 2048 -machine accel=kvm \
-      -display gtk,gl=on \
-      -net nic,model=virtio -net user,hostfwd=tcp::8022-:22 \
-      -drive file=/usr/share/OVMF/OVMF_CODE.fd,if=pflash,format=raw,unit=0,readonly=on \
-      -drive file=pc.img,cache=none,format=raw,id=main,if=none \
-      -device virtio-blk-pci,drive=main,bootindex=1 \
-      -device ac97 -audiodev pa,id=ac97
+zstd -T0 -d --sparse ubuntu-core-desktop-gnome-YYYYMMDD.img.zst -o pc.img
 ```
 
-## Other Repositories
+**Note:** `SHA256SUMS` may also list other release assets. If so, `sha256sum -c` can report missing files; ensure the downloaded GNOME archive reports `OK` before proceeding.
 
-Most of the code used to construct the image is now managed in other
-repositories. Namely:
+The `--sparse` option avoids allocating the full 20 GiB disk image when decompressing it.
 
-| Snap | Repo | Recipe | Notes |
-| ---- | ---- | ------ | ----- |
-| `core26-desktop` | [core-base-desktop:26](https://github.com/canonical/core-base-desktop/tree/26) | [via launchpad](https://launchpad.net/~desktop-snappers/ubuntu-core-desktop/+snap/core26-desktop) | base snap, forked from `core26` to integrate GDM graphical login |
-| `pc-desktop` | [pc-amd64-gadget-desktop:26](https://github.com/canonical/pc-amd64-gadget-desktop/tree/26) | [via launchpad](https://launchpad.net/~ubuntu-desktop/pc-gadget-desktop/+snap/pc-amd64-gadget-desktop-core26) | gadget snap, forked from `pc`, using `core26-desktop` as a base |
-| `ubuntu-desktop-session` | [ubuntu-desktop-session-snap:26](https://github.com/canonical/ubuntu-desktop-session-snap/tree/26) | [via launchpad](https://launchpad.net/~ubuntu-desktop/+snap/ubuntu-desktop-session-snap-core26) | provides the confined desktop session |
-| `plasma-desktop-session` | [plasma-desktop-session:26](https://invent.kde.org/neon/plasma-desktop-session/-/tree/26) | local KDE image build | provides the confined Plasma session and SDDM runtime |
-| `plasma-core26-desktop` | [plasma-core-desktop:26](https://invent.kde.org/neon/plasma-core-desktop/-/tree/26) | local KDE image build | provides Plasma runtime content and Breeze SDDM theme assets |
-| `ubuntu-desktop-init` | [ubuntu-desktop-provision:snap/ubuntu-desktop-init/26.04](https://github.com/canonical/ubuntu-desktop-provision/tree/snap/ubuntu-desktop-init/26.04) | [via launchpad](https://launchpad.net/~ubuntu-desktop/+snap/ubuntu-desktop-init) | first-boot user setup wizard |
-| `snapd` | [ubuntu-core-desktop-snapd:26](https://github.com/canonical/ubuntu-core-desktop-snapd/tree/26) | [via launchpad](https://launchpad.net/~snappy-dev/+snap/ubuntu-core-desktop-snapd) | a branch of snapd with additional changes not yet merged to mainline |
+### 3. Prepare UEFI firmware
 
-In addition, the base snap uses packages from the [desktop-snappers
-core-desktop
-PPA](https://launchpad.net/~desktop-snappers/+archive/ubuntu/core-desktop). This
-is mostly to backport features we need that are not in jammy-updates.
+Check the UEFI firmware files available on your host and create a writable copy of the variables file:
 
-## Extracting the snaps from the image
+```bash
+ls /usr/share/OVMF/OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_VARS_4M.fd
+cp /usr/share/OVMF/OVMF_VARS_4M.fd ./OVMF_VARS.fd
+```
 
-The built image is a normal hard disk image, which means that it is possible to get
-the partition list with:
+If your system provides only `OVMF_CODE.fd` and `OVMF_VARS.fd`, use that matching pair instead in the commands.
 
-    fdisk -lu pc.img
+### 4. Boot the image
 
-This will show a list like this one:
+Run QEMU from the same directory as `pc.img` and `OVMF_VARS.fd`:
 
-    Disk pc2.img: 12 GiB, 12884901888 bytes, 25165824 sectors
-    Units: sectors of 1 * 512 = 512 bytes
-    Sector size (logical/physical): 512 bytes / 512 bytes
-    I/O size (minimum/optimal): 512 bytes / 512 bytes
-    Disklabel type: gpt
-    Disk identifier: 6E3A867F-8F44-4880-BA2C-FABA633C36E6
+```bash
+qemu-system-x86_64 \
+  -machine accel=kvm -cpu host -smp 2 -m 4096 \
+  -display gtk,gl=on \
+  -drive if=pflash,format=raw,unit=0,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
+  -drive if=pflash,format=raw,unit=1,file=./OVMF_VARS.fd \
+  -drive file=pc.img,format=raw,if=virtio,cache=none \
+  -netdev user,id=net0 \
+  -device virtio-net-pci,netdev=net0
+```
 
-    Device     Start     End Sectors  Size Type
-    pc.img1    2048    4095    2048    1M BIOS boot
-    pc.img2    4096 7172095 7168000  3.4G EFI System
+This starts a graphical VM with KVM acceleration and QEMU user-mode networking.
 
-After running the system the first time, other partitions will be added
-for the system, the user data...
+If KVM is unavailable, replace `-machine accel=kvm -cpu host` with `-machine accel=tcg`. Software emulation will be significantly slower.
 
-Now, using kpartx we can create loop devices for each of those partitions:
+### 5. Complete first-boot setup
 
-    sudo kpartx -av pc-img
+Allow the initial boot to complete; the system may restart once during initialization. The GNOME first-boot wizard (`ubuntu-desktop-init`) should then appear. Select your language and follow the prompts to create a user account.
 
-Two loop devices, /dev/mapper/loopXXX/p1 and /dev/mapper/loopXXX/p2, will
-be available. We want to mount the second one, which is the one that contains
-the EFI system and the base snaps:
+The current image has been tested with QEMU/KVM, UEFI, 2 vCPUs, and 4 GiB of RAM **through the welcome-language screen**. Completion of the entire setup flow is not established by that test.
 
-    sudo mount /dev/mapper/loopXXX/p2 /mnt
+## Current limitations
 
-And now we can go to */mnt/snaps*, and there are all the base snaps.
+Published images use a **dangerous-grade model** and include locally built, unasserted snaps. They cannot rely on normal Snap Store refreshes and must not be used in production or security-sensitive environments.
+
+The image does not include a preconfigured username or password; account creation takes place during first boot. This preview currently focuses on GNOME and should not be interpreted as a feature-complete or supported desktop distribution.
+
+## Build and contribute
+
+To build an image from source, test changes, or contribute to the project, see [`CONTRIBUTING.md`](CONTRIBUTING.md) for the documented GNOME build and QEMU test procedure.
+
+## Repository layout
+
+This repository is responsible for image assembly. Most snap payloads are maintained in separate repositories.
+
+- [`build.sh`](build.sh) customizes the base and gadget snaps, includes requested local snaps, and invokes `ubuntu-image`.
+- [`.github/workflows/build-image.yaml`](.github/workflows/build-image.yaml) describes the CI image assembly inputs and release workflow.
+- [`docs/models.md`](docs/models.md) explains the image model.
+
+This README focuses on the GNOME developer preview; KDE-specific information is outside its scope.
