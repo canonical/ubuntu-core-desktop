@@ -95,4 +95,4 @@ This repository is responsible for image assembly. Most snap payloads are mainta
 - [`.github/workflows/build-image.yaml`](.github/workflows/build-image.yaml) describes the CI image assembly inputs and release workflow.
 - [`docs/models.md`](docs/models.md) explains the image model.
 
-This README focuses on the GNOME developer preview; KDE-specific information is outside its scope.
+This README focuses on the GNOME developer preview; for the KDE image, see [`docs/kde.md`](docs/kde.md).
