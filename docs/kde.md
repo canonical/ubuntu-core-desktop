@@ -62,12 +62,11 @@ The provisioning snap and the Plasma snaps are currently maintained under the [`
 
 ### Build the Snaps
 
-The base snap needs one KDE-specific step: select the **cloud-init variant** before packing, by writing `SNAP_BUILD_VARIANT=cloud-init` to a top-level `build-env` file in `core-base-desktop` (this is what its `build-github.sh cloud-init` does). Without it, the built image's seed ISO is never processed and no account is created at first boot.
+The base snap needs one KDE-specific step: select the **cloud-init variant** before packing. From `core-base-desktop`, run `./build-github.sh cloud-init`, which selects the variant and packs it as `core26-desktop-cloudinit.snap`. Without this variant, the built image's seed ISO is never processed and no account is created at first boot.
 
 ```bash
 cd ~/ucd-build/core-base-desktop
-echo SNAP_BUILD_VARIANT=cloud-init > build-env
-snapcraft pack --use-lxd
+./build-github.sh cloud-init
 
 cd ~/ucd-build/pc-amd64-gadget-desktop
 snapcraft pack --use-lxd
@@ -92,12 +91,12 @@ Copy the generated snaps to stable filenames for image assembly. **Check for sta
 
 ```bash
 mkdir -p ~/ucd-build/snaps
-cp ~/ucd-build/core-base-desktop/core26-desktop_*.snap ~/ucd-build/snaps/core26-desktop.snap
+cp ~/ucd-build/core-base-desktop/core26-desktop-cloudinit_*.snap ~/ucd-build/snaps/core26-desktop-cloudinit.snap
 cp ~/ucd-build/pc-amd64-gadget-desktop/pc-desktop_*.snap ~/ucd-build/snaps/pc-desktop.snap
 cp ~/ucd-build/ubuntu-core-desktop-snapd/snapd_*.snap ~/ucd-build/snaps/snapd.snap
 cp ~/ucd-build/ubuntu-desktop-provision/ubuntu-desktop-init_*.snap ~/ucd-build/snaps/ubuntu-desktop-init.snap
 cp ~/ucd-build/plasma-desktop-session/plasma-desktop-session_*.snap ~/ucd-build/snaps/plasma-desktop-session.snap
-cp ~/ucd-build/plasma-core-desktop/plasma-core26-desktop_*.snap ~/ucd-build/snaps/plasma-core26-desktop.snap
+cp ~/ucd-build/plasma-core-desktop/plasma-core26-desktop_*.snap ~/ucd-build/snaps/plasma-core-desktop.snap
 cp ~/ucd-build/kf6-core26/kf6-core26_*.snap ~/ucd-build/snaps/kf6-core26.snap
 ```
 
@@ -108,26 +107,25 @@ The repository contains a pre-signed dangerous model and its account-key asserti
 ```bash
 cd ~/ucd-build/ubuntu-core-desktop
 ./build.sh \
-  --desktop kde \
+  --platform kde \
   --model-account-key ci/account-key.assert \
-  --base-snap ~/ucd-build/snaps/core26-desktop.snap \
+  --base-snap ~/ucd-build/snaps/core26-desktop-cloudinit.snap \
   --gadget-snap ~/ucd-build/snaps/pc-desktop.snap \
   --snapd-snap ~/ucd-build/snaps/snapd.snap \
-  --kde-session-snap ~/ucd-build/snaps/plasma-desktop-session.snap \
-  --kde-plasma-snap ~/ucd-build/snaps/plasma-core26-desktop.snap \
-  --snap ~/ucd-build/snaps/plasma-core26-desktop.snap \
+  --input "session=$HOME/ucd-build/snaps/plasma-desktop-session.snap" \
+  --input "plasma=$HOME/ucd-build/snaps/plasma-core-desktop.snap" \
   --snap ~/ucd-build/snaps/kf6-core26.snap \
   --snap ~/ucd-build/snaps/ubuntu-desktop-init.snap \
-  --user <name> \
-  --password <password> \
-  --model ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model
+  --user alice \
+  --password 'choose-a-password' \
+  --model platforms/kde/model.signed
 ```
 
-The image is written to `build/pc.img` and the seed ISO to `build/seed.iso`. `--kde-plasma-snap` selects the snap the build script extracts integration files from; the same snap is also included in the image unmodified via `--snap`.
+The image is written to `build/kde/pc.img` and the seed ISO to `build/kde/seed.iso`. The declared `session` and `plasma` inputs are both included in the image automatically; do not pass the plasma snap a second time with `--snap`. The `--user` and `--password` options create the account through the seed ISO.
 
-A KDE image built without `--user` is not usable: there is no first-boot wizard, so without the seed ISO no account exists. `--user` requires `--password`. Add `--autologin` to log the account straight into the Plasma session, and `--ssh-authorized-keys <path>` to install SSH public keys for the account; see `./build.sh --help` for the full option list.
+A KDE image built without `--user` is not usable: there is no first-boot wizard, so without the seed ISO no account exists. The build warns when KDE is built without `--user`. `--user` requires `--password`, and it is refused if the base snap does not contain cloud-init; use the `core26-desktop-cloudinit` base snap. Add `--autologin` to log the account straight into the Plasma session, and `--ssh-authorized-keys <path>` to install SSH public keys for the account; see `./build.sh --help` for the full option list.
 
-The build script deletes and recreates its build output directory on each run. Do not keep personal keys or other files you need to preserve inside `build/`.
+The build uses `build/kde` by default, separate from GNOME's `build/gnome` output. Each step clears only its own outputs.
 
 For a faster assembly-only test, use the current `desktop-26-latest` snap assets downloaded by [`.github/workflows/build-image-kde.yaml`](../.github/workflows/build-image-kde.yaml). Note that the KDE image consumes the cloud-init base snap asset (`core26-desktop-cloudinit.snap`).
 
@@ -137,14 +135,14 @@ Create a writable UEFI variable store beside the image, then run QEMU/KVM. The s
 
 ```bash
 cd ~/ucd-build/ubuntu-core-desktop
-cp /usr/share/OVMF/OVMF_VARS_4M.fd build/OVMF_VARS.fd
+cp /usr/share/OVMF/OVMF_VARS_4M.fd build/kde/OVMF_VARS.fd
 qemu-system-x86_64 \
   -machine accel=kvm -cpu host -smp 2 -m 4096 \
   -display gtk,gl=on \
   -drive if=pflash,format=raw,unit=0,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
-  -drive if=pflash,format=raw,unit=1,file=build/OVMF_VARS.fd \
-  -drive file=build/pc.img,format=raw,if=virtio,cache=none \
-  -drive file=build/seed.iso,if=virtio,format=raw,media=cdrom \
+  -drive if=pflash,format=raw,unit=1,file=build/kde/OVMF_VARS.fd \
+  -drive file=build/kde/pc.img,format=raw,if=virtio,cache=none \
+  -drive file=build/kde/seed.iso,if=virtio,format=raw,media=cdrom \
   -netdev user,id=net0 \
   -device virtio-net-pci,netdev=net0
 ```

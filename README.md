@@ -89,10 +89,13 @@ To build an image from source, test changes, or contribute to the project, see [
 
 ## Repository layout
 
-This repository is responsible for image assembly. Most snap payloads are maintained in separate repositories.
+This repository is responsible for image assembly. Most snap payloads are maintained in separate repositories. The shared pipeline is in `steps/`, Platform-specific inputs and models are in `platforms/<platform>/`, and the common imagecraft template is in `image/`.
 
-- [`build.sh`](build.sh) customizes the base and gadget snaps, includes requested local snaps, and invokes `ubuntu-image`.
+- [`build.sh`](build.sh) validates the complete command line before work starts, then runs the pipeline in order: `steps/repack.sh` customizes the base and gadget snaps; `steps/sign-model.sh` creates the model assertion; `steps/pack-image.sh` uses imagecraft in managed (LXD) mode to build `pc.img`; and, when `--user` is supplied, `steps/seed.sh` creates the cloud-init seed ISO. Each step script can also be run on its own.
+- [`docs/building.md`](docs/building.md#run-an-individual-build-step) documents the standalone step inputs/outputs, the shell test suite, and the QEMU boot-check requirements.
 - [`.github/workflows/build-image.yaml`](.github/workflows/build-image.yaml) describes the CI image assembly inputs and release workflow.
 - [`docs/models.md`](docs/models.md) explains the image model.
+
+**CI migration gap:** workflow updates are out of scope for this refactor. Both checked-in image workflows still use the old `build.sh` flags, model paths, output paths, and image builder, so they will fail against this interface until updated. See [the CLI migration table](docs/building.md#old-to-new-cli-mapping) before changing them. Managed imagecraft on the GitHub-hosted runner has not been verified.
 
 This README focuses on the GNOME developer preview; for the KDE image, see [`docs/kde.md`](docs/kde.md).

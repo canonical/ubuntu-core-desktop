@@ -23,12 +23,16 @@ Select tests according to the change:
 
 | Change | Expected validation |
 | --- | --- |
-| Shell scripts | Run `bash -n build.sh` (and `bash -n steps/seed.sh` if changed) |
+| Shell scripts | Run `for script in build.sh steps/*.sh common/*/*.sh platforms/*/*/*.sh tools/boot-check.sh; do bash -n "$script" || exit; done`; run the shell tests with `for test_script in tests/*.sh; do bash "$test_script" || exit; done` |
 | Model, image assembly, or integration | Build an image with `build.sh`; check relevant CI and component tests |
-| First-boot or graphical behaviour | Boot the image in QEMU and test the affected behaviour |
+| First-boot or graphical behaviour | Boot the image in QEMU and test the affected behaviour; use `tools/boot-check.sh` for offline boot assertions |
 | Documentation only | Check links, commands, and Markdown for accuracy |
 
 When reporting testing, distinguish **syntax checks**, **successful image assembly**, **boot to the welcome-language screen**, and **completed account setup with a working graphical session**. Do not claim a stage you did not test. The [building guide](docs/building.md#test-the-image-in-qemu) describes the QEMU configuration and current validation limits.
+
+`tools/boot-check.sh` is a standalone automated boot test. It requires KVM, OVMF, and several minutes to run; consult `tools/boot-check.sh --help` for its options.
+
+The build entry point runs four standalone scripts in order: `steps/repack.sh`, `steps/sign-model.sh`, `steps/pack-image.sh`, and, when `--user` is supplied, `steps/seed.sh`. Each step has its own `--help` and can be run independently against a build directory; see [the building guide](docs/building.md#run-an-individual-build-step) for the step inputs, outputs, and an example.
 
 ## Contribution Guidelines
 
