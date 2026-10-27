@@ -74,7 +74,7 @@ jobs:
         run: |
           sudo apt-get update
           # cloud-image-utils provides cloud-localds: with --user given,
-          # build.sh generates a companion seed.iso (build-cloud-init.sh)
+          # build.sh generates a companion seed.iso (steps/seed.sh)
           # that cloud-init uses to actually create the guest account at
           # first boot - build.sh only bakes in sudoers/autologin config,
           # not the account itself.

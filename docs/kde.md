@@ -11,7 +11,7 @@ The KDE image provides an **Ubuntu Core 26 image with a KDE Plasma 6.8.0 desktop
 It differs from the GNOME image in three ways:
 
 - **Display manager.** The KDE image uses SDDM; the GNOME image uses GDM. Each image selects one display manager and its matching session. Installing another desktop session snap onto an existing image does not switch its display manager, and mixed manager/session configurations are not supported.
-- **First boot.** There is no first-boot setup wizard. The login account is created at first boot by cloud-init from a companion **seed ISO** built alongside the image (see [`build-cloud-init.sh`](../build-cloud-init.sh)). The seed ISO **must** be attached as a virtual CD-ROM on first boot, or no user account will exist. The KDE image is therefore assembled from the **cloud-init variant** of the base snap, the only variant that includes cloud-init; the default variant leaves the seed ISO unprocessed.
+- **First boot.** There is no first-boot setup wizard. The login account is created at first boot by cloud-init from a companion **seed ISO** built alongside the image (see [`steps/seed.sh`](../steps/seed.sh)). The seed ISO **must** be attached as a virtual CD-ROM on first boot, or no user account will exist. The KDE image is therefore assembled from the **cloud-init variant** of the base snap, the only variant that includes cloud-init; the default variant leaves the seed ISO unprocessed.
 - **Session snaps.** The Plasma session is delivered by three snaps: `plasma-desktop-session` provides the confined Plasma session and the SDDM display manager, `plasma-core26-desktop` provides the Plasma runtime content and theme assets, and `kf6-core26` provides the Qt 6 / KDE Frameworks runtime.
 
 ## Download a Prebuilt KDE Image
