@@ -7,7 +7,9 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf -- "${tmp_dir}"' EXIT
 
 mkdir -p "${tmp_dir}/bin" "${tmp_dir}/inputs" "${tmp_dir}/captured" "${tmp_dir}/fixtures/gadget/meta" \
-  "${tmp_dir}/fixtures/base/etc/cloud" "${tmp_dir}/out/gnome" "${tmp_dir}/out/kde"
+  "${tmp_dir}/fixtures/base/etc/cloud" \
+  "${tmp_dir}/fixtures/base/usr/share/factory/writable/system-data/etc/ssh" \
+  "${tmp_dir}/out/gnome" "${tmp_dir}/out/kde"
 for input in base gadget snapd account extra; do
   printf '%s input\n' "${input}" >"${tmp_dir}/inputs/${input}.snap"
 done
@@ -15,6 +17,9 @@ printf 'model input\n' >"${tmp_dir}/inputs/model.json"
 printf 'base: core26\n' >"${tmp_dir}/fixtures/gadget/meta/snap.yaml"
 printf 'volumes:\n  - name: BIOS Boot\ndefaults:\n  system:\n    service:\n      ssh:\n        listen-address: 127.0.0.1\n' \
   >"${tmp_dir}/fixtures/gadget/meta/gadget.yaml"
+printf 'quiet splash\n' >"${tmp_dir}/fixtures/gadget/cmdline.extra"
+printf 'PermitRootLogin prohibit-password\n' \
+  >"${tmp_dir}/fixtures/base/usr/share/factory/writable/system-data/etc/ssh/sshd_config"
 printf 'cloud-init fixture\n' >"${tmp_dir}/fixtures/base/etc/cloud/cloud.cfg"
 mkdir -p "${tmp_dir}/fixtures/base/usr/bin"
 printf '#!/bin/sh\nexit 0\n' >"${tmp_dir}/fixtures/base/usr/bin/gnome-session"
@@ -77,7 +82,8 @@ export CAPTURED_ROOT="${tmp_dir}/captured"
 help_output="$("${build}" --help)"
 [[ ${help_output} == *"--platform"* && ${help_output} == *"--base-snap"* && \
   ${help_output} == *"--gadget-snap"* && ${help_output} == *"--snapd-snap"* && \
-  ${help_output} == *"--model-account-key"* && ${help_output} == *"--build-dir"* ]]
+  ${help_output} == *"--model-account-key"* && ${help_output} == *"--build-dir"* && \
+  ${help_output} == *"--release"* ]]
 
 expect_failure() {
   local expected="$1"
@@ -99,7 +105,6 @@ expect_failure "file not found" --platform gnome --base-snap "${tmp_dir}/missing
   --gadget-snap "${tmp_dir}/inputs/gadget.snap" --snapd-snap "${tmp_dir}/inputs/snapd.snap" \
   --model-account-key "${tmp_dir}/inputs/account.snap" --build-dir "${tmp_dir}/not-created"
 [[ ! -e ${tmp_dir}/not-created ]]
-expect_failure "unsupported option: --release" --release
 expect_failure "unsupported option: --user" --user alice
 
 pipeline_output="$("${build}" --platform gnome --base-snap "${tmp_dir}/inputs/base.snap" \
@@ -116,5 +121,17 @@ pipeline_output="$("${build}" --platform gnome --base-snap "${tmp_dir}/inputs/ba
 [[ $(<"${tmp_dir}/out/kde/unrelated.txt") == 'keep KDE output' ]]
 [[ $(<"${tmp_dir}/out/gnome/snaps/base.snap") == 'packed:base.snap' ]]
 grep -q 'snaps/extra.snap' "${tmp_dir}/out/gnome/project/imagecraft.yaml"
+
+rm -rf -- "${tmp_dir}/captured/base" "${tmp_dir}/captured/gadget"
+release_output="$("${build}" --platform gnome --base-snap "${tmp_dir}/inputs/base.snap" \
+  --gadget-snap "${tmp_dir}/inputs/gadget.snap" --snapd-snap "${tmp_dir}/inputs/snapd.snap" \
+  --model-account-key "${tmp_dir}/inputs/account.snap" --release \
+  --build-dir "${tmp_dir}/out/release" 2>&1)"
+[[ ${release_output} == *"building gnome Release image"* ]]
+[[ ${release_output} != *"repack: common/development.d/"* ]]
+grep -q '^quiet splash$' "${tmp_dir}/captured/gadget/cmdline.extra"
+grep -q 'listen-address: 127.0.0.1' "${tmp_dir}/captured/gadget/meta/gadget.yaml"
+! grep -q 'PermitRootLogin yes' "${tmp_dir}/captured/base/usr/share/factory/writable/system-data/etc/ssh/sshd_config"
+[[ ! -e ${tmp_dir}/captured/base/etc/profile.d/serial-terminal.sh ]]
 
 printf 'build CLI tests passed\n'

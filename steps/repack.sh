@@ -8,7 +8,7 @@ source "${repo_dir}/lib/log.sh"
 
 usage() {
   cat <<'EOF'
-Usage: repack.sh --platform NAME --base-snap FILE --gadget-snap FILE --out DIR [--user NAME]
+Usage: repack.sh --platform NAME --base-snap FILE --gadget-snap FILE --out DIR [--release] [--user NAME]
 
 Repack the base and gadget snaps by applying common and Platform pieces.
 
@@ -17,6 +17,7 @@ Options:
   --base-snap FILE    Stock base snap
   --gadget-snap FILE  Stock gadget snap
   --out DIR           Build directory
+  --release           Skip Development image defaults
   --user NAME         Require a cloud-init-enabled base
   --help              Show this help
 EOF
@@ -27,10 +28,12 @@ base_snap=""
 gadget_snap=""
 out_dir=""
 user=""
+release=0
 orig_args=("$@")
 while (($#)); do
   case "$1" in
     --help|-h) usage; exit 0 ;;
+    --release) release=1; shift ;;
     --platform|--base-snap|--gadget-snap|--out|--user)
       (($# >= 2)) || die "$1 requires a value"
       option="$1"
@@ -112,7 +115,7 @@ export GADGET_ROOT="${gadget_root}"
 export BASE_ROOT="${base_root}"
 export PLATFORM_DIR="${repo_dir}/platforms/${platform}"
 export LIB_DIR="${repo_dir}/lib"
-export RELEASE=0
+export RELEASE="${release}"
 export DEV_USER="${DEV_USER:-}"
 export DEV_PASSWORD_HASH="${DEV_PASSWORD_HASH:-}"
 export DEV_AUTOLOGIN="${DEV_AUTOLOGIN:-}"
@@ -130,7 +133,9 @@ unsquashfs -d "${base_root}" "${base_snap}" >/dev/null \
 run_layer "${repo_dir}/common/gadget.d"
 run_layer "${repo_dir}/common/base.d"
 run_layer "${PLATFORM_DIR}/base.d"
-run_layer "${repo_dir}/common/development.d"
+if ((RELEASE == 0)); then
+  run_layer "${repo_dir}/common/development.d"
+fi
 
 mksquashfs "${gadget_root}" "${gadget_output}" -noappend -comp zstd -Xcompression-level 1 \
   || die "failed to repack gadget snap; work tree kept at ${work_dir}"

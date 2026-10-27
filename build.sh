@@ -11,7 +11,7 @@ Usage: build.sh --platform NAME --base-snap FILE --gadget-snap FILE \
                 --snapd-snap FILE --model-account-key FILE [options]
 
 Build a Development image by repacking snaps, signing the model, and packing
-the image with imagecraft. Release and developer options are not yet supported.
+the image with imagecraft. Use --release to omit Development image defaults.
 
 Required:
   --platform NAME          Platform directory under platforms/ (currently gnome)
@@ -23,6 +23,7 @@ Required:
 Options:
   --model FILE             Model JSON or pre-signed .model (default: Platform model.json)
   --snap FILE              Extra local snap to include (repeatable)
+  --release                Build a Release image without Development defaults
   --image-size SIZE        Final image size (default: 20G)
   --build-dir DIR          Output directory (default: build/<platform>)
   --help                   Show this help
@@ -37,11 +38,13 @@ account_key=""
 model=""
 image_size=20G
 build_dir=""
+release=0
 extra_snaps=()
 
 while (($#)); do
   case "$1" in
     --help|-h) usage; exit 0 ;;
+    --release) release=1; shift ;;
     --platform|--base-snap|--gadget-snap|--snapd-snap|--model-account-key|--model|--image-size|--build-dir|--snap)
       (($# >= 2)) || die "$1 requires a value"
       option="$1"
@@ -59,7 +62,7 @@ while (($#)); do
         --snap) extra_snaps+=("${value}") ;;
       esac
       ;;
-    --release|--user|--password|--autologin|--root-password|--ssh-authorized-keys|--ssh-host-key|--debug|--input|--developer-*)
+    --user|--password|--autologin|--root-password|--ssh-authorized-keys|--ssh-host-key|--debug|--input|--developer-*)
       die "unsupported option: $1 (not yet implemented for the GNOME Development CLI)" ;;
     --*) die "unknown option: $1" ;;
     *) die "unexpected argument: $1" ;;
@@ -119,13 +122,21 @@ command -v truncate >/dev/null 2>&1 || die "required command not found: truncate
 
 mkdir -p -- "${build_dir}"
 build_dir="$(cd "${build_dir}" && pwd)"
-info "building ${platform} Development image in ${build_dir}"
+if ((release)); then
+  image_type=Release
+else
+  image_type=Development
+fi
+info "building ${platform} ${image_type} image in ${build_dir}"
 
-"${repo_dir}/steps/repack.sh" \
+repack_args=(
   --platform "${platform}" \
   --base-snap "${base_snap}" \
   --gadget-snap "${gadget_snap}" \
   --out "${build_dir}"
+)
+((release == 0)) || repack_args+=(--release)
+"${repo_dir}/steps/repack.sh" "${repack_args[@]}"
 
 "${repo_dir}/steps/sign-model.sh" \
   --model "${model}" \

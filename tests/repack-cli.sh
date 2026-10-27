@@ -6,8 +6,10 @@ repack="${repo_root}/steps/repack.sh"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
 
-mkdir -p "${tmp_dir}/bin" "${tmp_dir}/inputs" "${tmp_dir}/capture" "${tmp_dir}/fixtures/gadget/meta" \
+mkdir -p "${tmp_dir}/bin" "${tmp_dir}/inputs" "${tmp_dir}/capture" \
+  "${tmp_dir}/fixtures/gadget/meta" "${tmp_dir}/fixtures/gadget" \
   "${tmp_dir}/fixtures/base/usr/share/factory/writable/system-data/etc/systemd/system/sockets.target.wants" \
+  "${tmp_dir}/fixtures/base/usr/share/factory/writable/system-data/etc/ssh" \
   "${tmp_dir}/fixtures/base/usr/share/factory/writable/system-data/usr/share/wayland-sessions" \
   "${tmp_dir}/fixtures/base/usr/lib/systemd/system" \
   "${tmp_dir}/fixtures/base/usr/share/wayland-sessions" \
@@ -18,7 +20,11 @@ printf 'unrelated output\n' >"${tmp_dir}/out/keep.txt"
 printf 'stale base\n' >"${tmp_dir}/out/snaps/base.snap"
 printf 'stale gadget\n' >"${tmp_dir}/out/snaps/gadget.snap"
 printf 'base: core26\n' >"${tmp_dir}/fixtures/gadget/meta/snap.yaml"
-printf 'volumes:\n  - name: BIOS Boot\ndefaults:\n  system:\n    service:\n      ssh:\n        listen-address: 127.0.0.1\n' >"${tmp_dir}/fixtures/gadget/meta/gadget.yaml"
+printf 'volumes:\n  - name: BIOS Boot\ndefaults:\n  system:\n    service:\n      ssh:\n        listen-address: 0.0.0.0\n' >"${tmp_dir}/fixtures/gadget/meta/gadget.yaml"
+printf 'systemd.journald.forward_to_console=1 systemd.journald.max_level_console=err console=ttyS0,115200n8\n' \
+  >"${tmp_dir}/fixtures/gadget/cmdline.extra"
+printf 'PermitRootLogin prohibit-password\n' \
+  >"${tmp_dir}/fixtures/base/usr/share/factory/writable/system-data/etc/ssh/sshd_config"
 printf 'factory base\n' >"${tmp_dir}/fixtures/base/usr/share/factory/writable/system-data/etc/systemd/system/sockets.target.wants/.fixture"
 printf 'base systemd\n' >"${tmp_dir}/fixtures/base/usr/lib/systemd/system/.fixture"
 printf 'plasma session\n' >"${tmp_dir}/fixtures/base/usr/share/factory/writable/system-data/usr/share/wayland-sessions/plasma-desktop-session.desktop"
@@ -68,7 +74,7 @@ export GADGET_FIXTURE="${tmp_dir}/fixtures/gadget"
 export CAPTURED_ROOT="${tmp_dir}/capture"
 
 help_output="$("${repack}" --help)"
-[[ ${help_output} == *"--platform"* && ${help_output} == *"--base-snap"* && ${help_output} == *"--gadget-snap"* && ${help_output} == *"--out"* ]]
+[[ ${help_output} == *"--platform"* && ${help_output} == *"--base-snap"* && ${help_output} == *"--gadget-snap"* && ${help_output} == *"--out"* && ${help_output} == *"--release"* ]]
 
 expect_failure() {
   local expected="$1"
@@ -98,7 +104,8 @@ success_output="$("${repack}" --platform gnome --base-snap "${tmp_dir}/inputs/ba
 [[ ${success_output} == *"repack: common/base.d/"* ]]
 [[ ${success_output} == *"repack: platforms/gnome/base.d/"* ]]
 [[ ${success_output} == *"repack: common/development.d/"* ]]
-[[ ${success_output} == *$'repack: common/gadget.d/10-base.sh\nrepack: common/gadget.d/20-bios-boot.sh\nrepack: common/gadget.d/30-connections.sh\nrepack: common/base.d/10-polkit-socket.sh\nrepack: platforms/gnome/base.d/10-gdm-homedirs.sh\nrepack: platforms/gnome/base.d/20-drop-plasma-session.sh\nrepack: platforms/gnome/base.d/30-gnome-session-wrapper.sh\nrepack: common/development.d/10-gadget-console.sh\nrepack: common/development.d/20-listen-address.sh\nrepack: common/development.d/30-root-ssh.sh\nrepack: common/development.d/40-serial-terminal.sh'* ]]
+[[ ${success_output} == *"no developer options; skipping developer pieces"* ]]
+[[ ${success_output} != *"/developer.d/"* ]]
 [[ $(<"${tmp_dir}/out/snaps/base.snap") == 'packed:snaps-base' ]]
 [[ $(<"${tmp_dir}/out/snaps/gadget.snap") == 'packed:snaps-gadget' ]]
 [[ $(<"${tmp_dir}/out/keep.txt") == 'unrelated output' ]]
@@ -120,6 +127,18 @@ grep -q 'stty rows 55 cols 86' "${tmp_dir}/capture/snaps-base/etc/profile.d/seri
 ! grep -q 'gnome-desktop-runtime:hardware-observe' "${tmp_dir}/capture/snaps-gadget/meta/gadget.yaml"
 ! grep -q 'firefox:' "${tmp_dir}/capture/snaps-gadget/meta/gadget.yaml"
 ! grep -q 'LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN:systemd-user-control' "${tmp_dir}/capture/snaps-gadget/meta/gadget.yaml"
+
+rm -rf -- "${tmp_dir}/capture/snaps-base" "${tmp_dir}/capture/snaps-gadget"
+release_output="$("${repack}" --platform gnome --base-snap "${tmp_dir}/inputs/base.snap" \
+  --gadget-snap "${tmp_dir}/inputs/gadget.snap" --release --out "${tmp_dir}/out" 2>&1)"
+[[ ${release_output} == *"repack: common/base.d/"* ]]
+[[ ${release_output} == *"repack: common/gadget.d/40-release-cmdline.sh"* ]]
+[[ ${release_output} == *"repack: common/gadget.d/50-release-ssh.sh"* ]]
+[[ ${release_output} != *"repack: common/development.d/"* ]]
+grep -q '^quiet splash$' "${tmp_dir}/capture/snaps-gadget/cmdline.extra"
+grep -q 'listen-address: 127.0.0.1' "${tmp_dir}/capture/snaps-gadget/meta/gadget.yaml"
+! grep -q 'PermitRootLogin yes' "${tmp_dir}/capture/snaps-base/usr/share/factory/writable/system-data/etc/ssh/sshd_config"
+[[ ! -e ${tmp_dir}/capture/snaps-base/etc/profile.d/serial-terminal.sh ]]
 
 rm -f "${tmp_dir}/fixtures/base/usr/bin/gnome-session"
 failure_output=""
