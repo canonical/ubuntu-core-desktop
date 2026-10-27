@@ -280,7 +280,7 @@ simple_plugs = [
     "locale-control", "login-session-observe", "login-session-control",
     "mount-observe", "network-control", "network-observe",
     "bluetooth-control", "upower-observe", "systemd-user-control",
-    "systemd-user-environment",
+    "systemd-user-environment", "timezone-control",
     "polkit-agent", "opengl", "pulseaudio", "pipewire", "network-bind",
     "ssh-keys", "dot-hidden", "shell-session-locale-files",
 ]
