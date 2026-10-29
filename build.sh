@@ -523,6 +523,27 @@ Alias=display-manager.service
 WantedBy=graphical.target
 EOF
 
+  # KAuth's BackendsManager loads its backend/helper plugins from a
+  # hardcoded absolute install path baked in at compile time (derived
+  # from KDE_INSTALL_FULL_QTPLUGINDIR), not via Qt's generic
+  # QT_PLUGIN_PATH-driven QFactoryLoader directory scan -- so setting
+  # QT_PLUGIN_PATH in the environments above is not enough for it.
+  # Symlink that absolute path straight at the kf6-core26 content snap:
+  # it is mounted at a fixed /snap/... path visible from every mount
+  # namespace, confined or not, so one link serves both the confined
+  # plasma-desktop-session apps and the unconfined root KAuth helper
+  # process that D-Bus-system-activates in the plain host namespace
+  # (e.g. plasma-setup's plasma-setup-auth-helper), where a snap
+  # "layout:" symlink would be invisible. plasma-desktop-session must
+  # never ship a layout: entry for this same path: snap-update-ns
+  # aborts every confined Plasma app on "existing symbolic link in
+  # the way" unless the layout target and this symlink are
+  # byte-identical, which they cannot be (a layout target is
+  # $SNAP-relative, this one points at the /snap content mount).
+  mkdir -p "${rootfs}/usr/lib/${triplet}/qt6/plugins/kf6"
+  ln -sfn "/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins/kf6/kauth" \
+    "${rootfs}/usr/lib/${triplet}/qt6/plugins/kf6/kauth"
+
   # The base image is GNOME-capable. Mask GDM and select SDDM only in
   # this KDE image; installing another session later does not switch the
   # system display manager.
@@ -642,27 +663,9 @@ kde_plasma_setup_integration() {
     "${rootfs}/etc/xdg/plasmasetuprc" \
     "${factory_etc}/xdg/plasmasetuprc"
   do
-    install -D -m 0644 \
-      "${runtime_root}/sddm/etc/xdg/plasmasetuprc" "${plasmasetuprc}"
+  install -D -m 0644 \
+    "${runtime_root}/sddm/etc/xdg/plasmasetuprc" "${plasmasetuprc}"
   done
-
-  # KAuth's BackendsManager loads its backend/helper plugins from a
-  # hardcoded absolute install path baked in at compile time (derived
-  # from KDE_INSTALL_FULL_QTPLUGINDIR), not via Qt's generic
-  # QT_PLUGIN_PATH-driven QFactoryLoader directory scan -- so setting
-  # QT_PLUGIN_PATH in the env_prefix below is not enough for it.
-  # plasma-desktop-session's snapcraft.yaml adds a "layout:" symlink
-  # for this, but that only takes effect inside that snap's own
-  # confined mount namespace. org.kde.plasmasetup's actual KAuth
-  # *helper* process runs unconfined as root, D-Bus-system-activated
-  # (see org.kde.plasmasetup.service above) -- i.e. in the plain host
-  # mount namespace, where that layout: fix is invisible. Make the
-  # same absolute path resolve there too, by symlinking it straight at
-  # the kf6-core26 content snap (which is mounted at a fixed /snap/...
-  # path visible from every mount namespace, confined or not).
-  mkdir -p "${rootfs}/usr/lib/${triplet}/qt6/plugins/kf6"
-  ln -sfn "/snap/kf6-core26/current/usr/lib/${triplet}/qt6/plugins/kf6/kauth" \
-    "${rootfs}/usr/lib/${triplet}/qt6/plugins/kf6/kauth"
 
   # The libexec binaries need the same content-snap Qt/KF6/QML
   # environment as the sddm-helper wrapper above, plus plasma-setup's
