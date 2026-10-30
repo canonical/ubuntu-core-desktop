@@ -6,8 +6,9 @@ sign_model="${repo_root}/steps/sign-model.sh"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
 
-mkdir -p "${tmp_dir}/bin" "${tmp_dir}/platforms/gnome"
+mkdir -p "${tmp_dir}/bin" "${tmp_dir}/platforms/gnome" "${tmp_dir}/platforms/kde"
 cp "${repo_root}/platforms/gnome/model.json" "${tmp_dir}/platforms/gnome/model.json"
+cp "${repo_root}/platforms/kde/model.signed" "${tmp_dir}/platforms/kde/model.signed"
 printf 'signed model assertion\n' >"${tmp_dir}/presigned.model"
 printf 'keep this output\n' >"${tmp_dir}/other-output"
 mkdir -p "${tmp_dir}/build/project"
@@ -62,6 +63,8 @@ grep -q '^signed by test stub$' "${tmp_dir}/build/model.assert"
 
 "${sign_model}" --model "${tmp_dir}/presigned.model" --out "${tmp_dir}/build"
 cmp "${tmp_dir}/presigned.model" "${tmp_dir}/build/model.assert"
+"${sign_model}" --model "${tmp_dir}/platforms/kde/model.signed" --out "${tmp_dir}/build"
+cmp "${tmp_dir}/platforms/kde/model.signed" "${tmp_dir}/build/model.assert"
 [[ $(<"${tmp_dir}/other-output") == 'keep this output' ]]
 [[ $(<"${tmp_dir}/build/pc.img") == 'keep the packed image' ]]
 [[ $(<"${tmp_dir}/build/project/imagecraft.yaml") == 'keep the staged project' ]]
