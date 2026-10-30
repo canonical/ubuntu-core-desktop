@@ -6,7 +6,7 @@ boot_check="${repo_root}/tools/boot-check.sh"
 
 help_output="$("${boot_check}" --help)"
 [[ ${help_output} == *"--platform gnome|kde"* ]]
-[[ ${help_output} == *"[--connections FILE]"* ]]
+[[ ${help_output} != *"--connections"* ]]
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT
@@ -29,9 +29,11 @@ expect_failure "--platform is required" "${tmp_dir}/missing.img"
 expect_failure "unknown platform: xfce" --platform xfce "${tmp_dir}/missing.img"
 expect_failure "--autologin requires --user" --platform gnome --autologin "${tmp_dir}/missing.img"
 expect_failure "--timeout must be a positive integer" --platform gnome --timeout 0 "${tmp_dir}/missing.img"
+expect_failure "unknown option: --connections" --platform gnome --connections \
+  "${tmp_dir}/connections" "${tmp_dir}/missing.img"
 expect_failure "image not found" --platform gnome "${tmp_dir}/missing.img"
 touch "${tmp_dir}/report.txt"
 expect_failure "output already contains a boot-check artifact" --platform gnome \
-  --out "${tmp_dir}" --connections "${tmp_dir}/report.txt" "${BASH_SOURCE[0]}"
+  --out "${tmp_dir}" "${BASH_SOURCE[0]}"
 
 printf 'boot-check CLI tests passed\n'

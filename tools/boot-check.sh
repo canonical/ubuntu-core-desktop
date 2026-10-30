@@ -3,12 +3,13 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_dir="$(dirname "${script_dir}")"
+privileged_helper="${BOOT_CHECK_PRIVILEGED_HELPER:-/usr/local/sbin/core-desktop-boot-check-privileged}"
 
 usage() {
   cat <<'EOF'
 Usage: boot-check.sh --platform gnome|kde [--user NAME [--autologin]]
                       [--release] [--timeout SECONDS] [--out DIR]
-                      [--connections FILE] pc.img [seed.iso]
+                      pc.img [seed.iso]
 
 Boot a copy of pc.img in QEMU, then check its journal and ubuntu-data
 partition offline. QEMU runs for the full timeout (default: 600 seconds).
@@ -21,7 +22,6 @@ Options:
   --timeout SECONDS    QEMU runtime (positive integer, default: 600)
   --out DIR            Keep logs, journal, partition table, screenshot,
                        and report in DIR (default: a new temporary directory)
-  --connections FILE   Use FILE instead of platforms/<platform>/connections
   --help               Show this help
 EOF
 }
@@ -47,7 +47,6 @@ autologin=0
 release=0
 timeout_seconds=600
 out_dir=""
-connections_file=""
 positionals=()
 
 while (($#)); do
@@ -56,7 +55,7 @@ while (($#)); do
       usage
       exit 0
       ;;
-    --platform|--user|--timeout|--out|--connections)
+    --platform|--user|--timeout|--out)
       (($# >= 2)) || die "$1 requires a value"
       option="$1"
       value="$2"
@@ -66,7 +65,6 @@ while (($#)); do
         --user) user="$value"; user_set=1 ;;
         --timeout) timeout_seconds="$value" ;;
         --out) out_dir="$value" ;;
-        --connections) connections_file="$value" ;;
       esac
       ;;
     --autologin)
@@ -99,17 +97,14 @@ if [[ -n ${seed_path} ]]; then
   seed_path="$(realpath -- "${seed_path}")"
 fi
 
-if [[ -z ${connections_file} ]]; then
-  connections_file="${repo_dir}/platforms/${platform}/connections"
-fi
-[[ -f ${connections_file} ]] || die "connections file not found: ${connections_file} (use --connections FILE)"
-connections_file="$(realpath -- "${connections_file}")"
+connections_file="${repo_dir}/platforms/${platform}/connections"
+[[ -f ${connections_file} ]] || die "connections file not found: ${connections_file}"
 
-for command_name in qemu-system-x86_64 sfdisk mount umount journalctl python3; do
+for command_name in qemu-system-x86_64 sfdisk python3; do
   command -v "${command_name}" >/dev/null 2>&1 || die "required command not found: ${command_name}"
 done
 if ((EUID != 0)); then
-  command -v sudo >/dev/null 2>&1 || die "sudo is required to loop-mount ubuntu-data"
+  command -v sudo >/dev/null 2>&1 || die "sudo is required for offline image inspection"
 fi
 
 firmware_code=""
@@ -128,15 +123,20 @@ done
 if [[ -z ${out_dir} ]]; then
   out_dir="$(mktemp -d "${TMPDIR:-/tmp}/boot-check.XXXXXXXX")"
 else
-  mkdir -p -- "${out_dir}"
+  mkdir -m 0700 -p -- "${out_dir}"
   out_dir="$(cd "${out_dir}" && pwd)"
 fi
+[[ -O ${out_dir} ]] || die "output directory must be owned by the invoking user"
+out_dir_mode="$(stat -c %a "${out_dir}")"
+(( ((out_dir_mode / 10) % 10 & 2) == 0 && (out_dir_mode % 10 & 2) == 0 )) \
+  || die "output directory must not be writable by other users; run chmod go-w '${out_dir}'"
 
 report_path="${out_dir}/report.txt"
 serial_path="${out_dir}/serial.log"
 journal_path="${out_dir}/journal.log"
 partition_table_path="${out_dir}/sfdisk.txt"
 screenshot_path="${out_dir}/screenshot.ppm"
+state_snapshot_path="${out_dir}/snapd-state.json"
 image_copy="${out_dir}/pc.img.copy"
 vars_copy="${out_dir}/OVMF_VARS.fd"
 mount_dir="${out_dir}/ubuntu-data"
@@ -147,12 +147,19 @@ failures=0
 
 for artifact in \
   "${report_path}" "${serial_path}" "${journal_path}" "${partition_table_path}" \
-  "${screenshot_path}" "${image_copy}" "${vars_copy}" "${mount_dir}" "${monitor_socket}"; do
+  "${screenshot_path}" "${state_snapshot_path}" "${image_copy}" "${vars_copy}" "${mount_dir}" "${monitor_socket}"; do
   [[ ! -e ${artifact} && ! -L ${artifact} ]] \
     || die "output already contains a boot-check artifact: ${artifact}"
 done
 
-mkdir -p -- "${mount_dir}"
+if ((EUID != 0)); then
+  [[ -x ${privileged_helper} ]] || die "privileged helper is not installed: ${privileged_helper}"
+fi
+
+touch "${state_snapshot_path}"
+chmod 0600 "${state_snapshot_path}"
+
+mkdir -m 0700 -p -- "${mount_dir}"
 : >"${report_path}"
 
 cleanup() {
@@ -166,7 +173,7 @@ cleanup() {
     wait "${qemu_pid}" 2>/dev/null || true
   fi
   if [[ ${mounted} == 1 ]]; then
-    run_privileged umount "${mount_dir}" 2>/dev/null || true
+    run_privileged umount "${out_dir}" 2>/dev/null || true
   fi
   rm -f -- "${image_copy}" "${vars_copy}" "${monitor_socket}"
   rmdir "${mount_dir}" 2>/dev/null || true
@@ -203,14 +210,14 @@ qemu_running() {
 
 run_privileged() {
   if ((EUID == 0)); then
-    "$@"
+    "${script_dir}/boot-check-privileged.py" "$@"
   else
-    sudo "$@"
+    sudo "${privileged_helper}" "$@"
   fi
 }
 
-journalctl_offline() {
-  run_privileged journalctl "$@"
+journalctl_result() {
+  run_privileged journal "${out_dir}" "$@"
 }
 
 cp --reflink=auto --sparse=always -- "${image_path}" "${image_copy}"
@@ -329,8 +336,8 @@ if [[ -n ${partition_data} ]]; then
   fi
   partition_offset=$((data_start * sector_size))
   partition_size=$((data_size * sector_size))
-  if run_privileged mount -o "loop,ro,noload,offset=${partition_offset},sizelimit=${partition_size}" \
-    "${image_copy}" "${mount_dir}"; then
+  if run_privileged mount "${out_dir}" \
+    "${partition_offset}" "${partition_size}"; then
     mounted=1
   else
     fail "could not loop-mount ubuntu-data read-only from the image copy"
@@ -344,18 +351,31 @@ if [[ ${mounted} == 1 ]]; then
   [[ -d ${system_data} ]] || system_data="${mount_dir}"
   journal_dir="${system_data}/var/log/journal"
   state_file="${system_data}/var/lib/snapd/state.json"
+  state_snapshot_valid=0
   passwd_file="${system_data}/var/lib/extrausers/passwd"
 
+  if [[ -f ${state_file} ]]; then
+    if run_privileged copy-state "${out_dir}" "${state_snapshot_path}" && \
+      python3 -m json.tool "${state_snapshot_path}" >/dev/null 2>&1; then
+      state_snapshot_valid=1
+    else
+      fail "snapd state.json is invalid JSON; diagnostic snapshot: ${state_snapshot_path}"
+    fi
+  else
+    fail "snapd state.json not found"
+  fi
+
   if [[ -d ${journal_dir} ]]; then
-    journalctl_offline -D "${journal_dir}" -b 0 --no-pager -o short-monotonic 2>&1 \
+    journalctl_result="$(journalctl_result all 2>&1 || true)"
+    printf '%s\n' "${journalctl_result}" \
       | tee "${journal_path}" >/dev/null || true
-    seeded_journal="$(journalctl_offline -D "${journal_dir}" -b 0 -u snapd.seeded.service --no-pager -o short-monotonic 2>/dev/null || true)"
+    seeded_journal="$(journalctl_result seeded 2>/dev/null || true)"
     if grep -Eiq 'Finished.*(snapd\.seeded\.service|fully seeded)' <<<"${seeded_journal}"; then
       pass "snapd.seeded.service finished"
     else
       fail "snapd.seeded.service did not finish (see journal.log)"
     fi
-    failed_units="$(journalctl_offline -D "${journal_dir}" -b 0 --no-pager -p err..alert -o short-monotonic 2>/dev/null \
+    failed_units="$(journalctl_result errors 2>/dev/null \
       | python3 -c 'import re,sys; pattern=re.compile(r"Failed to start ([A-Za-z0-9_.@:-]+\.service)|(?:^| )([A-Za-z0-9_.@:-]+\.service)(?:\[[0-9]+\])?: (?:Failed|Main process exited|Dependency failed)"); units={match.group(1) or match.group(2) for line in sys.stdin for match in pattern.finditer(line)}; print("\n".join(sorted(units)) if units else "")' \
       || true)"
     if [[ -n ${failed_units} ]]; then
@@ -369,7 +389,7 @@ if [[ ${mounted} == 1 ]]; then
     fail "journal directory not found under ubuntu-data"
   fi
 
-  if [[ -f ${state_file} ]]; then
+  if ((state_snapshot_valid)); then
     connections_found=0
     while IFS= read -r connection_line || [[ -n ${connection_line} ]]; do
       connection_line="${connection_line%%#*}"
@@ -380,13 +400,27 @@ if [[ ${mounted} == 1 ]]; then
         continue
       }
       connections_found=1
-      if python3 - "${state_file}" "${plug} ${slot}" <<'PY'
+      if python3 - "${state_snapshot_path}" "${repo_dir}/platforms/${platform}/model.json" "${plug} ${slot}" <<'PY'
 import json
 import sys
 
-with open(sys.argv[1], encoding="utf-8") as state_file:
+with open(sys.argv[1], encoding="utf-8") as state_file, open(sys.argv[2], encoding="utf-8") as model_file:
     state = json.load(state_file)
-connection = state.get("data", {}).get("conns", {}).get(sys.argv[2])
+    model = json.load(model_file)
+snap_names = {snap["id"]: snap["name"] for snap in model["snaps"] if "id" in snap}
+
+def state_endpoint(endpoint):
+    snap, interface = endpoint.split(":", 1)
+    # Gadget connections may use snap IDs; state records use installed names.
+    snap = snap_names.get(snap, snap)
+    # snapd persists implicit system slots under the legacy core name.
+    if snap in {"system", "snapd"}:
+        snap = "core"
+    return f"{snap}:{interface}"
+
+plug, slot = sys.argv[3].split()
+connection_id = f"{state_endpoint(plug)} {state_endpoint(slot)}"
+connection = state.get("data", {}).get("conns", {}).get(connection_id)
 if connection is None or connection.get("undesired") is True:
     raise SystemExit(1)
 PY
@@ -399,12 +433,10 @@ PY
     if [[ ${connections_found} == 0 ]]; then
       fail "connections file contains no connection entries"
     fi
-  else
-    fail "snapd state.json not found"
   fi
 
   if [[ ${platform} == gnome && -z ${user} ]]; then
-    gdm_journal="$(journalctl_offline -D "${journal_dir}" -b 0 -u gdm.service --no-pager -o cat 2>/dev/null || true)"
+    gdm_journal="$(journalctl_result gdm 2>/dev/null || true)"
     if [[ ${gdm_journal} == *"Started GNOME Display Manager"* || ${gdm_journal} == *"Started gdm.service"* ]]; then
       pass "gdm.service started"
     else
@@ -418,12 +450,12 @@ PY
   fi
 
   if [[ -n ${user} ]]; then
-    passwd_line="$(run_privileged awk -F: -v expected="${user}" '$1 == expected { print; exit }' "${passwd_file}" 2>/dev/null || true)"
+    passwd_line="$(run_privileged read-passwd "${out_dir}" "${user}" 2>/dev/null || true)"
     if [[ -n ${passwd_line} ]]; then
       pass "user ${user} is present in extrausers passwd"
       user_uid="$(cut -d: -f3 <<<"${passwd_line}")"
       if [[ ${autologin} == 1 ]]; then
-        user_journal="$(journalctl_offline -D "${journal_dir}" -b 0 -u "user@${user_uid}.service" --no-pager -o short-monotonic 2>/dev/null || true)"
+        user_journal="$(journalctl_result user-manager "${user_uid}" 2>/dev/null || true)"
         if grep -Eiq "Started.*(user@${user_uid}\\.service|User Manager for UID ${user_uid})" <<<"${user_journal}"; then
           pass "user@${user_uid}.service started"
         else
@@ -437,7 +469,7 @@ PY
   fi
 
   if [[ ${platform} == kde ]]; then
-    sddm_journal="$(journalctl_offline -D "${journal_dir}" -b 0 -u sddm.service --no-pager -o cat 2>/dev/null || true)"
+    sddm_journal="$(journalctl_result sddm 2>/dev/null || true)"
     if [[ ${sddm_journal} == *"Started Simple Desktop Display Manager"* || ${sddm_journal} == *"Started sddm.service"* ]]; then
       pass "sddm.service started"
     else
@@ -456,15 +488,18 @@ PY
   fi
 
   if [[ ${release} == 1 ]]; then
-    kernel_cmdline="$(journalctl_offline -D "${journal_dir}" -b 0 -k --no-pager -o cat 2>/dev/null \
+    kernel_cmdline="$(journalctl_result kernel 2>/dev/null \
       | grep -F 'Kernel command line:' | tail -n 1 || true)"
-    if [[ -n ${kernel_cmdline} && ${kernel_cmdline} != *"console=ttyS0"* ]]; then
-      pass "Release kernel command line has no console=ttyS0"
+    if [[ -n ${kernel_cmdline} && ${kernel_cmdline} != *"console=ttyS0,115200n8"* && \
+      ${kernel_cmdline} != *"systemd.journald.forward_to_console=1"* ]]; then
+      pass "Release kernel command line has no Development serial-console arguments"
     else
-      fail "Release kernel command line contains console=ttyS0 or was not recorded"
+      fail "Release kernel command line contains Development serial-console arguments or was not recorded"
     fi
     ssh_development_listener=0
-    ssh_listen_address="$(python3 - "${state_file}" <<'PY'
+    ssh_listen_address=""
+    if ((state_snapshot_valid)); then
+      ssh_listen_address="$(python3 - "${state_snapshot_path}" <<'PY'
 import json
 import sys
 
@@ -476,10 +511,11 @@ if isinstance(address, str) and address.startswith(":"):
     address = "0.0.0.0" if address[1:].isdigit() else ""
 print(address)
 PY
-    )"
+      )"
+    fi
     ssh_config="${system_data}/etc/ssh/sshd_config.d/listen.conf"
     if [[ -f ${ssh_config} ]]; then
-      ssh_listen_address="$(run_privileged awk '$1 == "ListenAddress" {print $2}' "${ssh_config}" 2>/dev/null \
+      ssh_listen_address="$(run_privileged read-ssh "${out_dir}" 2>/dev/null \
         | paste -sd ',' -)"
     elif [[ -n ${ssh_listen_address} ]]; then
       case "${ssh_listen_address}" in

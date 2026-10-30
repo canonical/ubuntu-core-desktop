@@ -8,9 +8,9 @@ trap 'rm -rf "${tmp_dir}"' EXIT
 
 mkdir -p "${tmp_dir}/bin" \
   "${tmp_dir}/out-gnome" "${tmp_dir}/out-kde"
+chmod 0700 "${tmp_dir}/out-gnome" "${tmp_dir}/out-kde"
 printf 'input image is immutable\n' >"${tmp_dir}/pc.img"
 printf 'seed placeholder\n' >"${tmp_dir}/seed.iso"
-printf 'session:desktop ubuntu-desktop-init:desktop\n' >"${tmp_dir}/connections"
 
 cat >"${tmp_dir}/bin/qemu-system-x86_64" <<'PY'
 #!/usr/bin/env python3
@@ -69,6 +69,9 @@ for argument in "$@"; do
   if [[ ${argument} == */ubuntu-data ]]; then
     case "${argument}" in
       */out-bad/ubuntu-data) fixture="${FIXTURE_ROOT%/gnome}/undesired" ;;
+      */out-kde/ubuntu-data) fixture="${FIXTURE_ROOT%/gnome}/kde" ;;
+      */out-release-bad/ubuntu-data) fixture="${FIXTURE_ROOT%/gnome}/kde" ;;
+      */out-invalid-state/ubuntu-data) fixture="${FIXTURE_ROOT%/gnome}/invalid-state" ;;
       *) fixture="${FIXTURE_ROOT}" ;;
     esac
     mkdir -p "${argument}"
@@ -84,10 +87,66 @@ cat >"${tmp_dir}/bin/umount" <<'SH'
 exit 0
 SH
 
+cat >"${tmp_dir}/bin/boot-check-privileged" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+operation=$1
+shift
+case "$operation" in
+  mount)
+    out_dir=$1
+    shift
+    exec mount -o "loop,ro,noload,offset=$1,sizelimit=$2" \
+      "${out_dir}/pc.img.copy" "${out_dir}/ubuntu-data"
+    ;;
+  umount) exit 0 ;;
+  copy-state)
+    out_dir=$1
+    cp "${out_dir}/ubuntu-data/system-data/var/lib/snapd/state.json" "$2"
+    chmod 600 "$2"
+    ;;
+  journal)
+    out_dir=$1
+    selector=$2
+    shift 2
+    if [[ ${JOURNAL_FIXTURE:-} == corrupt && ${selector} == all ]]; then
+      printf 'Journal file corrupted, ignoring file.\\n' >&2
+      exit 1
+    fi
+    args=(-D "${out_dir}/ubuntu-data/system-data/var/log/journal" -b 0 --no-pager)
+    case "$selector" in
+      all) args+=(-o short-monotonic) ;;
+      seeded) args+=(-u snapd.seeded.service -o short-monotonic) ;;
+      errors) args+=(-p err..alert -o short-monotonic) ;;
+      gdm|sddm) args+=(-u "$selector.service" -o cat) ;;
+      kernel) args+=(-k -o cat) ;;
+      user-manager) args+=(-u "user@$1.service" -o short-monotonic) ;;
+    esac
+    exec journalctl "${args[@]}"
+    ;;
+  read-passwd)
+    out_dir=$1
+    username=$2
+    awk -F: -v expected="$username" '$1 == expected { print; exit }' \
+      "${out_dir}/ubuntu-data/system-data/var/lib/extrausers/passwd"
+    ;;
+  read-ssh)
+    out_dir=$1
+    awk '$1 == "ListenAddress" {print $2}' \
+      "${out_dir}/ubuntu-data/system-data/etc/ssh/sshd_config.d/listen.conf"
+    ;;
+  *) exit 2 ;;
+esac
+SH
+
 cat >"${tmp_dir}/bin/sudo" <<'SH'
 #!/usr/bin/env bash
+set -euo pipefail
 [[ ${1:-} == -v ]] && exit 0
-exec "$@"
+[[ ${1:-} == "${BOOT_CHECK_PRIVILEGED_HELPER}" ]] || exit 2
+shift
+printf '%s\n' "$1" >>"${FIXTURE_SUDO_LOG}"
+exec "${BOOT_CHECK_PRIVILEGED_HELPER}" "$@"
 SH
 
 cat >"${tmp_dir}/bin/journalctl" <<'SH'
@@ -111,9 +170,9 @@ if [[ ${priority} == 1 ]]; then
   printf 'example.service: Failed with result exit-code\n'
 elif [[ ${kernel} == 1 ]]; then
   if [[ ${boot} == 0 && ${JOURNAL_FIXTURE:-} == release-bad ]]; then
-    printf 'Kernel command line: root=/dev/vda console=ttyS0 quiet splash\n'
+    printf 'Kernel command line: root=/dev/vda console=ttyS0 console=tty1 systemd.journald.forward_to_console=1 console=ttyS0,115200n8 quiet splash\n'
   else
-    printf 'Kernel command line: root=/dev/vda console=tty0 quiet splash\n'
+    printf 'Kernel command line: root=/dev/vda console=ttyS0 console=tty1 quiet splash\n'
   fi
 elif [[ ${unit} == snapd.seeded.service ]]; then
   printf 'Finished snapd.seeded.service - Wait until snapd is fully seeded.\n'
@@ -132,8 +191,10 @@ SH
 chmod +x "${tmp_dir}/bin/"*
 export PATH="${tmp_dir}/bin:${PATH}"
 export FIXTURE_ROOT="${tmp_dir}/fixture/gnome"
+export FIXTURE_SUDO_LOG="${tmp_dir}/sudo.log"
+export BOOT_CHECK_PRIVILEGED_HELPER="${tmp_dir}/bin/boot-check-privileged"
 
-for scenario in gnome undesired; do
+for scenario in gnome kde undesired invalid-state; do
   mkdir -p "${tmp_dir}/fixture/${scenario}/system-data/var/log/journal" \
     "${tmp_dir}/fixture/${scenario}/system-data/var/lib/snapd" \
   "${tmp_dir}/fixture/${scenario}/system-data/var/lib/extrausers" \
@@ -148,18 +209,48 @@ for scenario in gnome undesired; do
     printf 'ListenAddress 127.0.0.1:8022\nListenAddress [::1]:8022\n' \
       >"${tmp_dir}/fixture/${scenario}/system-data/etc/ssh/sshd_config.d/listen.conf"
   fi
-  if [[ ${scenario} == undesired ]]; then
-    connection_state='{"interface":"desktop","undesired":true}'
-  else
-    connection_state='{"interface":"desktop"}'
+  platform=gnome
+  [[ ${scenario} != kde ]] || platform=kde
+  python3 - "${repo_root}" "${platform}" "${scenario}" \
+    "${tmp_dir}/fixture/${scenario}/system-data/var/lib/snapd/state.json" <<'PY'
+import json
+import pathlib
+import sys
+
+repo_root, platform, scenario, state_path = sys.argv[1:]
+connections = {}
+path = pathlib.Path(repo_root) / "platforms" / platform / "connections"
+model = json.loads((path.parent / "model.json").read_text(encoding="utf-8"))
+snap_names = {snap["id"]: snap["name"] for snap in model["snaps"] if "id" in snap}
+
+def state_endpoint(endpoint):
+    snap, interface = endpoint.split(":", 1)
+    snap = snap_names.get(snap, snap)
+    if snap in {"system", "snapd"}:
+        snap = "core"
+    return f"{snap}:{interface}"
+
+for line in path.read_text(encoding="utf-8").splitlines():
+    line = line.split("#", 1)[0].strip()
+    if line:
+        plug, slot = line.split()
+        connections[f"{state_endpoint(plug)} {state_endpoint(slot)}"] = {"interface": "test"}
+if scenario == "undesired":
+    connections["ubuntu-desktop-session:account-control core:account-control"]["undesired"] = True
+with open(state_path, "w", encoding="utf-8") as state_file:
+    json.dump({"data": {"conns": connections, "config": {"system": {
+        "service.ssh.listen-address": "127.0.0.1"
+    }}}}, state_file)
+PY
+  if [[ ${scenario} == invalid-state ]]; then
+    printf '{"data":{"conns":"unterminated' \
+      >"${tmp_dir}/fixture/${scenario}/system-data/var/lib/snapd/state.json"
   fi
-  cat >"${tmp_dir}/fixture/${scenario}/system-data/var/lib/snapd/state.json" <<EOF
-{"data":{"conns":{"session:desktop ubuntu-desktop-init:desktop":${connection_state}},"config":{"system":{"service.ssh.listen-address":"127.0.0.1"}}}}
-EOF
 done
 
 "${boot_check}" --platform gnome --timeout 1 --out "${tmp_dir}/out-gnome" \
-  --connections "${tmp_dir}/connections" "${tmp_dir}/pc.img" "${tmp_dir}/seed.iso"
+  "${tmp_dir}/pc.img" "${tmp_dir}/seed.iso"
+grep -q '^copy-state$' "${FIXTURE_SUDO_LOG}"
 grep -q '^PASS: snapd.seeded.service finished$' "${tmp_dir}/out-gnome/report.txt"
 grep -q '^PASS: ubuntu-desktop-init wizard session started$' "${tmp_dir}/out-gnome/report.txt"
 grep -q '^INFO:   example.service$' "${tmp_dir}/out-gnome/report.txt"
@@ -169,31 +260,64 @@ grep -q '^INFO:   example.service$' "${tmp_dir}/out-gnome/report.txt"
 [[ -s ${tmp_dir}/out-gnome/screenshot.ppm ]]
 [[ ! -e ${tmp_dir}/out-gnome/pc.img.copy ]]
 
+export FIXTURE_ROOT="${tmp_dir}/fixture/gnome"
 "${boot_check}" --platform kde --user alice --autologin --release --timeout 1 \
-  --out "${tmp_dir}/out-kde" --connections "${tmp_dir}/connections" "${tmp_dir}/pc.img"
+  --out "${tmp_dir}/out-kde" "${tmp_dir}/pc.img"
 grep -q '^PASS: user alice is present in extrausers passwd$' "${tmp_dir}/out-kde/report.txt"
 grep -q '^PASS: user@1000.service started$' "${tmp_dir}/out-kde/report.txt"
 grep -q '^PASS: sddm.service started$' "${tmp_dir}/out-kde/report.txt"
 grep -q '^PASS: gdm.service is masked$' "${tmp_dir}/out-kde/report.txt"
-grep -q '^PASS: Release kernel command line has no console=ttyS0$' "${tmp_dir}/out-kde/report.txt"
+grep -q '^PASS: Release kernel command line has no Development serial-console arguments$' "${tmp_dir}/out-kde/report.txt"
 grep -q '^PASS: Release SSH listen-address is not 0.0.0.0$' "${tmp_dir}/out-kde/report.txt"
+grep -q '^journal$' "${FIXTURE_SUDO_LOG}"
+grep -q '^read-passwd$' "${FIXTURE_SUDO_LOG}"
+if rg -q 'python3|awk|cp|journalctl' "${FIXTURE_SUDO_LOG}"; then
+  printf 'boot-check should use fixed helper operations, not arbitrary privileged commands\n' >&2
+  exit 1
+fi
 
 export FIXTURE_ROOT="${tmp_dir}/fixture/gnome"
 if JOURNAL_FIXTURE=release-bad "${boot_check}" --platform kde --release --timeout 1 --out "${tmp_dir}/out-release-bad" \
-  --connections "${tmp_dir}/connections" "${tmp_dir}/pc.img"; then
+  "${tmp_dir}/pc.img"; then
   printf 'expected the development serial console to fail the release assertion\n' >&2
   exit 1
 fi
-grep -q '^FAIL: Release kernel command line contains console=ttyS0 or was not recorded$' \
+grep -q '^FAIL: Release kernel command line contains Development serial-console arguments or was not recorded$' \
   "${tmp_dir}/out-release-bad/report.txt"
 
 export FIXTURE_ROOT="${tmp_dir}/fixture/gnome"
 if "${boot_check}" --platform gnome --timeout 1 --out "${tmp_dir}/out-bad" \
-  --connections "${tmp_dir}/connections" "${tmp_dir}/pc.img"; then
+  "${tmp_dir}/pc.img"; then
   printf 'expected the undesirable connection to fail\n' >&2
   exit 1
 fi
-grep -q '^FAIL: connection session:desktop ubuntu-desktop-init:desktop is missing or marked undesired$' \
+grep -q '^FAIL: connection ubuntu-desktop-session:account-control system:account-control is missing or marked undesired$' \
   "${tmp_dir}/out-bad/report.txt"
+
+export FIXTURE_ROOT="${tmp_dir}/fixture/gnome"
+if "${boot_check}" --platform gnome --timeout 1 --out "${tmp_dir}/out-invalid-state" \
+  "${tmp_dir}/pc.img"; then
+  printf 'expected invalid snapd state to fail boot-check\n' >&2
+  exit 1
+fi
+grep -q '^FAIL: snapd state.json is invalid JSON; diagnostic snapshot: .*snapd-state.json$' \
+  "${tmp_dir}/out-invalid-state/report.txt"
+[[ -s ${tmp_dir}/out-invalid-state/snapd-state.json ]]
+[[ $(stat -c %a "${tmp_dir}/out-invalid-state/snapd-state.json") == 600 ]]
+if rg -q 'JSONDecodeError|Traceback' "${tmp_dir}/out-invalid-state/report.txt"; then
+  printf 'invalid snapd state should produce a concise failure, not a traceback\n' >&2
+  exit 1
+fi
+! rg -q '^FAIL: connection ' "${tmp_dir}/out-invalid-state/report.txt"
+
+export FIXTURE_ROOT="${tmp_dir}/fixture/gnome"
+if JOURNAL_FIXTURE=corrupt "${boot_check}" --platform gnome --timeout 1 --out "${tmp_dir}/out-corrupt-journal" \
+  "${tmp_dir}/pc.img"; then
+  printf 'expected a corrupt journal to fail boot-check without aborting it\n' >&2
+  exit 1
+fi
+grep -q '^FAIL: snapd.seeded.service did not finish' "${tmp_dir}/out-corrupt-journal/report.txt"
+grep -q '^PASS: gdm.service started$' "${tmp_dir}/out-corrupt-journal/report.txt"
+grep -q '^FAIL: 1 boot-check assertion(s) failed$' "${tmp_dir}/out-corrupt-journal/report.txt"
 
 printf 'boot-check offline assertion tests passed\n'
