@@ -15,14 +15,24 @@ permissions:
 
 jobs:
   image:
-    # 26.04 on purpose: matches build-image.yaml (GNOME) - on the 24.04
-    # runner `calculate_rootfs_size` died with an instant SIGABRT inside
-    # the du-based sizing (todo/20261009-..., ubuntu-image 3.10.10, GH
-    # run 38010415300).
+    # imagecraft's project uses Ubuntu 26.04 and packs in an LXD container.
     runs-on: ubuntu-26.04
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+
+      # The imagecraft project copies all local snaps and stores an LXD image.
+      # Remove preinstalled SDKs that are not used by this image build.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc
+          df -h
+
+      - name: Set up LXD
+        uses: canonical/setup-lxd@e38f436c468900dfe2b6ca98fb8eb352bbbb917a
+
+      - name: Install imagecraft
+        run: sudo snap install imagecraft --classic
 
       - name: Download snap inputs (desktop-26-latest release assets)
         env:
@@ -73,30 +83,16 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          # cloud-image-utils provides cloud-localds: with --user given,
-          # build.sh generates a companion seed.iso (steps/seed.sh)
-          # that cloud-init uses to actually create the guest account at
-          # first boot - build.sh only bakes in sudoers/autologin config,
-          # not the account itself.
-          sudo apt-get install -y squashfs-tools dosfstools mtools fakeroot crudini zstd cloud-image-utils
-          sudo snap install --classic ubuntu-image
+          # cloud-image-utils provides cloud-localds for steps/seed.sh.
+          sudo apt-get install -y squashfs-tools fakeroot zstd cloud-image-utils openssl
 
       - name: Build image
-        # --autologin/--user guest/--password guest: unlike the GNOME
-        # image, KDE has no first-boot account-creation wizard wired up
-        # (SDDM gap). build.sh bakes sudoers/autologin config into the
-        # image itself, but the guest account is actually created at
-        # first boot by cloud-init from the companion seed.iso it also
-        # generates (see the Compress step below). This MUST be called
-        # out prominently in the release notes below alongside the
-        # "dangerous" (unasserted snaps, individually signed model)
-        # label. The model is pre-signed and committed (see ci/), so no
-        # signing key is needed here. See
-        # todo/20261009-build-and-publish-kde-dangerous.txt.
+        # KDE has no account-creation wizard. Its seed ISO creates the
+        # guest/guest account on first boot and the committed Platform model
+        # is already signed.
         run: |
-          du --version | head -1
           ./build.sh \
-            --desktop kde \
+            --platform kde \
             --autologin \
             --user guest \
             --password "guest" \
@@ -104,12 +100,11 @@ jobs:
             --base-snap snaps/core26-desktop.snap \
             --gadget-snap snaps/pc-desktop.snap \
             --snapd-snap snaps/snapd.snap \
-            --snap snaps/plasma-core-desktop.snap \
             --snap snaps/kf6-core26.snap \
             --snap snaps/ubuntu-desktop-init.snap \
-            --kde-session-snap snaps/plasma-desktop-session.snap \
-            --kde-plasma-snap snaps/plasma-core-desktop.snap \
-            --model ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model
+            --input session=snaps/plasma-desktop-session.snap \
+            --input plasma=snaps/plasma-core-desktop.snap \
+            --model platforms/kde/model.signed
 
       - name: Compress
         id: compress
@@ -118,14 +113,14 @@ jobs:
           echo "day=$day" >> "$GITHUB_OUTPUT"
           img="ubuntu-core-desktop-kde-${day}.img.zst"
           seed="ubuntu-core-desktop-kde-${day}-seed.iso"
-          zstd -T0 -19 build/pc.img -o "$img"
+          zstd -T0 -19 build/kde/pc.img -o "$img"
           # seed.iso is small (cloud-init NoCloud data) and already
           # minimal; ship it uncompressed as its own asset. It MUST be
           # attached as a cdrom/virtual CD-ROM drive on first boot
           # (see go-run-kde): it's what actually creates the guest
           # account (build.sh only bakes in sudoers/autologin config,
           # not the account itself).
-          cp build/seed.iso "$seed"
+          cp build/kde/seed.iso "$seed"
 
           # GitHub release/API assets are capped at 2GiB
           # (2147483648 bytes). KDE's image carries extra snaps

@@ -62,7 +62,7 @@ parts:
     uc-prepare-write-revisions: true
     uc-prepare-snaps:
 @CORE_SNAPS@
-      # --snap extras, as passed by .github/workflows/build-image.yaml
+      # Extra local snaps passed to build.sh.
 @EXTRA_SNAPS@
     organize:
       system-seed: (volume/pc/ubuntu-seed)

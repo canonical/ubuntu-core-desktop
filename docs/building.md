@@ -31,7 +31,7 @@ imagecraft --version
 snapcraft --version
 ```
 
-Imagecraft runs in managed mode using LXD; the build does not use destructive host mode. Build snaps explicitly in LXD containers with `snapcraft pack --use-lxd`. This avoids relying on Multipass or on whichever provider Snapcraft would otherwise choose. Use Snapcraft 9.x by default: all seven current `desktop/26` source builds were validated with Snapcraft 9.1.4 and `--use-lxd`. The snapd source recipe still recommends 8.x, so if a future source revision fails with a Snapcraft compatibility error, retry with `sudo snap install snapcraft --classic --channel=8.x/stable` and report the mismatch. Managed imagecraft on the GitHub-hosted `ubuntu-26.04` runner is not verified; the current CI workflows still use the old interface and are not updated by this change.
+Imagecraft runs in managed mode using LXD; the build does not use destructive host mode. Build snaps explicitly in LXD containers with `snapcraft pack --use-lxd`. This avoids relying on Multipass or on whichever provider Snapcraft would otherwise choose. Use Snapcraft 9.x by default: all seven current `desktop/26` source builds were validated with Snapcraft 9.1.4 and `--use-lxd`. The snapd source recipe still recommends 8.x, so if a future source revision fails with a Snapcraft compatibility error, retry with `sudo snap install snapcraft --classic --channel=8.x/stable` and report the mismatch. The CI workflows initialize LXD with `canonical/setup-lxd` and run imagecraft in managed mode on GitHub-hosted `ubuntu-26.04` runners; validate this configuration with a workflow run after changes to the runner setup or imagecraft.
 
 ## Build the GNOME Image
 
@@ -162,7 +162,7 @@ For example, after preparing a build directory and its repacked snaps, sign the 
 
 Platform-declared KDE inputs are passed to `repack.sh` as repeatable `--input NAME=FILE` arguments. The full options for every script are available from its `--help` output. Repacking or signing independently does not automatically rerun later steps; invoke the downstream step(s) whose inputs changed.
 
-For a faster assembly-only test, use the current `desktop-26-latest` snap assets downloaded by `.github/workflows/build-image.yaml`. This validates assembly against published snap inputs but does not exercise building the snap source repositories. These workflows still use the old CLI and are known to break against the refactored build until migrated.
+For a faster assembly-only test, use the current `desktop-26-latest` snap assets downloaded by `.github/workflows/build-image.yaml`. This validates assembly against published snap inputs but does not exercise building the snap source repositories.
 
 ## Test the Image in QEMU
 
@@ -191,7 +191,7 @@ For changes to `build.sh`, the model, or snap integration, run the relevant sour
 for test_script in tests/*.sh; do bash "$test_script" || exit; done
 ```
 
-`tools/boot-check.sh` is a standalone automated boot test that checks an image offline after a QEMU run; consult its `--help` output for options. It requires KVM, OVMF, and permission to loop-mount the image's `ubuntu-data` partition (direct root access or working `sudo`), and normally runs for ten minutes per image. Keep its output directory on a path short enough for QEMU's Unix monitor socket limit. CI workflow changes are out of scope here; the existing workflows still call the old interface and will fail until migrated. Managed imagecraft on the GitHub-hosted runner also remains unverified.
+`tools/boot-check.sh` is a standalone automated boot test that checks an image offline after a QEMU run; consult its `--help` output for options. It requires KVM, OVMF, and permission to loop-mount the image's `ubuntu-data` partition (direct root access or working `sudo`), and normally runs for ten minutes per image. Keep its output directory on a path short enough for QEMU's Unix monitor socket limit. The image workflows build and publish images but do not run this boot check.
 
 When reporting your testing, distinguish between:
 
@@ -204,7 +204,7 @@ Report only the stages you actually tested, together with the QEMU configuration
 
 ## Old-to-New CLI Mapping
 
-The refactor changes the build interface. Use this mapping when updating scripts or CI; CI workflow changes are not included here.
+The refactor changed the build interface. This mapping remains useful when updating scripts or CI.
 
 | Old interface | New interface |
 | --- | --- |
@@ -221,7 +221,7 @@ The refactor changes the build interface. Use this mapping when updating scripts
 | `build/pc.img`, `build/seed.iso` | `build/<platform>/pc.img`, `build/<platform>/seed.iso` |
 | Install `ubuntu-image` | Install imagecraft and initialize LXD for managed mode |
 
-The existing `.github/workflows/build-image.yaml` and `build-image-kde.yaml` still use the old flags, model paths, output paths, and `ubuntu-image`; they will break until migrated. Whether managed imagecraft works on the GitHub-hosted runner is unverified.
+Both image workflows use the new interface and managed imagecraft. Verify runner compatibility with a workflow run after updating either workflow or its imagecraft/LXD setup.
 
 ## Optional Advanced Setup
 

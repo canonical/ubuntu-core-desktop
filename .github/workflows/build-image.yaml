@@ -13,14 +13,24 @@ permissions:
 
 jobs:
   image:
-    # 26.04 on purpose: every locally-proven build of this image runs on
-    # resolute; on the 24.04 runner `calculate_rootfs_size` died with an
-    # instant SIGABRT inside the du-based sizing (todo/20261009-...,
-    # ubuntu-image 3.10.10, GH run 38010415300).
+    # imagecraft's project uses Ubuntu 26.04 and packs in an LXD container.
     runs-on: ubuntu-26.04
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+
+      # The imagecraft project copies all local snaps and stores an LXD image.
+      # Remove preinstalled SDKs that are not used by this image build.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc
+          df -h
+
+      - name: Set up LXD
+        uses: canonical/setup-lxd@e38f436c468900dfe2b6ca98fb8eb352bbbb917a
+
+      - name: Install imagecraft
+        run: sudo snap install imagecraft --classic
 
       - name: Download snap inputs (desktop-26-latest release assets)
         env:
@@ -63,19 +73,15 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y squashfs-tools dosfstools mtools fakeroot crudini zstd
-          sudo snap install --classic ubuntu-image
+          sudo apt-get install -y squashfs-tools fakeroot zstd
 
       - name: Build image
-        # No --user / --autologin / --root-password: the published image
-        # has no baked credentials; first boot runs the
-        # ubuntu-desktop-init wizard via GDM initial-setup.  The model is
-        # pre-signed and committed (see ci/), so no signing key is needed
-        # here.  See todo/20261009-build-and-publish-gnome-dangerous.txt.
+        # No --user / --autologin / --root-password: the published image has
+        # no baked credentials; first boot runs ubuntu-desktop-init. The
+        # committed Platform model is already signed.
         run: |
-          du --version | head -1
           ./build.sh \
-            --desktop gnome \
+            --platform gnome \
             --model-account-key ci/account-key.assert \
             --base-snap snaps/core26-desktop.snap \
             --gadget-snap snaps/pc-desktop.snap \
@@ -84,11 +90,11 @@ jobs:
             --snap snaps/gnome-desktop-runtime.snap \
             --snap snaps/pipewire.snap \
             --snap snaps/ubuntu-desktop-init.snap \
-            --model ci/ubuntu-core-desktop-26-amd64-dangerous.model
+            --model platforms/gnome/model.signed
 
       - name: Compress
         run: |
-          zstd -T0 -19 build/pc.img \
+          zstd -T0 -19 build/gnome/pc.img \
             -o "ubuntu-core-desktop-gnome-$(date -u +%Y%m%d).img.zst"
           sha256sum ubuntu-core-desktop-gnome-*.img.zst > SHA256SUMS
 
