@@ -659,13 +659,41 @@ kde_plasma_setup_integration() {
   # /etc is a writable-path, seeded at first boot from
   # usr/share/factory/writable/system-data/etc -- same pattern as the
   # gdm3 custom.conf/sddm.conf handling elsewhere in this script.
+  #
+  # Upstream's UserGroups default is "wheel", which does not exist on
+  # Ubuntu. The auth helper pre-validates every configured group with
+  # getgrnam() and aborts on the first miss -- AFTER useradd has already
+  # created the account but BEFORE the chpasswd step that sets its
+  # password -- leaving a locked-password account that rejects the
+  # correct password at every subsequent SDDM login (seen live:
+  # "Failed to create user: Unknown group: wheel", shadow entry
+  # "<user>:!"). Rewrite it to "sudo", Ubuntu's admin group, matching
+  # the cloud-init --user path (build-cloud-init.sh groups: [sudo]).
+  # The extrausers-aware usermod lands the resulting `usermod -aG sudo`
+  # write in the pre-seeded /var/lib/extrausers/group copy (verify:
+  # getent group sudo shows the user appended there, /etc/group
+  # untouched), so the group step succeeds on the read-only-/etc image.
   for plasmasetuprc in \
     "${rootfs}/etc/xdg/plasmasetuprc" \
     "${factory_etc}/xdg/plasmasetuprc"
   do
-  install -D -m 0644 \
-    "${runtime_root}/sddm/etc/xdg/plasmasetuprc" "${plasmasetuprc}"
+    install -D -m 0644 \
+      "${runtime_root}/sddm/etc/xdg/plasmasetuprc" "${plasmasetuprc}"
+    sed -i "s/^UserGroups=.*/UserGroups=sudo/" "${plasmasetuprc}"
   done
+
+  # The wizard's completion flag file, /etc/plasma-setup-done, gates
+  # plasma-setup.service (ConditionPathExists=!...) -- without it the
+  # wizard (and its SDDM autologin drop-in rewrite) re-runs on every
+  # boot. Its auth helper writes the file with a direct
+  # QFile::open(WriteOnly|Truncate), which follows symlinks, so the
+  # same /etc/writable symlink pattern as /etc/sddm.conf above works
+  # here too: the target need not pre-exist (a dangling symlink is
+  # "not exists" for the condition, and QFile::open creates it), and
+  # /etc/writable is the writable bind on the data partition. The
+  # helper's parentDir check is /etc itself, which exists.
+  ln -sfn writable/plasma-setup-done "${rootfs}/etc/plasma-setup-done"
+  ln -sfn writable/plasma-setup-done "${factory_etc}/plasma-setup-done"
 
   # The libexec binaries need the same content-snap Qt/KF6/QML
   # environment as the sddm-helper wrapper above, plus plasma-setup's
