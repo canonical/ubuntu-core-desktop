@@ -622,6 +622,36 @@ kde_plasma_setup_integration() {
   install -D -m 0644 \
     "${runtime_root}/sddm/usr/lib/tmpfiles.d/plasma-setup-tmpfiles.conf" \
     "${rootfs}/usr/lib/tmpfiles.d/plasma-setup-tmpfiles.conf"
+
+  # The upstream fragment above writes the wizard session's config to the
+  # plain $HOME/.config (/run/plasma-setup/.config). The wizard session's
+  # snap-confined processes (kwin_wayland, plasmashell, ...) do NOT read
+  # that path: snapd runs every snap app with a snap-private
+  # XDG_CONFIG_HOME=$SNAP_REAL_HOME/snap/<snap>/common/.config, so kwin
+  # never sees the kscreenlockerrc the fragment writes, and its default
+  # 5-minute idle timer locks the wizard session -- whose special
+  # plasma-setup account has no password at all, bricking the first-boot
+  # wizard until a reboot (seen live on the first end-to-end no-user boot:
+  # locked 300s after session start). Mirror the wizard session files
+  # into the snap-private config dir too, with a second fragment named
+  # to sort before the upstream one (so its output also gets the
+  # upstream fragment's final recursive Z ownership pass). /run is
+  # tmpfs, wiped every boot, so create-if-missing (f/C) is enough.
+  # Content mirrors plasma-setup-tmpfiles.conf exactly.
+  cat >"${rootfs}/usr/lib/tmpfiles.d/plasma-setup-snap.conf" <<'EOF'
+# Mirror of the plasma-setup session config for snap-confined processes:
+# snapd points their XDG_CONFIG_HOME at the snap-private
+# /run/plasma-setup/snap/plasma-desktop-session/common/.config instead of
+# the $HOME/.config written by plasma-setup-tmpfiles.conf.
+# Disable screen locking (the plasma-setup user has no password, so a
+# locked wizard cannot be unlocked), KWallet, plasma-welcome, and default
+# panels, during initial setup.
+f /run/plasma-setup/snap/plasma-desktop-session/common/.config/kscreenlockerrc - plasma-setup plasma-setup - [Daemon]\nAutolock=false\nLockOnResume=false\nTimeout=0
+f /run/plasma-setup/snap/plasma-desktop-session/common/.config/kwalletrc - plasma-setup plasma-setup - [Wallet]\nEnabled=false
+f /run/plasma-setup/snap/plasma-desktop-session/common/.config/plasma-welcomerc - plasma-setup plasma-setup - [General]\nLastSeenVersion=6.4.2\nShowUpdatePage=false
+C /run/plasma-setup/snap/plasma-desktop-session/common/.config/kglobalaccelrc - plasma-setup plasma-setup - /usr/share/plasma-setup/kglobalaccelrc
+f /run/plasma-setup/snap/plasma-desktop-session/common/.config/plasma-org.kde.plasma.desktop-appletsrc - plasma-setup plasma-setup - [Containments][1]\nformfactor=2\nlocation=3\nplugin=org.kde.panel\n\n[Containments][1][General]\nthickness=0
+EOF
   install -D -m 0644 \
     "${runtime_root}/sddm/usr/share/dbus-1/system-services/org.kde.plasmasetup.service" \
     "${rootfs}/usr/share/dbus-1/system-services/org.kde.plasmasetup.service"
