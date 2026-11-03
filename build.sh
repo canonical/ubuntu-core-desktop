@@ -1321,10 +1321,13 @@ done
 # session), faked serves stale file types to du -> ENOTDIR -> "Error
 # getting rootfs size". Dropping LD_PRELOAD/FAKEROOTKEY for the whole
 # ubuntu-image subtree means no process in it is interposed: stats are
-# kernel-truth, there is no cache to go stale. Consequence: seed ext4
-# content is owned by the invoking uid, not root (FAT EFI has no
-# ownership); snapd reads it as root at boot and everything is
-# world-readable, so this is cosmetic. Do NOT revert this to a plain
+# kernel-truth, there is no cache to go stale. Ownership consequence,
+# verified on a booted image: this gadget's ubuntu-seed and EFI
+# partitions are vfat (no ownership stored -- seed files mount root-
+# owned either way), so the only real delta is the ext4 ubuntu-boot
+# partition, whose grub/kernel files are now owned by the invoking uid
+# instead of faked-root; they stay world-readable and boot fine. Do NOT
+# revert this to a plain
 # fakeroot-session call when a "fixed" fakeroot lands: the upstream
 # fix (fda94bb / Debian #884662) only invalidates stale cache entries
 # whose file TYPE flips (dir<->file) -- the detectable, noisy case. An
