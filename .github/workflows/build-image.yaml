@@ -118,3 +118,25 @@ jobs:
             --title "Ubuntu Core Desktop 26 GNOME (dangerous) - ${day}" \
             --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed; no credentials are baked in (first boot runs the ubuntu-desktop-init wizard). Decompress with: \`zstd -T0 -d --sparse ubuntu-core-desktop-gnome-${day}.img.zst -o pc.img\` (the --sparse flag is required or the output allocates the full ~20G). Boot with virt-install or qemu per README.md." \
             "ubuntu-core-desktop-gnome-${day}.img.zst" SHA256SUMS
+
+      - name: Expire old dated image releases
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # GitHub has no default expiry for release assets (only workflow
+          # artifacts get retention-days), and each daily run publishes a
+          # dated ~2-4GiB image release, so they accumulate forever without
+          # this. Delete dated image releases (and their tags) older than 14
+          # days; match only gnome-YYYYMMDD/kde-YYYYMMDD tags so rolling or
+          # manually-cut releases are never touched.
+          cutoff=$(date -u -d '14 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          gh release list -R "$GITHUB_REPOSITORY" --limit 250 --json tagName,publishedAt \
+            | jq -r --arg cutoff "$cutoff" \
+                '.[] | select(.tagName | test("^(gnome|kde)-[0-9]{8}$"))
+                     | select(.publishedAt < $cutoff)
+                     | .tagName' \
+            | while read -r old_tag; do
+                echo "deleting expired image release: ${old_tag}"
+                gh release delete "$old_tag" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag
+              done
