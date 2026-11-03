@@ -1311,7 +1311,30 @@ for extra_snap in "${extra_snaps[@]:-}"; do
   [[ -n ${extra_snap} ]] && snap_args+=(--snap "${extra_snap}")
 done
 
-ubuntu-image snap -v \
+# Run ubuntu-image OUTSIDE the fakeroot session: build.sh re-execs itself
+# under fakeroot (above) so the unsquashfs -> edit -> mksquashfs hacks can
+# bake root-owned content into the gadget/custom-core snaps as an
+# unprivileged user. But ubuntu-image is a statically linked Go binary:
+# LD_PRELOAD (and so faked, its (dev,ino)-keyed cache) can see nothing it
+# does, while its du/mke2fs children ARE interposed. If the Go binary
+# recycles inodes faked has cached (dirs created/deleted earlier in the
+# session), faked serves stale file types to du -> ENOTDIR -> "Error
+# getting rootfs size". Dropping LD_PRELOAD/FAKEROOTKEY for the whole
+# ubuntu-image subtree means no process in it is interposed: stats are
+# kernel-truth, there is no cache to go stale. Consequence: seed ext4
+# content is owned by the invoking uid, not root (FAT EFI has no
+# ownership); snapd reads it as root at boot and everything is
+# world-readable, so this is cosmetic. Do NOT revert this to a plain
+# fakeroot-session call when a "fixed" fakeroot lands: the upstream
+# fix (fda94bb / Debian #884662) only invalidates stale cache entries
+# whose file TYPE flips (dir<->file) -- the detectable, noisy case. An
+# inode recycled by a non-LD_PRELOAD process into the SAME type is
+# served stale (wrong uid/gid/mode) with no way for faked to detect it
+# at stat time. Never sharing a faked session with the static Go
+# binary is the only correct shape; it is a permanent design decision,
+# not a workaround.
+env -u FAKEROOTKEY -u LD_PRELOAD \
+  ubuntu-image snap -v \
   --assertion "${model_account_key}" \
   --validation=ignore \
   --output-dir "${BUILD_DIR}" \
