@@ -49,7 +49,7 @@ jobs:
           [ "$ok" = 1 ] || { echo "timed out waiting for snap releases" >&2; exit 1; }
           for spec in \
             canonical/pc-amd64-gadget-desktop:pc-desktop.snap:pc-desktop.snap \
-            canonical/core-base-desktop:core26-desktop-cloudinit.snap:core26-desktop.snap \
+            canonical/core-base-desktop:core26-desktop.snap:core26-desktop.snap \
             canonical/ubuntu-core-desktop-snapd:snapd.snap:snapd.snap \
             chris-bainbridge/ubuntu-desktop-provision:ubuntu-desktop-init.snap:ubuntu-desktop-init.snap \
             chris-bainbridge/kf6-core26:kf6-core26.snap:kf6-core26.snap \
@@ -59,12 +59,6 @@ jobs:
             repo=$(printf '%s' "$spec" | cut -d: -f1)
             asset=$(printf '%s' "$spec" | cut -d: -f2)
             local_name=$(printf '%s' "$spec" | cut -d: -f3)
-            # core-base-desktop publishes two base-snap variants (see its
-            # build-github.sh): KDE needs the cloud-init one (its guest
-            # account is created by cloud-init from a seed.iso at first
-            # boot - GNOME's plain variant has no cloud-init at all to
-            # process one), downloaded here under the plain name so the
-            # rest of this workflow/build.sh doesn't need to care.
             gh release download desktop-26-latest -R "$repo" -p "$asset" \
               -O "snaps/$local_name" --clobber
           done
@@ -73,33 +67,22 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          # cloud-image-utils provides cloud-localds: with --user given,
-          # build.sh generates a companion seed.iso (build-cloud-init.sh)
-          # that cloud-init uses to actually create the guest account at
-          # first boot - build.sh only bakes in sudoers/autologin config,
-          # not the account itself.
-          sudo apt-get install -y squashfs-tools dosfstools mtools fakeroot crudini zstd cloud-image-utils
+          sudo apt-get install -y squashfs-tools dosfstools mtools fakeroot crudini zstd
           sudo snap install --classic ubuntu-image
 
       - name: Build image
-        # --autologin/--user guest/--password guest: unlike the GNOME
-        # image, KDE has no first-boot account-creation wizard wired up
-        # (SDDM gap). build.sh bakes sudoers/autologin config into the
-        # image itself, but the guest account is actually created at
-        # first boot by cloud-init from the companion seed.iso it also
-        # generates (see the Compress step below). This MUST be called
-        # out prominently in the release notes below alongside the
-        # "dangerous" (unasserted snaps, individually signed model)
-        # label. The model is pre-signed and committed (see ci/), so no
-        # signing key is needed here. See
+        # No --user / --password / --autologin / --root-password: the
+        # published image has no baked credentials. First boot runs the
+        # plasma-setup first-boot account-creation wizard (the KDE
+        # equivalent of GNOME's ubuntu-desktop-init; wired up by build.sh
+        # on no-user KDE builds) to create the user account, so no seed.iso
+        # is built or shipped. The model is pre-signed and committed (see
+        # ci/), so no signing key is needed here. See
         # todo/20261009-build-and-publish-kde-dangerous.txt.
         run: |
           du --version | head -1
           ./build.sh \
             --desktop kde \
-            --autologin \
-            --user guest \
-            --password "guest" \
             --model-account-key ci/account-key.assert \
             --base-snap snaps/core26-desktop.snap \
             --gadget-snap snaps/pc-desktop.snap \
@@ -117,15 +100,7 @@ jobs:
           day=$(date -u +%Y%m%d)
           echo "day=$day" >> "$GITHUB_OUTPUT"
           img="ubuntu-core-desktop-kde-${day}.img.zst"
-          seed="ubuntu-core-desktop-kde-${day}-seed.iso"
           zstd -T0 -19 build/pc.img -o "$img"
-          # seed.iso is small (cloud-init NoCloud data) and already
-          # minimal; ship it uncompressed as its own asset. It MUST be
-          # attached as a cdrom/virtual CD-ROM drive on first boot
-          # (see go-run-kde): it's what actually creates the guest
-          # account (build.sh only bakes in sudoers/autologin config,
-          # not the account itself).
-          cp build/seed.iso "$seed"
 
           # GitHub release/API assets are capped at 2GiB
           # (2147483648 bytes). KDE's image carries extra snaps
@@ -134,16 +109,16 @@ jobs:
           # run 38333363452: 422 "size must be less than 2147483648").
           # Split into <2GiB parts when needed; reassemble with:
           #   cat ubuntu-core-desktop-kde-DATE.img.zst.part* > ubuntu-core-desktop-kde-DATE.img.zst
-          assets=("$seed")
+          assets=()
           size=$(stat -c%s "$img")
           limit=$((1950*1000*1000))
           if [ "$size" -ge "$limit" ]; then
             split -b 1900M -d -a2 "$img" "${img}.part"
             rm -f "$img"
             mapfile -t parts < <(ls "${img}".part??)
-            assets+=("${parts[@]}")
+            assets=("${parts[@]}")
           else
-            assets+=("$img")
+            assets=("$img")
           fi
 
           sha256sum "${assets[@]}" > SHA256SUMS
@@ -178,5 +153,5 @@ jobs:
           fi
           gh release create "$tag" -R "$GITHUB_REPOSITORY" \
             --title "Ubuntu Core Desktop 26 KDE (dangerous) - ${day}" \
-            --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed. UNLIKE the GNOME image, this image ships a companion \`*-seed.iso\` file: attach it as a virtual CD-ROM on first boot (see go-run-kde / README.md) - cloud-init uses it to create a guest/guest account with autologin enabled (no first-boot wizard for KDE yet). Without the seed.iso attached on first boot, no account exists. If the image was split into \`*.img.zst.partNN\` files (GitHub's 2GiB asset cap), reassemble first: \`cat ubuntu-core-desktop-kde-${day}.img.zst.part* > ubuntu-core-desktop-kde-${day}.img.zst\`, then verify against SHA256SUMS. Decompress with: \`zstd -T0 -d --sparse ubuntu-core-desktop-kde-${day}.img.zst -o pc.img\` (the --sparse flag is required or the output allocates the full ~20G). Boot with virt-install or qemu per README.md." \
+            --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed. No credentials are baked in: first boot runs the plasma-setup first-boot wizard (the KDE equivalent of GNOME's ubuntu-desktop-init) to create the user account. If the image was split into \`*.img.zst.partNN\` files (GitHub's 2GiB asset cap), reassemble first: \`cat ubuntu-core-desktop-kde-${day}.img.zst.part* > ubuntu-core-desktop-kde-${day}.img.zst\`, then verify against SHA256SUMS. Decompress with: \`zstd -T0 -d --sparse ubuntu-core-desktop-kde-${day}.img.zst -o pc.img\` (the --sparse flag is required or the output allocates the full ~20G). Boot with virt-install or qemu per README.md." \
             $ASSETS

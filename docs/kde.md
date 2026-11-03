@@ -11,7 +11,7 @@ The KDE image provides an **Ubuntu Core 26 image with a KDE Plasma 6.8.0 desktop
 It differs from the GNOME image in three ways:
 
 - **Display manager.** The KDE image uses SDDM; the GNOME image uses GDM. Each image selects one display manager and its matching session. Installing another desktop session snap onto an existing image does not switch its display manager, and mixed manager/session configurations are not supported.
-- **First boot.** There is no first-boot setup wizard. The login account is created at first boot by cloud-init from a companion **seed ISO** built alongside the image (see [`build-cloud-init.sh`](../build-cloud-init.sh)). The seed ISO **must** be attached as a virtual CD-ROM on first boot, or no user account will exist. The KDE image is therefore assembled from the **cloud-init variant** of the base snap, the only variant that includes cloud-init; the default variant leaves the seed ISO unprocessed.
+- **First boot.** First boot runs the **plasma-setup wizard**, the KDE equivalent of GNOME's `ubuntu-desktop-init`, which creates the user account (name, password, groups) from the SDDM login screen. No credentials are baked into the image and no seed ISO is built or shipped.
 - **Session snaps.** The Plasma session is delivered by three snaps: `plasma-desktop-session` provides the confined Plasma session and the SDDM display manager, `plasma-core26-desktop` provides the Plasma runtime content and theme assets, and `kf6-core26` provides the Qt 6 / KDE Frameworks runtime.
 
 ## Download a Prebuilt KDE Image
@@ -19,7 +19,6 @@ It differs from the GNOME image in three ways:
 Visit the [GitHub Releases page](https://github.com/canonical/ubuntu-core-desktop/releases) and download:
 
 - The latest KDE image (`ubuntu-core-desktop-kde-YYYYMMDD.img.zst`)
-- The companion seed ISO (`ubuntu-core-desktop-kde-YYYYMMDD-seed.iso`)
 - The corresponding `SHA256SUMS` file
 
 GitHub release assets are capped at 2 GiB, and the KDE image (which carries more snaps than the GNOME image) can land just over that. A release may therefore ship the image split into `ubuntu-core-desktop-kde-YYYYMMDD.img.zst.part00`, `.part01`, ... instead of a single `.img.zst`. Reassemble the parts before decompressing, then verify and extract (replace `YYYYMMDD` with the date in the filename):
@@ -30,9 +29,7 @@ sha256sum -c SHA256SUMS
 zstd -T0 -d --sparse ubuntu-core-desktop-kde-YYYYMMDD.img.zst -o pc.img
 ```
 
-`sha256sum -c` may report missing files if `SHA256SUMS` lists other release assets; ensure the KDE archive and seed ISO report `OK` before proceeding. The `--sparse` option avoids allocating the full 20 GiB disk image when decompressing.
-
-> **Warning:** The published image's seed ISO creates a `guest`/`guest` account with autologin enabled. **Anyone with access to a booted instance can log in.** Treat published images as disposable, and build your own image with a personal account (below) for anything else.
+`sha256sum -c` may report missing files if `SHA256SUMS` lists other release assets; ensure the KDE archive reports `OK` before proceeding. The `--sparse` option avoids allocating the full 20 GiB disk image when decompressing.
 
 ## Build the KDE Image
 
@@ -62,11 +59,8 @@ The provisioning snap and the Plasma snaps are currently maintained under the [`
 
 ### Build the Snaps
 
-The base snap needs one KDE-specific step: select the **cloud-init variant** before packing, by writing `SNAP_BUILD_VARIANT=cloud-init` to a top-level `build-env` file in `core-base-desktop` (this is what its `build-github.sh cloud-init` does). Without it, the built image's seed ISO is never processed and no account is created at first boot.
-
 ```bash
 cd ~/ucd-build/core-base-desktop
-echo SNAP_BUILD_VARIANT=cloud-init > build-env
 snapcraft pack --use-lxd
 
 cd ~/ucd-build/pc-amd64-gadget-desktop
@@ -118,22 +112,20 @@ cd ~/ucd-build/ubuntu-core-desktop
   --snap ~/ucd-build/snaps/plasma-core26-desktop.snap \
   --snap ~/ucd-build/snaps/kf6-core26.snap \
   --snap ~/ucd-build/snaps/ubuntu-desktop-init.snap \
-  --user <name> \
-  --password <password> \
   --model ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model
 ```
 
-The image is written to `build/pc.img` and the seed ISO to `build/seed.iso`. `--kde-plasma-snap` selects the snap the build script extracts integration files from; the same snap is also included in the image unmodified via `--snap`.
+The image is written to `build/pc.img`. `--kde-plasma-snap` selects the snap the build script extracts integration files from; the same snap is also included in the image unmodified via `--snap`.
 
-A KDE image built without `--user` is not usable: there is no first-boot wizard, so without the seed ISO no account exists. `--user` requires `--password`. Add `--autologin` to log the account straight into the Plasma session, and `--ssh-authorized-keys <path>` to install SSH public keys for the account; see `./build.sh --help` for the full option list.
+Without `--user`, no account is baked in: first boot runs the plasma-setup wizard from the SDDM login screen to create the user account, and `build/pc.img.nouser` is dropped so a run script knows not to attach a seed ISO. Pass `--user <name>` together with `--password <password>` (plus `--autologin` and/or `--ssh-authorized-keys <path>` if wanted) to create the account at first boot via cloud-init from a seed ISO instead; see `./build.sh --help` for the full option list.
 
 The build script deletes and recreates its build output directory on each run. Do not keep personal keys or other files you need to preserve inside `build/`.
 
-For a faster assembly-only test, use the current `desktop-26-latest` snap assets downloaded by [`.github/workflows/build-image-kde.yaml`](../.github/workflows/build-image-kde.yaml). Note that the KDE image consumes the cloud-init base snap asset (`core26-desktop-cloudinit.snap`).
+For a faster assembly-only test, use the current `desktop-26-latest` snap assets downloaded by [`.github/workflows/build-image-kde.yaml`](../.github/workflows/build-image-kde.yaml).
 
 ## Test the Image in QEMU
 
-Create a writable UEFI variable store beside the image, then run QEMU/KVM. The seed ISO must be attached as a CD-ROM drive on first boot, or the account is not created:
+Create a writable UEFI variable store beside the image, then run QEMU/KVM:
 
 ```bash
 cd ~/ucd-build/ubuntu-core-desktop
@@ -144,18 +136,15 @@ qemu-system-x86_64 \
   -drive if=pflash,format=raw,unit=0,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
   -drive if=pflash,format=raw,unit=1,file=build/OVMF_VARS.fd \
   -drive file=build/pc.img,format=raw,if=virtio,cache=none \
-  -drive file=build/seed.iso,if=virtio,format=raw,media=cdrom \
   -netdev user,id=net0 \
   -device virtio-net-pci,netdev=net0
 ```
 
 Firmware filenames vary by distribution; use a matching pair and a writable copy of the variable-store file for each VM. If KVM is unavailable, replace `-machine accel=kvm -cpu host` with `-machine accel=tcg`; TCG is slower.
 
-Allow the initial boot to complete; the system may restart once during initialization. cloud-init creates the account from the seed ISO, then SDDM presents the login screen — or logs the `--autologin` user directly into the Plasma session.
+Allow the initial boot to complete; the system may restart once during initialization. SDDM presents the login screen, and the first-boot plasma-setup wizard creates the user account from there.
 
 ## Current Limitations
 
 - Published and locally built images use a **dangerous-grade model** and include unasserted snaps. They cannot receive normal Snap Store refreshes and must not be used in production or security-sensitive environments.
-- There is no first-boot account-creation wizard; the seed ISO built with `--user`/`--password` is required for any account to exist.
-- Published images ship a `guest`/`guest` autologin seed ISO; treat any booted instance as publicly accessible.
 - Update and recovery paths (rolling back to a previous image revision) are not yet tested.
