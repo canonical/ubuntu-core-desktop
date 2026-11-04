@@ -5,13 +5,25 @@ that make up an Ubuntu Core Desktop system. The format is described here:
 
 https://ubuntu.com/core/docs/reference/assertions/model
 
-We currently have one model definition:
+We currently have two model definitions:
 
-* `ubuntu-core-desktop-26-amd64-dangerous`
+* `ubuntu-core-desktop-26-amd64-dangerous` (the dev model)
+* `ubuntu-core-desktop-26-amd64` (the release model)
 
-The dangerous model's `grade` property allows us to build with
-unpublished snaps, which is primarily intended to allow testing of
-modified snaps prior to publishing them to the store.
+Both are `grade: dangerous`, signed with the locally registered `test`
+key: the release model resolves what it can from the Snap Store
+(each snap's `default-channel`), but the base (`core26-desktop`) is
+deliberately never store-published (the plan is to drop it for a
+plain `core26` base), and `grade: signed` requires every model snap to
+be store-published. The dev model is identical apart from the name;
+local snaps passed to `build.sh` (`--snap`, `--base-snap`, ...) always
+override the model's channel resolution, which is how the dev
+fast-path keeps working while snaps are migrated to the store one at
+a time (see notes/todo/20261103-publish-core-desktop-snaps-to-the-store.txt).
+
+The `grade` property allows us to build with unpublished snaps, which
+is primarily intended to allow testing of modified snaps prior to
+publishing them to the store.
 
 ## Modifying the models
 
