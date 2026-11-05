@@ -131,10 +131,17 @@ jobs:
           # days; match only gnome-YYYYMMDD/kde-YYYYMMDD tags so rolling or
           # manually-cut releases are never touched.
           cutoff=$(date -u -d '14 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          # Skip today's tags: the other job may be mid-publish on one of
+          # them right now, and an in-flight (unpublished) release shows
+          # publishedAt=null, which jq's string comparison treats as older
+          # than any cutoff -- deleting it would break the other job's
+          # asset upload.
+          day=$(date -u +%Y%m%d)
           gh release list -R "$GITHUB_REPOSITORY" --limit 250 --json tagName,publishedAt \
-            | jq -r --arg cutoff "$cutoff" \
+            | jq -r --arg cutoff "$cutoff" --arg day "$day" \
                 '.[] | select(.tagName | test("^(gnome|kde)-[0-9]{8}$"))
-                     | select(.publishedAt < $cutoff)
+                     | select(.tagName != "gnome-\($day)" and .tagName != "kde-\($day)")
+                     | select(.publishedAt != null and .publishedAt < $cutoff)
                      | .tagName' \
             | while read -r old_tag; do
                 echo "deleting expired image release: ${old_tag}"
