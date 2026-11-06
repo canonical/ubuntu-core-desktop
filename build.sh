@@ -1271,7 +1271,8 @@ if [[ ${desktop} == gnome ]]; then
   # built-image state), and mv-ing the dispatch script onto the alias
   # would leave gnome-session.real exec-ing itself for gdm accounts.
   if [[ -e ${BUILD_DIR}/squashfs-root/usr/bin/gnome-session &&
-        ! -e ${BUILD_DIR}/squashfs-root/usr/bin/gnome-session.real ]]; then
+        ! -e ${BUILD_DIR}/squashfs-root/usr/bin/gnome-session.real &&
+        ! -L ${BUILD_DIR}/squashfs-root/usr/bin/gnome-session.real ]]; then
   mv "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session" "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session.real"
   tee "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session" > /dev/null << EOF
 #!/bin/sh
