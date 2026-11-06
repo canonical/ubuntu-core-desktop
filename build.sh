@@ -1185,8 +1185,9 @@ EOF
     # extrausers DB (below), so GDM's initial setup has nothing to do --
     # disable it to keep GDM on the plain greeter. Without --user, first
     # boot must run GDM's initial-setup session, which launches the
-    # ubuntu-desktop-init first-boot wizard (via
-    # launch-desktop-provision-init), so InitialSetupEnable is left at
+    # ubuntu-desktop-init first-boot wizard (via the variant's
+    # gnome-initial-setup.service, which starts the provd snap's daemon
+    # and execs the UI), so InitialSetupEnable is left at
     # its gdm.schemas default (true).
     if [[ -n ${user} ]]; then
       crudini --set "${gdm_conf}" daemon InitialSetupEnable false
