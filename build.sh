@@ -1260,6 +1260,13 @@ fi
 # so checking it lets the internal call through to the real binary
 # instead of looping back through the wrapper.
 if [[ ${desktop} == gnome ]]; then
+  # The shim only applies to fat bases that still ship the real
+  # /usr/bin/gnome-session binary. The thin core26-desktop variant
+  # (core-base-variant) does not: there, GDM's session launch is
+  # re-homed to /usr/libexec/gnome-content-launch --session-dispatch
+  # (wired up by the base's own gdm.service.d/50-gnome-content.conf
+  # drop-in), so there is nothing to wrap.
+  if [[ -e ${BUILD_DIR}/squashfs-root/usr/bin/gnome-session ]]; then
   mv "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session" "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session.real"
   tee "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session" > /dev/null << EOF
 #!/bin/sh
@@ -1277,6 +1284,7 @@ else
 fi
 EOF
   chmod 0755 "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session"
+  fi
 fi
 
 mksquashfs "${BUILD_DIR}/squashfs-root" "${BUILD_DIR}/custom-core.snap" -noappend -comp zstd -Xcompression-level 1
