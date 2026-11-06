@@ -26,12 +26,10 @@ Usage: build.sh --desktop gnome|kde --model-account-key <path> \
 
 Builds <build-dir>/pc.img (an Ubuntu Core Desktop disk image) using
 ubuntu-image. The default build directory is "build". If --user is
-given, also builds <build-dir>/seed.iso (a
-cloud-init NoCloud seed -- see build-cloud-init.sh --help) that creates
-that login account at first boot; attach it as a cdrom drive when
-booting the image. Without --user, no seed.iso is built and
-build/pc.img.nouser is dropped instead, so a boot script can tell not
-to attach one.
+given, that login account is pre-provisioned at build time: it is
+seeded directly into the image's extrausers DB (no cloud-init, no seed
+ISO), so the account exists from the first boot. build/pc.img.nouser
+is always dropped, so boot scripts know not to attach any seed ISO.
 
 Required:
   --desktop gnome|kde         Which desktop session this image is for.
@@ -72,19 +70,24 @@ Optional:
   --user <name>                Configure a NOPASSWD-sudo login account
                               of this name inside the image (sudoers.d
                               entry), distinct from whatever account is
-                              running this script, and build a
-                              build/seed.iso (see build-cloud-init.sh)
-                              that creates that account (with
-                              --password and --ssh-authorized-keys,
-                              if given) via cloud-init at first boot.
+                              running this script. The account is
+                              pre-provisioned at build time: seeded
+                              (with --password and
+                              --ssh-authorized-keys, if given) directly
+                              into the image's /var/lib/extrausers DB,
+                              so it exists from the first boot and
+                              GDM's initial-setup wizard is disabled.
                               Requires --password. Without this flag
-                              no login account is configured and no
-                              seed.iso is built (this is the default).
+                              no login account is configured and the
+                              first-boot wizard creates one instead
+                              (this is the default).
   --ssh-authorized-keys <path> File of SSH public keys (one per line)
                               to install into root's authorized_keys in
                               the image, and (if --user is also given)
-                              into --user's via the seed.iso above.
-                              Without this flag, neither has
+                              into --user's (staged under /etc/ssh,
+                              installed into the home by a first-boot
+                              oneshot, since /home is not factory-
+                              seedable). Without this flag, neither has
                               authorized_keys (password login only).
   --root-password <password>  Root's login password, baked into the
                               image (as a SHA-512 crypt hash via
@@ -92,10 +95,11 @@ Optional:
                               root's password stays locked (as the
                               base snap ships it), so no password
                               ends up hardcoded or defaulted. Does
-                              not require --user/no seed.iso.
-  --password <password>       --user's login password, created via the
-                              seed.iso build-cloud-init.sh generates --
-                              see --user above. Must be given together
+                              not require --user.
+  --password <password>       --user's login password, seeded into the
+                              image's extrausers shadow as a SHA-512
+                              crypt hash (via openssl passwd) -- see
+                              --user above. Must be given together
                               with --user.
   --ssh-host-key <path>       Private ed25519 key (with matching
                               <path>.pub) baked into the image as its
@@ -1172,12 +1176,13 @@ EOF
     "${BUILD_DIR}/squashfs-root/etc/writable/gdm3/custom.conf" \
     "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/writable/gdm3/custom.conf"
   do
-    # With a build-time user, cloud-init creates the account before GDM
-    # starts, so GDM's initial setup has nothing to do -- disable it to
-    # keep GDM on the plain greeter. Without --user, first boot must run
-    # GDM's initial-setup session, which launches the ubuntu-desktop-init
-    # first-boot wizard (via launch-desktop-provision-init), so
-    # InitialSetupEnable is left at its gdm.schemas default (true).
+    # With a build-time user the account is pre-provisioned in the
+    # extrausers DB (below), so GDM's initial setup has nothing to do --
+    # disable it to keep GDM on the plain greeter. Without --user, first
+    # boot must run GDM's initial-setup session, which launches the
+    # ubuntu-desktop-init first-boot wizard (via
+    # launch-desktop-provision-init), so InitialSetupEnable is left at
+    # its gdm.schemas default (true).
     if [[ -n ${user} ]]; then
       crudini --set "${gdm_conf}" daemon InitialSetupEnable false
     fi
@@ -1192,9 +1197,10 @@ EOF
 else
   kde_sddm_integration "${BUILD_DIR}/squashfs-root" "${kde_session_snap}" "${kde_plasma_snap}"
   # Same gating as GNOME's InitialSetupEnable above: with a build-time
-  # user, cloud-init creates the account before SDDM starts, so there's
-  # nothing for the first-boot wizard to do. Without --user, wire up
-  # plasma-setup so first boot can create the account instead.
+  # user, the account is pre-provisioned in the extrausers DB (below)
+  # before SDDM starts, so there's nothing for the first-boot wizard to
+  # do. Without --user, wire up plasma-setup so first boot can create
+  # the account instead.
   if [[ -z ${user} ]]; then
     kde_plasma_setup_integration "${BUILD_DIR}/squashfs-root" "${kde_session_snap}"
   fi
@@ -1215,6 +1221,121 @@ if [[ -n ${user} ]]; then
 ${user} ALL=(ALL) NOPASSWD: ALL
 EOF
     chmod 0440 "${sudoers_dir}/${user}"
+  done
+fi
+
+# --user provisioning without cloud-init: the thin core26-desktop base
+# ships no cloud-init, so a build-cloud-init.sh seed.iso would be
+# silently ignored on it (no consumer). Instead the account is seeded
+# directly into the extrausers DB at build time -- the same DB that
+# cloud-init's `useradd --extrausers` used to populate at first boot and
+# that the first-boot wizard's adduser writes: first account gets
+# uid/gid 1000, a group of the same name, membership in the pre-seeded
+# sudo group, /bin/bash shell and a /home/<user> home, and the standard
+# subuid/subgid range. The password uses the same openssl passwd -6
+# SHA-512-crypt form as --root-password above, with the same last-change
+# day count a fresh useradd records. /var/lib/extrausers is a writable
+# path like /etc, so write both the squashfs copy and the factory seed
+# (the dual-write the sudoers.d block above uses).
+if [[ -n ${user} ]]; then
+  user_uid=1000
+  user_gid=1000
+  user_pw_hash="$(openssl passwd -6 "${password}")"
+  user_lastchg=$(( $(date -u +%s) / 86400 ))
+  for extrausers_dir in \
+    "${BUILD_DIR}/squashfs-root/var/lib/extrausers" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/var/lib/extrausers"
+  do
+    printf '%s:x:%s:%s::/home/%s:/bin/bash\n' \
+      "${user}" "${user_uid}" "${user_gid}" "${user}" \
+      >> "${extrausers_dir}/passwd"
+    printf '%s:%s:%s:0:99999:7:::\n' \
+      "${user}" "${user_pw_hash}" "${user_lastchg}" \
+      >> "${extrausers_dir}/shadow"
+    printf '%s:x:%s:\n' "${user}" "${user_gid}" \
+      >> "${extrausers_dir}/group"
+    printf '%s:!::\n' "${user}" >> "${extrausers_dir}/gshadow"
+    printf '%s:100000:65536\n' "${user}" >> "${extrausers_dir}/subuid"
+    printf '%s:100000:65536\n' "${user}" >> "${extrausers_dir}/subgid"
+    # The factory-seeded group file ships `sudo:x:27:` with an empty
+    # member list; append --user to it (cloud-init's groups: [sudo]
+    # equivalent).
+    sed -i "s|^sudo:x:27:\$|sudo:x:27:${user}|" "${extrausers_dir}/group"
+  done
+
+  # The old cloud-init seed set the hostname from its meta-data
+  # (local-hostname: core-desktop); bake the same default into
+  # /etc/writable/hostname (which /etc/hostname symlinks to), in both
+  # copies like the gdm3 custom.conf above.
+  for hostname_file in \
+    "${BUILD_DIR}/squashfs-root/etc/writable/hostname" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/writable/hostname"
+  do
+    printf 'core-desktop\n' > "${hostname_file}"
+  done
+
+  # cloud-init's ssh_pwauth: true equivalent: sshd's default is
+  # password-auth enabled, but make it explicit next to the
+  # PermitRootLogin line the ssh host key block above appends.
+  for sshd_config in \
+    "${BUILD_DIR}/squashfs-root/etc/ssh/sshd_config" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/ssh/sshd_config"
+  do
+    printf 'PasswordAuthentication yes\n' >> "${sshd_config}"
+  done
+
+  # --ssh-authorized-keys for --user: /home is user-data, NOT factory-
+  # seedable (the factory producer rejects nonempty homes), so the keys
+  # cannot be written into the home at build time. Stage them under
+  # /etc/ssh (a writable path, seeded from the factory copy like
+  # sshd_config above) and let the oneshot below install them into the
+  # home on first boot.
+  if [[ -n ${ssh_authorized_keys} ]]; then
+    for authorized_keys_dir in \
+      "${BUILD_DIR}/squashfs-root/etc/ssh/authorized_keys.d" \
+      "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/ssh/authorized_keys.d"
+    do
+      mkdir -p "${authorized_keys_dir}"
+      install -m 0600 "${ssh_authorized_keys}" \
+        "${authorized_keys_dir}/${user}"
+    done
+  fi
+
+  # /home is user-data rather than factory-seedable, so the home of the
+  # pre-provisioned account is populated by this first-boot oneshot
+  # instead of at build time: create /home/<user> from /etc/skel,
+  # install the staged authorized keys (if any), and chown everything to
+  # the uid/gid of the extrausers entry seeded above (resolved at
+  # runtime via NSS rather than hardcoded). Idempotent via a marker file
+  # inside the home it creates. Written to /etc/systemd/system in both
+  # copies (the factory one is what first boot actually seeds /etc
+  # from) and enabled for multi-user.target, which is reached before
+  # sshd/gdm serve logins.
+  for systemd_dir in \
+    "${BUILD_DIR}/squashfs-root/etc/systemd/system" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/systemd/system"
+  do
+    tee "${systemd_dir}/provision-user-home.service" >/dev/null <<EOF
+[Unit]
+Description=Populate home directory for the pre-provisioned ${user} account
+# /home is user-data (not factory-seedable), so the home of the account
+# seeded into the extrausers DB at build time is created on first boot.
+ConditionPathExists=!/home/${user}/.provision-user-home
+After=local-fs.target
+Before=gdm.service sshd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/mkdir -p /home/${user}
+ExecStart=/bin/sh -c 'if [ -d /etc/skel ]; then cp -a /etc/skel/. /home/${user}/; fi'
+ExecStart=/bin/sh -c 'if [ -f /etc/ssh/authorized_keys.d/${user} ]; then mkdir -p /home/${user}/.ssh && cp /etc/ssh/authorized_keys.d/${user} /home/${user}/.ssh/authorized_keys && chmod 600 /home/${user}/.ssh/authorized_keys; fi'
+ExecStart=/bin/sh -c 'uid=\$\$(getent passwd ${user} | cut -d: -f3); gid=\$\$(getent group ${user} | cut -d: -f3); chown -R "\$\${uid}:\$\${gid}" /home/${user}'
+ExecStart=/usr/bin/touch /home/${user}/.provision-user-home
+EOF
+    mkdir -p "${systemd_dir}/multi-user.target.wants"
+    ln -sfn ../provision-user-home.service \
+      "${systemd_dir}/multi-user.target.wants/provision-user-home.service"
   done
 fi
 
@@ -1359,26 +1480,12 @@ env -u FAKEROOTKEY -u LD_PRELOAD \
   "${snap_args[@]}" \
   "${model_assert}"
 
-if [[ -n ${user} ]]; then
-  # The account itself is created by cloud-init at first boot from this
-  # seed ISO -- build.sh only prepares its sudoers/autologin config
-  # above, it doesn't create the account. Generate the seed here, from
-  # the same already-validated --user/--password/--ssh-authorized-keys,
-  # so the image and its companion seed ISO can never end up describing
-  # two different accounts/passwords/keys (as they could when this was
-  # a separate manual step). --user and --password are required
-  # together (validated above). --ssh-authorized-keys defaults to
-  # /dev/null (never non-empty) when build.sh's own --ssh-authorized-
-  # keys wasn't given, matching build.sh's own "no keys -> password
-  # login only" behavior for root above, rather than falling back to
-  # build-cloud-init.sh's own unrelated default (./authorized_keys).
-  ./build-cloud-init.sh \
-    --user "${user}" \
-    --password "${password}" \
-    --ssh-authorized-keys "${ssh_authorized_keys:-/dev/null}" \
-    --output "${BUILD_DIR}/seed.iso"
-else
-  touch "${BUILD_DIR}/pc.img.nouser"
-fi
+# No seed ISO either way: with --user the account is pre-provisioned in
+# the image itself (the extrausers seeding above -- there is no
+# cloud-init in the thin core26-desktop base to consume a seed, and the
+# wizard path never had one), without it the first-boot wizard creates
+# the account. Always drop the nouser marker so boot scripts know not
+# to attach a seed ISO.
+touch "${BUILD_DIR}/pc.img.nouser"
 
 echo "Built ${BUILD_DIR}/pc.img"
