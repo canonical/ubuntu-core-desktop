@@ -1265,8 +1265,13 @@ if [[ ${desktop} == gnome ]]; then
   # (core-base-variant) does not: there, GDM's session launch is
   # re-homed to /usr/libexec/gnome-content-launch --session-dispatch
   # (wired up by the base's own gdm.service.d/50-gnome-content.conf
-  # drop-in), so there is nothing to wrap.
-  if [[ -e ${BUILD_DIR}/squashfs-root/usr/bin/gnome-session ]]; then
+  # drop-in), so there is nothing to wrap. Skip bases that already
+  # carry the wrapped pair too: the variant ships the dispatch script
+  # AND gnome-session.real as a gnome-content-launch alias (the fat
+  # built-image state), and mv-ing the dispatch script onto the alias
+  # would leave gnome-session.real exec-ing itself for gdm accounts.
+  if [[ -e ${BUILD_DIR}/squashfs-root/usr/bin/gnome-session &&
+        ! -e ${BUILD_DIR}/squashfs-root/usr/bin/gnome-session.real ]]; then
   mv "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session" "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session.real"
   tee "${BUILD_DIR}/squashfs-root/usr/bin/gnome-session" > /dev/null << EOF
 #!/bin/sh
