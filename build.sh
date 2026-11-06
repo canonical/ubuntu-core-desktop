@@ -189,6 +189,11 @@ connections.extend([
     ("upower:hardware-observe", "system:hardware-observe"),
     ("upower:bluez", "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS:service"),
     ("upower:upower-client", "upower:upower"),
+    # AccountsService provider snap: the session's accountsservice plug
+    # (gnome-shell, gsd apps) connects to the provider's slot; the
+    # daemon's polkit plug delivers its action XML on connection.
+    (f"{session}:accountsservice", "accountsservice:accountsservice"),
+    ("accountsservice:polkit", "system:polkit"),
     (f"{session}:dbus-portal-desktop",
      f"{session}:dbus-freedesktop-portal-desktop"),
     (f"{session}:dbus-portal-documents",
