@@ -205,6 +205,22 @@ connections.extend([
     # deny-auto-connection on the slot blocks the same-snap auto-connect,
     # so this rides the gadget like every other connection
     ("fprintd:fprintd-client", "fprintd:fprintd"),
+    # bolt provider snap: the session's bolt plug (gnome-shell's
+    # thunderbolt status agent/notifications, gnome-control-center's
+    # Thunderbolt panel) connects to the provider's slot; the daemon's
+    # polkit plug delivers its action XML on connection (also baked in
+    # the variant; polkitd tolerates the duplicate).
+    (f"{session}:bolt", "bolt:bolt"),
+    ("bolt:polkit", "system:polkit"),
+    # the snap's own CLI client (boltctl); same deny-auto-connection
+    # reasoning as fprintd's
+    ("bolt:bolt-client", "bolt:bolt"),
+    # geoclue provider snap: the session's geoclue plug (gnome-shell's
+    # location indicator and its agent, gsd-datetime's timezone
+    # lookup) connects to the provider's slot; the daemon needs plain
+    # network access for the location data sources.
+    (f"{session}:geoclue", "geoclue:geoclue"),
+    ("geoclue:network", "system:network"),
     # First-boot wizard backend (provd, Phase B confinement): the
     # accountsservice client plug goes to the provider snap, gdm and the
     # control plugs to the implicit core slots, dbus-dconf makes the
