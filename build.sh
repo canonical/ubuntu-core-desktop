@@ -70,7 +70,13 @@ Optional:
   --user <name>                Configure a NOPASSWD-sudo login account
                               of this name inside the image (sudoers.d
                               entry), distinct from whatever account is
-                              running this script. The account is
+                              running this script. <name> must be a
+                              POSIX login name (lowercase letter or
+                              underscore first, then lowercase letters,
+                              digits, underscores or hyphens; 1-32
+                              characters) not colliding with any
+                              account, uid/gid 1000 or subuid/subgid
+                              range already in the image. The account is
                               pre-provisioned at build time: seeded
                               (with --password and
                               --ssh-authorized-keys, if given) directly
@@ -1161,6 +1167,18 @@ if [[ -n ${user} && -z ${password} ]]; then
     echo "--user requires --password <password> to be set." >&2
     exit 1
 fi
+# The username is interpolated below into sudoers.d filenames, the
+# extrausers passwd/shadow/group records, unit files and generated
+# shell snippets, so restrict it to a POSIX login name before anything
+# is written: a lowercase letter or underscore first, then lowercase
+# letters, digits, underscores or hyphens, at most 32 characters. This
+# one rule blocks shell metacharacters in the generated scripts,
+# passwd/shadow record corruption via ':' or newlines, and path
+# traversal in the sudoers.d/<user> filenames (no '.', '/' or ':').
+if [[ -n ${user} && ! ${user} =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]; then
+    echo "Invalid --user '${user}': must be a POSIX login name (a lowercase letter or underscore first, then lowercase letters, digits, underscores or hyphens; 1-32 characters)." >&2
+    exit 1
+fi
 if [[ ${desktop} == kde && -z ${kde_session_snap} ]]; then
     echo "--desktop kde requires --kde-session-snap <path>." >&2
     exit 1
@@ -1377,6 +1395,62 @@ fi
 # usr/share/factory/writable/system-data/etc, so the squashfs's own
 # /etc/sudoers.d is shadowed at runtime. Write to both, like the gdm3
 # custom.conf above, and use the 0440 mode sudoers requires.
+# Username-dependent tree edits start below (sudoers.d entry, then the
+# extrausers seeding). Before any of them is written, reject --user
+# values that collide with what the image already contains: names of
+# baked system identities (gdm/colord/geoclue/pipewire/rtkit, sddm via
+# its sysusers.d entry, stock accounts) and uid/gid 1000 or the
+# 100000-165535 subuid/subgid range the first account is expected to
+# claim. The syntax check above ran before the tree existed; these need
+# the built tree, so they run here, after the last sysusers bake.
+if [[ -n ${user} ]]; then
+  for account_db in \
+    "${BUILD_DIR}/squashfs-root/etc/passwd" \
+    "${BUILD_DIR}/squashfs-root/etc/group" \
+    "${BUILD_DIR}/squashfs-root/var/lib/extrausers/passwd" \
+    "${BUILD_DIR}/squashfs-root/var/lib/extrausers/group" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/passwd" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/group" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/var/lib/extrausers/passwd" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/var/lib/extrausers/group"
+  do
+    [[ -f ${account_db} ]] || continue
+    # ${user} passed the allowlist, so it cannot contain grep
+    # metacharacters; this is a plain name match.
+    if grep -q "^${user}:" "${account_db}"; then
+      echo "Refusing to seed --user '${user}': name already present in ${account_db}." >&2
+      exit 1
+    fi
+  done
+  if awk -F: '$3 == 1000 { found=1; exit } END { exit !found }' \
+      "${BUILD_DIR}/squashfs-root/etc/passwd" \
+      "${BUILD_DIR}/squashfs-root/etc/group" \
+      "${BUILD_DIR}/squashfs-root/var/lib/extrausers/passwd" \
+      "${BUILD_DIR}/squashfs-root/var/lib/extrausers/group"
+  then
+    echo "Refusing to seed --user '${user}': uid/gid 1000 is already taken in the built tree." >&2
+    exit 1
+  fi
+  # The new account claims subuid/subgid 100000-165535 (start + 65536
+  # entries, the standard first-user allocation); abort if any existing
+  # numeric entry in the built tree's subid files overlaps that range.
+  for subid_file in \
+    "${BUILD_DIR}/squashfs-root/etc/subuid" \
+    "${BUILD_DIR}/squashfs-root/etc/subgid" \
+    "${BUILD_DIR}/squashfs-root/var/lib/extrausers/subuid" \
+    "${BUILD_DIR}/squashfs-root/var/lib/extrausers/subgid"
+  do
+    [[ -f ${subid_file} ]] || continue
+    if awk -F: -v ns=100000 -v ne=165535 \
+        '$2 ~ /^[0-9]+$/ && $3 ~ /^[0-9]+$/ { if ($2 <= ne && $2 + $3 - 1 >= ns) { found=1; exit } } END { exit !found }' \
+        "${subid_file}"
+    then
+      echo "Refusing to seed --user '${user}': subuid/subgid range 100000-165535 overlaps an existing entry in ${subid_file}." >&2
+      exit 1
+    fi
+  done
+fi
+
 if [[ -n ${user} ]]; then
   for sudoers_dir in \
     "${BUILD_DIR}/squashfs-root/etc/sudoers.d" \
