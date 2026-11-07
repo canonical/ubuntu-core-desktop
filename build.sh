@@ -390,6 +390,61 @@ kde_sddm_integration() {
   local triplet
 
   triplet="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
+
+  # The thin core26-desktop base does not carry the mesa GL userspace
+  # tree: the fat base pulled it in via gdm3's dependency closure, but
+  # the variant is chisel-cut. The kf6-core26 content snap ships the
+  # complete tree (dri/gbm/vdpau drivers, glvnd vendor config, libinput
+  # quirks), and mesa/gbm/glvnd/libinput load from the compiled-in /usr
+  # paths, which inside a confined session resolve to the base's /usr.
+  # Bake rootfs symlinks (the documented layout-replacement pattern,
+  # same as the kauth symlink below): /snap content mounts are visible
+  # from every namespace, so this serves confined and unconfined GL
+  # users alike. Without it SDDM's kwin gets "Failed to create gbm
+  # device" (MESA-LOADER cannot find dri_gbm.so) and the plasma-setup
+  # wizard aborts with "Failed to initialize graphics backend for
+  # OpenGL" / "EGL not available". The variant ships
+  # /usr/share/glvnd/egl_vendor.d pointing at gnome-desktop-runtime
+  # (GNOME-specific, not seeded on KDE images), so that one must be
+  # replaced rather than added.
+  # The thin core26-desktop base does not carry the mesa GL userspace
+  # tree: the fat base pulled it in via gdm3's dependency closure, but
+  # the variant is chisel-cut. The kf6-core26 content snap ships the
+  # complete tree, and mesa/gbm/glvnd load from the compiled-in /usr
+  # paths, which inside a confined session resolve to the base's /usr.
+  # Bake rootfs symlinks (the documented layout-replacement pattern,
+  # same as the kauth symlink below): /snap content mounts are visible
+  # from every namespace, so this serves confined and unconfined GL
+  # users alike. Without it SDDM's kwin gets "Failed to create gbm
+  # device" (MESA-LOADER cannot find dri_gbm.so) and the plasma-setup
+  # wizard aborts with "Failed to initialize graphics backend for
+  # OpenGL" / "EGL not available".
+  #
+  # Scope: ONLY paths with no session-snap layout counterpart — the
+  # session snap still carries symlink layouts for /usr/share/libinput
+  # and /usr/lib/<triplet>/vdpau (both absent from the fat base too),
+  # and a rootfs symlink at a layout path aborts EVERY confined app of
+  # the snap with "existing symbolic link in the way"
+  # (snap-update-ns; a $SNAP-relative layout target can never be
+  # byte-identical to a /snap-mount rootfs symlink). The variant ships
+  # dri/gbm/egl_vendor.d as symlinks pointing at gnome-desktop-runtime
+  # (the GNOME pass's GPU fix; not seeded on KDE images), so those
+  # must be replaced rather than added.
+  for gl_path in \
+    "usr/lib/${triplet}/dri" \
+    "usr/lib/${triplet}/gbm"
+  do
+    if [[ -e ${rootfs}/${gl_path} && ! -L ${rootfs}/${gl_path} ]]; then
+      # a real directory in the base wins (e.g. a future chisel cut
+      # shipping mesa itself)
+      echo "W: ${gl_path} already exists in the base, not symlinking to kf6-core26" >&2
+    else
+      ln -sfn "/snap/kf6-core26/current/${gl_path}" "${rootfs}/${gl_path}"
+    fi
+  done
+  ln -sfn /snap/kf6-core26/current/usr/share/glvnd/egl_vendor.d \
+    "${rootfs}/usr/share/glvnd/egl_vendor.d"
+
   unsquashfs -d "${runtime_root}" "${kde_session_snap}" >/dev/null
   for path in \
     sddm/usr/bin/sddm \
