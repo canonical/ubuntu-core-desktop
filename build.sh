@@ -1258,6 +1258,14 @@ else
   rm -f \
     "${BUILD_DIR}/squashfs-root/usr/share/wayland-sessions/ubuntu-desktop-session.desktop" \
     "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/usr/share/wayland-sessions/ubuntu-desktop-session.desktop"
+  # The thin core26-desktop variant bakes the GNOME session entry under
+  # the name ubuntu.desktop (a symlink into gnome-desktop-runtime,
+  # which the KDE model does not seed): like the fat base's
+  # ubuntu-desktop-session.desktop above, it would offer a session that
+  # cannot start. Remove it from both trees (the GNOME branch keeps it).
+  rm -f \
+    "${BUILD_DIR}/squashfs-root/usr/share/wayland-sessions/ubuntu.desktop" \
+    "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/usr/share/wayland-sessions/ubuntu.desktop"
 fi
 # /etc is entirely a writable-path, seeded at first boot from
 # usr/share/factory/writable/system-data/etc, so the squashfs's own
