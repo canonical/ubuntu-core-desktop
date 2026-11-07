@@ -194,6 +194,24 @@ connections.extend([
     # daemon's polkit plug delivers its action XML on connection.
     (f"{session}:accountsservice", "accountsservice:accountsservice"),
     ("accountsservice:polkit", "system:polkit"),
+    # First-boot wizard backend (provd, Phase B confinement): the
+    # accountsservice client plug goes to the provider snap, gdm and the
+    # control plugs to the implicit core slots, dbus-dconf makes the
+    # wizard a connected dconf peer of the session snap's dconf-service
+    # (the Phase A unconfined-sender commit denial), and provd-run grants
+    # the gRPC socket directory under /run via the implicit core
+    # system-files slot.
+    ("provd:accountsservice", "accountsservice:accountsservice"),
+    ("provd:gdm", "system:gdm"),
+    ("provd:hostname-control", "system:hostname-control"),
+    ("provd:locale-control", "system:locale-control"),
+    ("provd:timezone-control", "system:timezone-control"),
+    ("provd:dbus-dconf", f"{session}:dbus-dconf"),
+    ("provd:provd-run", "system:system-files"),
+    # provd self-binds its gRPC unix socket: the seccomp listen(2)
+    # grant comes from the standard network-bind server-socket interface
+    # (implicit core slot).
+    ("provd:network-bind", "system:network-bind"),
     (f"{session}:dbus-portal-desktop",
      f"{session}:dbus-freedesktop-portal-desktop"),
     (f"{session}:dbus-portal-documents",
