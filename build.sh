@@ -534,6 +534,22 @@ export QT_QUICK_CONTROLS_STYLE=org.kde.desktop
 exec /snap/plasma-desktop-session/current/sddm/usr/lib/${triplet}/sddm/sddm-helper "\$@"
 EOF
   chmod 0755 "${rootfs}/usr/lib/${triplet}/sddm/sddm-helper"
+  # SDDM builds the display-server/greeter environment from a fixed
+  # allowlist that forwards LD_LIBRARY_PATH/QT_PLUGIN_PATH/XDG_* etc.
+  # but silently drops the daemon's own XKB_CONFIG_ROOT/XLOCALEDIR (this
+  # SDDM build has no GreeterEnvironment support). The thin core26-
+  # desktop base carries no /usr/share/X11/xkb at all, so the unconfined
+  # kwin_wayland here falls back to libxkbcommon's compiled-in default
+  # path, finds nothing, and cannot compile a keymap: "failed to create
+  # default keymap" on every key event and no key reaches any greeter
+  # field. Both generated wrappers therefore export both variables,
+  # pointing at the full xkb-data tree and X11 locale dir the kf6-core26
+  # content snap ships. The compositor then compiles the keymap and
+  # ships it to clients over the wl_keyboard keymap event (client-side
+  # compilation needs no data files); the greeter wrapper additionally
+  # fixes the greeter's own from-names keymap fallback, which retries
+  # per keystroke and spams the journal. Harmless on fat bases (same
+  # data, fixed path).
   mkdir -p "${rootfs}/usr/libexec/sddm"
   cat >"${rootfs}/usr/libexec/sddm/sddm-kwin-wayland" <<EOF
 #!/bin/sh
@@ -545,11 +561,21 @@ export XCURSOR_THEME=breeze_cursors
 export XCURSOR_PATH=/snap/plasma-core26-desktop/current/usr/share/icons:/snap/kf6-core26/current/usr/share/icons
 export LIBINPUT_QUIRKS_DIR=/snap/plasma-core26-desktop/current/usr/share/libinput
 export PIPEWIRE_CONFIG_DIR=/snap/plasma-core26-desktop/current/usr/share/pipewire
+export XKB_CONFIG_ROOT=/snap/kf6-core26/current/usr/share/X11/xkb
+export XLOCALEDIR=/snap/kf6-core26/current/usr/share/X11/locale
 exec /snap/plasma-core26-desktop/current/usr/bin/kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1
 EOF
   chmod 0755 "${rootfs}/usr/libexec/sddm/sddm-kwin-wayland"
-  ln -sfn /snap/plasma-desktop-session/current/sddm/usr/bin/sddm-greeter-qt6 \
-    "${rootfs}/usr/bin/sddm-greeter-qt6"
+  # The greeter gets the same treatment: a tiny wrapper instead of the
+  # plain symlink. It inherits the daemon-forwarded runtime env, so only
+  # the XKB paths need setting here before exec'ing the snap binary.
+  cat >"${rootfs}/usr/bin/sddm-greeter-qt6" <<EOF
+#!/bin/sh
+export XKB_CONFIG_ROOT=/snap/kf6-core26/current/usr/share/X11/xkb
+export XLOCALEDIR=/snap/kf6-core26/current/usr/share/X11/locale
+exec /snap/plasma-desktop-session/current/sddm/usr/bin/sddm-greeter-qt6 "\$@"
+EOF
+  chmod 0755 "${rootfs}/usr/bin/sddm-greeter-qt6"
   if [[ -e "${rootfs}/usr/share/sddm" && ! -L "${rootfs}/usr/share/sddm" ]]; then
     rm -rf "${rootfs}/usr/share/sddm"
   fi
