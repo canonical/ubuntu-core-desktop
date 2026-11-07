@@ -980,7 +980,11 @@ EOF
 set -e
 while IFS=: read -r user pass; do
   [ -z "${user}" ] && continue
-  hash=$(openssl passwd -6 "${pass}")
+  hash=$(printf '%s' "${pass}" | openssl passwd -6 -stdin)
+  case "${hash}" in
+    '$6$'*) ;;
+    *) echo "chpasswd: refusing to apply invalid hash for user ${user}" >&2; exit 1 ;;
+  esac
   usermod -p "${hash}" "${user}"
 done
 EOF
