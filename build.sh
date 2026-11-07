@@ -90,15 +90,17 @@ Optional:
                               seedable). Without this flag, neither has
                               authorized_keys (password login only).
   --root-password <password>  Root's login password, baked into the
-                              image (as a SHA-512 crypt hash via
-                              openssl passwd). Without this flag,
+                              image (as a SHA-512 crypt hash, piped
+                              through openssl passwd and validated).
+                              Without this flag,
                               root's password stays locked (as the
                               base snap ships it), so no password
                               ends up hardcoded or defaulted. Does
                               not require --user.
   --password <password>       --user's login password, seeded into the
-                              image's extrausers shadow as a SHA-512
-                              crypt hash (via openssl passwd) -- see
+                              image's extrausers shadow as a validated
+                              SHA-512 crypt hash (piped through
+                              openssl passwd) -- see
                               --user above. Must be given together
                               with --user.
   --ssh-host-key <path>       Private ed25519 key (with matching
@@ -129,6 +131,23 @@ Optional:
                               instead of the quiet default.
   -h, --help                  Show this help and exit.
 EOF
+}
+
+# Hash a password to the SHA-512 crypt form ($6$salt$hash) with the
+# password piped on stdin (-- keeps it out of openssl's argument
+# parser: passed as an argument, a value like "-help" was parsed as an
+# option, giving exit 0 with an EMPTY hash that would have been baked
+# into the image). The output is validated here so a caller can abort
+# the build instead of seeding an empty or malformed shadow hash.
+hash_password() {
+    local hash regex='^\$6\$[A-Za-z0-9./]+\$[A-Za-z0-9./]+$'
+    if ! hash="$(printf '%s' "${1}" | openssl passwd -6 -stdin)"; then
+        return 1
+    fi
+    if [[ -z ${hash} || ! ${hash} =~ ${regex} ]]; then
+        return 1
+    fi
+    printf '%s\n' "${hash}"
 }
 
 # --- Desktop-specific pieces -----------------------------------------
@@ -1271,7 +1290,13 @@ done
 # keeps the locked password the base snap ships with, so no password
 # is ever hardcoded or defaulted here.
 if [[ -n ${root_password} ]]; then
-  pw="$(openssl passwd -6 "${root_password}")"
+  # hash_password pipes the password to openssl and validates the
+  # result: an openssl failure or empty/malformed output aborts the
+  # build instead of baking a broken root password entry.
+  if ! pw="$(hash_password "${root_password}")"; then
+    echo "Failed to hash --root-password: openssl produced no valid SHA-512 crypt hash." >&2
+    exit 1
+  fi
   usermod --prefix "$(pwd)/${BUILD_DIR}/squashfs-root" --password "${pw}" root
 fi
 
@@ -1380,7 +1405,13 @@ fi
 if [[ -n ${user} ]]; then
   user_uid=1000
   user_gid=1000
-  user_pw_hash="$(openssl passwd -6 "${password}")"
+  # Same stdin-piped, validated hashing as --root-password above: an
+  # openssl failure or empty/malformed output aborts the build instead
+  # of seeding an empty (nullok-unlockable) shadow hash.
+  if ! user_pw_hash="$(hash_password "${password}")"; then
+    echo "Failed to hash --password: openssl produced no valid SHA-512 crypt hash." >&2
+    exit 1
+  fi
   user_lastchg=$(( $(date -u +%s) / 86400 ))
   for extrausers_dir in \
     "${BUILD_DIR}/squashfs-root/var/lib/extrausers" \
