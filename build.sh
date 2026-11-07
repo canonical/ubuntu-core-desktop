@@ -1551,11 +1551,14 @@ if [[ -n ${user} ]]; then
   # instead of at build time: create /home/<user> from /etc/skel,
   # install the staged authorized keys (if any), and chown everything to
   # the uid/gid of the extrausers entry seeded above (resolved at
-  # runtime via NSS rather than hardcoded). Idempotent via a marker file
-  # inside the home it creates. Written to /etc/systemd/system in both
-  # copies (the factory one is what first boot actually seeds /etc
-  # from) and enabled for multi-user.target, which is reached before
-  # sshd/gdm serve logins.
+  # runtime via NSS rather than hardcoded). Idempotent via a marker in
+  # /var/lib/provision-user-home (a root-owned writable path) -- NOT in
+  # the home itself, which the user could delete to re-trigger a root
+  # copy/chown/key-install over a home they have since modified.
+  # Written to /etc/systemd/system in both copies (the factory one is
+  # what first boot actually seeds /etc from) and enabled for
+  # multi-user.target, which is reached before sshd/gdm/sddm serve
+  # logins.
   for systemd_dir in \
     "${BUILD_DIR}/squashfs-root/etc/systemd/system" \
     "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/systemd/system"
@@ -1565,18 +1568,36 @@ if [[ -n ${user} ]]; then
 Description=Populate home directory for the pre-provisioned ${user} account
 # /home is user-data (not factory-seedable), so the home of the account
 # seeded into the extrausers DB at build time is created on first boot.
-ConditionPathExists=!/home/${user}/.provision-user-home
+ConditionPathExists=!/var/lib/provision-user-home/${user}.done
 After=local-fs.target
-Before=gdm.service sshd.service
+# Order before every login path that could race the provisioning:
+# GDM and sshd, plus SDDM for the KDE images. SDDM's autologin is
+# sddm.conf state consumed by sddm.service itself (there is no separate
+# sddm-autologin.service unit in this image), so Before=sddm.service
+# covers it.
+Before=gdm.service sddm.service sshd.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/bin/mkdir -p /home/${user}
-ExecStart=/bin/sh -c 'if [ -d /etc/skel ]; then cp -a /etc/skel/. /home/${user}/; fi'
-ExecStart=/bin/sh -c 'if [ -f /etc/ssh/authorized_keys.d/${user} ]; then mkdir -p /home/${user}/.ssh && cp /etc/ssh/authorized_keys.d/${user} /home/${user}/.ssh/authorized_keys && chmod 600 /home/${user}/.ssh/authorized_keys; fi'
-ExecStart=/bin/sh -c 'uid=\$\$(getent passwd ${user} | cut -d: -f3); gid=\$\$(getent group ${user} | cut -d: -f3); chown -R "\$\${uid}:\$\${gid}" /home/${user}'
-ExecStart=/usr/bin/touch /home/${user}/.provision-user-home
+# The marker directory is root-only, so the user cannot pre-create or
+# remove markers.
+ExecStart=/usr/bin/install -d -m 0700 /var/lib/provision-user-home
+# One script for all home-populating steps so the skip below really
+# skips: an already-populated home (a pre-provisioned factory tree, or
+# a rerun after the marker was lost) is left untouched with a journal
+# notice instead of being copied/chowned over. The .ssh symlink check
+# sits immediately before the key install: any PRE-EXISTING home is
+# already covered by the skip rule, so this closes the in-run window
+# between the skip check and the write (a symlink appearing under a
+# fresh home during the skel copy) -- refusing to write keys through a
+# user-controlled link as root. The NSS lookup result is checked before
+# the chown so a missing/renamed account fails the unit instead of
+# chowning to an empty uid:gid.
+ExecStart=/bin/sh -c 'set -e; if [ -d /home/${user} ] && [ -n "\$\$(ls -A /home/${user} 2>/dev/null)" ]; then echo "provision-user-home: /home/${user} already exists and is not empty; leaving it untouched"; exit 0; fi; mkdir -p /home/${user}; if [ -d /etc/skel ]; then cp -a /etc/skel/. /home/${user}/; fi; if [ -f /etc/ssh/authorized_keys.d/${user} ]; then if [ -L /home/${user}/.ssh ]; then echo "provision-user-home: /home/${user}/.ssh is a symlink; refusing to write keys through it" >&2; exit 1; fi; mkdir -p /home/${user}/.ssh && cp /etc/ssh/authorized_keys.d/${user} /home/${user}/.ssh/authorized_keys && chmod 600 /home/${user}/.ssh/authorized_keys; fi; uid=\$\$(getent passwd ${user} | cut -d: -f3); gid=\$\$(getent group ${user} | cut -d: -f3); if [ -z "\$\${uid}" ] || [ -z "\$\${gid}" ]; then echo "provision-user-home: cannot resolve uid/gid of ${user} via NSS; refusing to chown" >&2; exit 1; fi; chown -R "\$\${uid}:\$\${gid}" /home/${user}'
+# Mark done only after the run above succeeded (including the skip
+# path), so a boot either provisions or records that nothing was needed.
+ExecStart=/usr/bin/touch /var/lib/provision-user-home/${user}.done
 EOF
     mkdir -p "${systemd_dir}/multi-user.target.wants"
     ln -sfn ../provision-user-home.service \
