@@ -201,6 +201,10 @@ connections.extend([
     # operations (the action XML itself is baked into the variant).
     (f"{session}:fprintd", "fprintd:fprintd"),
     ("fprintd:polkit", "system:polkit"),
+    # the snap's own CLI clients (fprintd-list/enroll/verify/delete);
+    # deny-auto-connection on the slot blocks the same-snap auto-connect,
+    # so this rides the gadget like every other connection
+    ("fprintd:fprintd-client", "fprintd:fprintd"),
     # First-boot wizard backend (provd, Phase B confinement): the
     # accountsservice client plug goes to the provider snap, gdm and the
     # control plugs to the implicit core slots, dbus-dconf makes the
