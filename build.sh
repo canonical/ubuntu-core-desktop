@@ -194,6 +194,13 @@ connections.extend([
     # daemon's polkit plug delivers its action XML on connection.
     (f"{session}:accountsservice", "accountsservice:accountsservice"),
     ("accountsservice:polkit", "system:polkit"),
+    # fprintd provider snap: the session's fprintd plug (gnome-shell
+    # fingerprint probe/verification in the greeter and lock screen,
+    # gnome-control-center enrollment UI) connects to the provider's
+    # slot; the daemon's polkit plug authorizes its privileged
+    # operations (the action XML itself is baked into the variant).
+    (f"{session}:fprintd", "fprintd:fprintd"),
+    ("fprintd:polkit", "system:polkit"),
     # First-boot wizard backend (provd, Phase B confinement): the
     # accountsservice client plug goes to the provider snap, gdm and the
     # control plugs to the implicit core slots, dbus-dconf makes the
