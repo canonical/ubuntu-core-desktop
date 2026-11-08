@@ -120,7 +120,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p /mnt/bootgate
+          # /mnt is root-owned on this runner (the image job's "Prepare
+          # the /mnt build workspace" step handles the same thing).
+          sudo mkdir -p /mnt/bootgate
+          sudo chown "$USER": /mnt/bootgate
           cd /mnt/bootgate
           df -h /mnt
           gh release download "${{ inputs.release_tag }}" \
