@@ -67,16 +67,26 @@ permissions:
 
 env:
   # Shared qemu machine shape for both tiers: -M virt with GICv3,
-  # -cpu max (TCG on an aarch64 host gets MTTCG + LSE), virtio disk/NIC/
-  # GPU/rng, no display, serial (the machine's PL011 -> guest ttyAMA0)
-  # captured to a file. AAVMF (qemu-efi-aarch64) is the UEFI firmware:
-  # the non-secboot build, since the gadget's shim/grub EFI chain does
-  # not need secure boot and the amd64 flow likewise boots plain OVMF.
-  # The package ships full 64 MiB flash images, so they can be used
-  # directly as pflash (a writable copy of the VARS image is required).
+  # virtio disk/NIC/GPU/rng, no display, serial (the machine's PL011 ->
+  # guest ttyAMA0) captured to a file. AAVMF (qemu-efi-aarch64) is the
+  # UEFI firmware: the non-secboot build, since the gadget's shim/grub
+  # EFI chain does not need secure boot and the amd64 flow likewise
+  # boots plain OVMF. The package ships full 64 MiB flash images, so
+  # they can be used directly as pflash (a writable copy of the VARS
+  # image is required).
+  #
+  # -cpu cortex-a76, NOT -cpu max: under TCG, -cpu max hangs AAVMF
+  # 2025.11 before BDS (serial shows only the SEC banner, then silence
+  # forever; reproduced locally with a blank disk — cortex-a76 reaches
+  # BDS and prints to serial, with or without the virtio-gpu GOP
+  # present, so the whole boot stays visible on ttyAMA0). The virtio NIC
+  # carries romfile= (empty): the runner has no PXE option-ROM package,
+  # and the firmware boots from the virtio-blk disk with its built-in
+  # driver, so the NIC option ROM is unnecessary — without it qemu
+  # aborts at startup ("failed to find romfile efi-virtio.rom").
   QEMU_ARGS: >-
     -M virt,gic-version=3
-    -cpu max
+    -cpu cortex-a76
     -accel tcg,thread=multi
     -smp 4
     -m 4096
@@ -171,7 +181,8 @@ jobs:
             -device virtio-blk-pci,drive=hd0 \
             -device virtio-gpu-pci,edid=on \
             -device virtio-rng-pci \
-            -netdev user,id=net0 -device virtio-net-pci,netdev=net0 \
+            -netdev user,id=net0 \
+            -device virtio-net-pci,netdev=net0,romfile= \
             -display none \
             -serial file:serial.log \
             > qemu.log 2>&1 &
@@ -409,7 +420,7 @@ jobs:
             -device virtio-gpu-pci,edid=on \
             -device virtio-rng-pci \
             -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 \
-            -device virtio-net-pci,netdev=net0 \
+            -device virtio-net-pci,netdev=net0,romfile= \
             -display none \
             -serial file:serial.log \
             > qemu.log 2>&1 &
