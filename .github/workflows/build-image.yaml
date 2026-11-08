@@ -215,38 +215,51 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p snaps
-          # Wait for the rolling snap releases to exist: snap builds take
-          # up to ~40min, and a schedule/push trigger can race with one.
-          # Same repos as the amd64 job (minus the ubuntu-desktop-provision
-          # fork, see below).
-          for i in $(seq 1 15); do
+          # Wait for the rolling snap releases to have their arm64 ASSETS:
+          # snap builds take up to ~40min and a push can race one, and a
+          # release that exists without the asset would make the downloads
+          # below fail (notably the ubuntu-desktop-init Flutter build).
+          # Same repos as the amd64 job (same asset set, -arm64 suffixes).
+          for i in $(seq 1 25); do
             ok=1
-            for repo in canonical/pc-amd64-gadget-desktop \
-                        canonical/ubuntu-core-desktop-snapd \
-                        canonical/ubuntu-desktop-session-snap \
-                        canonical/gnome-desktop-runtime \
-                        canonical/pipewire-snap \
-                        canonical/accountsservice-snap \
-                        canonical/provd-snap \
-                        canonical/fprintd-snap \
-                        canonical/boltd-snap \
-                        canonical/geoclue-snap; do
-              gh release view desktop-26-latest -R "$repo" >/dev/null 2>&1 || ok=0
+            for spec in \
+              canonical/pc-amd64-gadget-desktop:pc-desktop-arm64.snap \
+              canonical/ubuntu-core-desktop-snapd:snapd-arm64.snap \
+              canonical/ubuntu-desktop-session-snap:ubuntu-desktop-session-arm64.snap \
+              canonical/gnome-desktop-runtime:gnome-desktop-runtime-arm64.snap \
+              canonical/pipewire-snap:pipewire-arm64.snap \
+              canonical/accountsservice-snap:accountsservice-arm64.snap \
+              canonical/provd-snap:provd-arm64.snap \
+              canonical/fprintd-snap:fprintd-arm64.snap \
+              canonical/boltd-snap:bolt-arm64.snap \
+              canonical/geoclue-snap:geoclue-arm64.snap \
+              chris-bainbridge/ubuntu-desktop-provision:ubuntu-desktop-init-arm64.snap
+            do
+              repo=${spec%%:*}
+              asset=${spec#*:}
+              gh release view desktop-26-latest -R "$repo" --json assets \
+                -q '.assets[].name' 2>/dev/null | grep -qx "$asset" || ok=0
             done
-            gh release view desktop-26-thin-latest -R canonical/core-base-desktop >/dev/null 2>&1 || ok=0
+            gh release view desktop-26-thin-latest -R canonical/core-base-desktop \
+              --json assets -q '.assets[].name' 2>/dev/null \
+              | grep -qx core26-desktop-arm64.snap || ok=0
             [ "$ok" = 1 ] && break
-            echo "snap releases not all present yet; waiting ($i/15)"
+            echo "snap assets not all present yet; waiting ($i/25)"
             sleep 120
           done
-          [ "$ok" = 1 ] || { echo "timed out waiting for snap releases" >&2; exit 1; }
+          [ "$ok" = 1 ] || { echo "timed out waiting for snap assets" >&2; exit 1; }
           # The arm64 assets carry -arm64 suffixes on the same
           # desktop-26-latest / desktop-26-thin-latest releases; they are
           # saved under the arch-neutral local names so the build.sh
           # invocation below matches the amd64 job line for line.
-          # ubuntu-desktop-init is deliberately NOT sideloaded here: the
-          # arm64 model resolves it from the store (latest/candidate has
-          # an arm64 revision), while the ubuntu-desktop-provision fork's
-          # release asset is amd64-only.
+          #
+          # Principle: every snap the amd64 flow sideloads locally is
+          # sideloaded here too, from ITS arm64 build. Our local snaps are
+          # never resolved from the store, whose arm64 revisions are stale
+          # (ubuntu-desktop-init r134 is the old core22-based snap: the
+          # model would then demand gnome-42-2204 alongside it). Store
+          # snaps (pc-kernel, mesa-2404, udisks2, upower, ...) stay store
+          # snaps, resolved via the model's arm64 revisions.
           for spec in \
             canonical/pc-amd64-gadget-desktop:pc-desktop-arm64.snap:pc-desktop.snap \
             canonical/ubuntu-core-desktop-snapd:snapd-arm64.snap:snapd.snap \
@@ -257,7 +270,8 @@ jobs:
             canonical/provd-snap:provd-arm64.snap:provd.snap \
             canonical/fprintd-snap:fprintd-arm64.snap:fprintd.snap \
             canonical/boltd-snap:bolt-arm64.snap:bolt.snap \
-            canonical/geoclue-snap:geoclue-arm64.snap:geoclue.snap
+            canonical/geoclue-snap:geoclue-arm64.snap:geoclue.snap \
+            chris-bainbridge/ubuntu-desktop-provision:ubuntu-desktop-init-arm64.snap:ubuntu-desktop-init.snap
           do
             repo=$(printf '%s' "$spec" | cut -d: -f1)
             asset=$(printf '%s' "$spec" | cut -d: -f2)
@@ -279,11 +293,13 @@ jobs:
           sudo snap install --classic ubuntu-image
 
       - name: Build image
-        # Same stanza as the amd64 job, plus --arch arm64, the arm64
-        # model, and the /mnt build dir. No baked credentials (nouser
-        # build); first boot runs the ubuntu-desktop-init wizard via GDM
-        # initial-setup. pc-kernel and the other asserted snaps resolve
-        # from the store's arm64 revisions via the model.
+        # Same stanza as the amd64 job (including the sideloaded
+        # ubuntu-desktop-init, now from its arm64 asset), plus --arch
+        # arm64, the arm64 model, and the /mnt build dir. No baked
+        # credentials (nouser build); first boot runs the
+        # ubuntu-desktop-init wizard via GDM initial-setup. pc-kernel and
+        # the other asserted snaps resolve from the store's arm64
+        # revisions via the model.
         run: |
           du --version | head -1
           TMPDIR=/mnt/tmp ./build.sh \
@@ -301,6 +317,7 @@ jobs:
             --snap snaps/ubuntu-desktop-session.snap \
             --snap snaps/gnome-desktop-runtime.snap \
             --snap snaps/pipewire.snap \
+            --snap snaps/ubuntu-desktop-init.snap \
             --model ci/ubuntu-core-desktop-26-arm64-amd64-dangerous.model \
             --build-dir /mnt/ucd-arm64-build
 
