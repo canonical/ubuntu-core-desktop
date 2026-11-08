@@ -1556,9 +1556,13 @@ if [[ -n ${user} ]]; then
   # install the staged authorized keys (if any), and chown everything to
   # the uid/gid of the extrausers entry seeded above (resolved at
   # runtime via NSS rather than hardcoded). Idempotent via a marker in
-  # /var/lib/provision-user-home (a root-owned writable path) -- NOT in
-  # the home itself, which the user could delete to re-trigger a root
-  # copy/chown/key-install over a home they have since modified.
+  # /root/provision-user-home -- NOT in the home itself, which the user
+  # could delete to re-trigger a root copy/chown/key-install over a home
+  # they have since modified. /root is a writable area (bind-mounted
+  # from the image's writable partition by ubuntu-image) and root-only
+  # (mode 0700); an arbitrary /var/lib subpath would NOT be writable
+  # here -- the rootfs is read-only and only gadget-declared writable
+  # paths get bind mounts.
   # Written to /etc/systemd/system in both copies (the factory one is
   # what first boot actually seeds /etc from) and enabled for
   # multi-user.target, which is reached before sshd/gdm/sddm serve
@@ -1572,7 +1576,7 @@ if [[ -n ${user} ]]; then
 Description=Populate home directory for the pre-provisioned ${user} account
 # /home is user-data (not factory-seedable), so the home of the account
 # seeded into the extrausers DB at build time is created on first boot.
-ConditionPathExists=!/var/lib/provision-user-home/${user}.done
+ConditionPathExists=!/root/provision-user-home/${user}.done
 After=local-fs.target
 # Order before every login path that could race the provisioning:
 # GDM and sshd, plus SDDM for the KDE images. SDDM's autologin is
@@ -1584,9 +1588,9 @@ Before=gdm.service sddm.service sshd.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-# The marker directory is root-only, so the user cannot pre-create or
-# remove markers.
-ExecStart=/usr/bin/install -d -m 0700 /var/lib/provision-user-home
+# The marker directory is root-only (inside root's home), so the user
+# cannot pre-create or remove markers.
+ExecStart=/usr/bin/install -d -m 0700 /root/provision-user-home
 # One script for all home-populating steps so the skip below really
 # skips: an already-populated home (a pre-provisioned factory tree, or
 # a rerun after the marker was lost) is left untouched with a journal
@@ -1601,7 +1605,7 @@ ExecStart=/usr/bin/install -d -m 0700 /var/lib/provision-user-home
 ExecStart=/bin/sh -c 'set -e; if [ -d /home/${user} ] && [ -n "\$\$(ls -A /home/${user} 2>/dev/null)" ]; then echo "provision-user-home: /home/${user} already exists and is not empty; leaving it untouched"; exit 0; fi; mkdir -p /home/${user}; if [ -d /etc/skel ]; then cp -a /etc/skel/. /home/${user}/; fi; if [ -f /etc/ssh/authorized_keys.d/${user} ]; then if [ -L /home/${user}/.ssh ]; then echo "provision-user-home: /home/${user}/.ssh is a symlink; refusing to write keys through it" >&2; exit 1; fi; mkdir -p /home/${user}/.ssh && cp /etc/ssh/authorized_keys.d/${user} /home/${user}/.ssh/authorized_keys && chmod 600 /home/${user}/.ssh/authorized_keys; fi; uid=\$\$(getent passwd ${user} | cut -d: -f3); gid=\$\$(getent group ${user} | cut -d: -f3); if [ -z "\$\${uid}" ] || [ -z "\$\${gid}" ]; then echo "provision-user-home: cannot resolve uid/gid of ${user} via NSS; refusing to chown" >&2; exit 1; fi; chown -R "\$\${uid}:\$\${gid}" /home/${user}'
 # Mark done only after the run above succeeded (including the skip
 # path), so a boot either provisions or records that nothing was needed.
-ExecStart=/usr/bin/touch /var/lib/provision-user-home/${user}.done
+ExecStart=/usr/bin/touch /root/provision-user-home/${user}.done
 EOF
     mkdir -p "${systemd_dir}/multi-user.target.wants"
     ln -sfn ../provision-user-home.service \
