@@ -18,6 +18,19 @@
 
 set -e
 
+# The build environment's multiarch triplet, computed once via
+# dpkg-architecture (the same pattern the KDE integration functions
+# below already used individually). Every triplet-shaped path baked
+# into the rootfs (the KDE dri/gbm loader symlinks, the sddm/plasma
+# libexec and env blocks) derives from this one value, so on a native
+# arm64 build environment it becomes aarch64-linux-gnu and the same
+# code serves the planned arm64 image build -- hardware-gated, see the
+# core-base-variant repo's docs/arm64-recon.md for the full arm64
+# roadmap. The model JSONs and their per-arch "architecture" fields
+# are deliberately untouched by this parameterization (arm64 models
+# belong to that deferred work).
+TARGET_TRIPLET="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
+
 usage() {
     cat <<'EOF'
 Usage: build.sh --desktop gnome|kde --model-account-key <path> \
@@ -412,9 +425,7 @@ kde_sddm_integration() {
   local runtime_root="${BUILD_DIR}/kde-session-snap-root"
   local plasma_root="${BUILD_DIR}/kde-plasma-snap-root"
   local factory_etc="${rootfs}/usr/share/factory/writable/system-data/etc"
-  local triplet
-
-  triplet="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
+  local triplet="$TARGET_TRIPLET"
 
   # The thin core26-desktop base does not carry the mesa GL userspace
   # tree: the fat base pulled it in via gdm3's dependency closure, but
@@ -748,9 +759,8 @@ kde_plasma_setup_integration() {
   local runtime_root="${BUILD_DIR}/kde-plasma-setup-snap-root"
   local factory_etc="${rootfs}/usr/share/factory/writable/system-data/etc"
   local factory_usr="${rootfs}/usr/share/factory/writable/system-data/usr"
-  local triplet
+  local triplet="$TARGET_TRIPLET"
 
-  triplet="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
   unsquashfs -d "${runtime_root}" "${kde_session_snap}" >/dev/null
   for path in \
     "sddm/usr/lib/${triplet}/libexec/plasma-setup" \
