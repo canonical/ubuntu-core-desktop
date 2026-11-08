@@ -166,8 +166,8 @@ jobs:
           # artifacts get retention-days), and each daily run publishes a
           # dated ~2-4GiB image release, so they accumulate forever without
           # this. Delete dated image releases (and their tags) older than 14
-          # days; match only gnome-YYYYMMDD/kde-YYYYMMDD tags so rolling or
-          # manually-cut releases are never touched.
+          # days; match only gnome-YYYYMMDD/kde-YYYYMMDD/gnome-arm64-YYYYMMDD
+          # tags so rolling or manually-cut releases are never touched.
           cutoff=$(date -u -d '14 days ago' +%Y-%m-%dT%H:%M:%SZ)
           # Skip today's tags: the other job may be mid-publish on one of
           # them right now, and an in-flight (unpublished) release shows
@@ -177,11 +177,162 @@ jobs:
           day=$(date -u +%Y%m%d)
           gh release list -R "$GITHUB_REPOSITORY" --limit 250 --json tagName,publishedAt \
             | jq -r --arg cutoff "$cutoff" --arg day "$day" \
-                '.[] | select(.tagName | test("^(gnome|kde)-[0-9]{8}$"))
-                     | select(.tagName != "gnome-\($day)" and .tagName != "kde-\($day)")
+                '.[] | select(.tagName | test("^(gnome|kde)(-arm64)?-[0-9]{8}$"))
+                     | select(.tagName != "gnome-\($day)" and .tagName != "kde-\($day)" and .tagName != "gnome-arm64-\($day)")
                      | select(.publishedAt != null and .publishedAt < $cutoff)
                      | .tagName' \
             | while read -r old_tag; do
                 echo "deleting expired image release: ${old_tag}"
                 gh release delete "$old_tag" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag
               done
+
+  image-arm64:
+    # The arm64 counterpart of the `image` job: same flow, arm64 runner,
+    # the -arm64 snap assets, the arm64 model, --arch arm64. The KDE
+    # branch has no arm64 counterpart (the KDE snap set has no arm64
+    # builds), so this job is GNOME-only.
+    #
+    # 26.04-arm on purpose, for the same reason the amd64 job pins
+    # ubuntu-26.04: the 24.04 runner's du SIGABRTs inside ubuntu-image's
+    # calculate_rootfs_size (see the comment there). 26.04 and 26.04-arm
+    # hosted runners are both GA (actions/runner-images #14747).
+    runs-on: ubuntu-26.04-arm
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Prepare the /mnt build workspace
+        # The runner's ~14G root disk cannot hold the 20G pc.img; the
+        # ephemeral /mnt volume can. build.sh accepts an absolute
+        # --build-dir for exactly this.
+        run: |
+          df -h / /mnt
+          sudo mkdir -p /mnt/ucd-arm64-build /mnt/tmp
+          sudo chown -R "$USER": /mnt/ucd-arm64-build /mnt/tmp
+
+      - name: Download snap inputs (desktop-26-latest release assets, arm64)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p snaps
+          # Wait for the rolling snap releases to exist: snap builds take
+          # up to ~40min, and a schedule/push trigger can race with one.
+          # Same repos as the amd64 job (minus the ubuntu-desktop-provision
+          # fork, see below).
+          for i in $(seq 1 15); do
+            ok=1
+            for repo in canonical/pc-amd64-gadget-desktop \
+                        canonical/ubuntu-core-desktop-snapd \
+                        canonical/ubuntu-desktop-session-snap \
+                        canonical/gnome-desktop-runtime \
+                        canonical/pipewire-snap \
+                        canonical/accountsservice-snap \
+                        canonical/provd-snap \
+                        canonical/fprintd-snap \
+                        canonical/boltd-snap \
+                        canonical/geoclue-snap; do
+              gh release view desktop-26-latest -R "$repo" >/dev/null 2>&1 || ok=0
+            done
+            gh release view desktop-26-thin-latest -R canonical/core-base-desktop >/dev/null 2>&1 || ok=0
+            [ "$ok" = 1 ] && break
+            echo "snap releases not all present yet; waiting ($i/15)"
+            sleep 120
+          done
+          [ "$ok" = 1 ] || { echo "timed out waiting for snap releases" >&2; exit 1; }
+          # The arm64 assets carry -arm64 suffixes on the same
+          # desktop-26-latest / desktop-26-thin-latest releases; they are
+          # saved under the arch-neutral local names so the build.sh
+          # invocation below matches the amd64 job line for line.
+          # ubuntu-desktop-init is deliberately NOT sideloaded here: the
+          # arm64 model resolves it from the store (latest/candidate has
+          # an arm64 revision), while the ubuntu-desktop-provision fork's
+          # release asset is amd64-only.
+          for spec in \
+            canonical/pc-amd64-gadget-desktop:pc-desktop-arm64.snap:pc-desktop.snap \
+            canonical/ubuntu-core-desktop-snapd:snapd-arm64.snap:snapd.snap \
+            canonical/ubuntu-desktop-session-snap:ubuntu-desktop-session-arm64.snap:ubuntu-desktop-session.snap \
+            canonical/gnome-desktop-runtime:gnome-desktop-runtime-arm64.snap:gnome-desktop-runtime.snap \
+            canonical/pipewire-snap:pipewire-arm64.snap:pipewire.snap \
+            canonical/accountsservice-snap:accountsservice-arm64.snap:accountsservice.snap \
+            canonical/provd-snap:provd-arm64.snap:provd.snap \
+            canonical/fprintd-snap:fprintd-arm64.snap:fprintd.snap \
+            canonical/boltd-snap:bolt-arm64.snap:bolt.snap \
+            canonical/geoclue-snap:geoclue-arm64.snap:geoclue.snap
+          do
+            repo=$(printf '%s' "$spec" | cut -d: -f1)
+            asset=$(printf '%s' "$spec" | cut -d: -f2)
+            local_name=$(printf '%s' "$spec" | cut -d: -f3)
+            gh release download desktop-26-latest -R "$repo" -p "$asset" \
+              -O "snaps/$local_name" --clobber
+          done
+          # Thin (desktop-variant) core26-desktop base, arm64 leg, built by
+          # canonical/core-base-desktop's build-snap-variant workflow on
+          # desktop/26-thin.
+          gh release download desktop-26-thin-latest -R canonical/core-base-desktop \
+            -p core26-desktop-arm64.snap -O snaps/core26-desktop-variant.snap --clobber
+          ls -la snaps/
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y squashfs-tools dosfstools mtools fakeroot crudini zstd
+          sudo snap install --classic ubuntu-image
+
+      - name: Build image
+        # Same stanza as the amd64 job, plus --arch arm64, the arm64
+        # model, and the /mnt build dir. No baked credentials (nouser
+        # build); first boot runs the ubuntu-desktop-init wizard via GDM
+        # initial-setup. pc-kernel and the other asserted snaps resolve
+        # from the store's arm64 revisions via the model.
+        run: |
+          du --version | head -1
+          TMPDIR=/mnt/tmp ./build.sh \
+            --desktop gnome \
+            --arch arm64 \
+            --model-account-key ci/account-key.assert \
+            --base-snap snaps/core26-desktop-variant.snap \
+            --gadget-snap snaps/pc-desktop.snap \
+            --snapd-snap snaps/snapd.snap \
+            --snap snaps/accountsservice.snap \
+            --snap snaps/provd.snap \
+            --snap snaps/fprintd.snap \
+            --snap snaps/bolt.snap \
+            --snap snaps/geoclue.snap \
+            --snap snaps/ubuntu-desktop-session.snap \
+            --snap snaps/gnome-desktop-runtime.snap \
+            --snap snaps/pipewire.snap \
+            --model ci/ubuntu-core-desktop-26-arm64-amd64-dangerous.model \
+            --build-dir /mnt/ucd-arm64-build
+
+      - name: Compress
+        run: |
+          zstd -T0 -19 /mnt/ucd-arm64-build/pc.img \
+            -o "ubuntu-core-desktop-gnome-arm64-$(date -u +%Y%m%d).img.zst"
+          sha256sum ubuntu-core-desktop-gnome-arm64-*.img.zst > SHA256SUMS
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-arm64
+          path: |
+            ubuntu-core-desktop-gnome-arm64-*.img.zst
+            SHA256SUMS
+          compression-level: 0
+          retention-days: 14
+
+      - name: Publish dated release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          day=$(date -u +%Y%m%d)
+          tag="gnome-arm64-${day}"
+          if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # Same-day rebuild: replace that date's release entirely so the
+            # tag always points at the newest run of the day.
+            gh release delete "$tag" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag
+          fi
+          gh release create "$tag" -R "$GITHUB_REPOSITORY" \
+            --title "Ubuntu Core Desktop 26 GNOME arm64 (dangerous) - ${day}" \
+            --notes "DANGEROUS developer preview (arm64). Signed with an individual's registered test key; snaps are unasserted and can never be refreshed; no credentials are baked in (first boot runs the ubuntu-desktop-init wizard). Decompress with: \`zstd -T0 -d --sparse ubuntu-core-desktop-gnome-arm64-${day}.img.zst -o pc.img\` (the --sparse flag is required or the output allocates the full ~20G). UEFI boot (shim/grub arm64); QEMU virt or an arm64 host per README.md." \
+            "ubuntu-core-desktop-gnome-arm64-${day}.img.zst" SHA256SUMS

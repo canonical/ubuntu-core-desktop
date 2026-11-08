@@ -18,18 +18,15 @@
 
 set -e
 
-# The build environment's multiarch triplet, computed once via
-# dpkg-architecture (the same pattern the KDE integration functions
-# below already used individually). Every triplet-shaped path baked
-# into the rootfs (the KDE dri/gbm loader symlinks, the sddm/plasma
-# libexec and env blocks) derives from this one value, so on a native
-# arm64 build environment it becomes aarch64-linux-gnu and the same
-# code serves the planned arm64 image build -- hardware-gated, see the
-# core-base-variant repo's docs/arm64-recon.md for the full arm64
-# roadmap. The model JSONs and their per-arch "architecture" fields
-# are deliberately untouched by this parameterization (arm64 models
-# belong to that deferred work).
-TARGET_TRIPLET="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
+# The build's target architecture is selected with --arch (default: the
+# build environment's own architecture; see the validation below). Every
+# triplet-shaped path baked into the rootfs (the KDE dri/gbm loader
+# symlinks, the sddm/plasma libexec and env blocks) derives from the
+# TARGET_TRIPLET computed from it after argument parsing, so an amd64
+# build and a native arm64 build share this code. The serial console
+# port and the model JSON defaults are arch-aware for the same reason;
+# the model JSONs live next to this script (per-arch "architecture"
+# field), the pre-signed CI copies under ci/.
 
 usage() {
     cat <<'EOF'
@@ -49,7 +46,16 @@ Required:
                               Selects the session snap's interface
                               auto-connections and the --autologin
                               session command; everything else is
-                              identical between the two.
+                              identical between the two. (kde is amd64
+                              only: the KDE snap set has no arm64
+                              builds.)
+  --arch amd64|arm64          Target architecture. Defaults to the
+                              build environment's own architecture
+                              (native builds; an arm64 image build
+                              runs on an arm64 host/CI runner).
+                              Selects the model JSON default, the
+                              target multiarch triplet and the serial
+                              console port (ttyS0 / ttyAMA0).
   --model-account-key <path>  Account-key assertion for the key that
                               signed the model (see --model). Needed so
                               ubuntu-image can validate the model's
@@ -77,7 +83,9 @@ Optional:
   --model <path>              Model assertion JSON to sign and build
                               from (default:
                               ubuntu-core-desktop-26-amd64-dangerous.json
-                              for --desktop gnome,
+                              for --desktop gnome --arch amd64,
+                              ubuntu-core-desktop-26-arm64-amd64-dangerous.json
+                              for --desktop gnome --arch arm64,
                               ubuntu-core-desktop-kde-26-amd64-dangerous.json
                               for --desktop kde)
   --user <name>                Configure a NOPASSWD-sudo login account
@@ -144,8 +152,10 @@ Optional:
   --kde-plasma-snap <path>    KDE plasma content snap supplying the
                               screen-locker PAM service files
                               (required for --desktop kde).
-  --build-dir <name>          Output directory under the project root
-                              (default: build); recreated on each build.
+  --build-dir <name|path>     Output directory: a simple name under
+                              the project root (default: build), or an
+                              absolute path (the arm64 CI builds in a
+                              /mnt workspace); recreated on each build.
   --debug                     Verbose kernel/snapd console logging
                               instead of the quiet default.
   -h, --help                  Show this help and exit.
@@ -1095,7 +1105,7 @@ fi
 
 orig_args=("$@")
 
-cmdline_extra='systemd.journald.forward_to_console=1 systemd.journald.max_level_console=err console=ttyS0,115200n8'
+cmdline_extra=''
 debug=0
 autologin=0
 user=""
@@ -1110,6 +1120,7 @@ gadget_snap=""
 snapd_snap=""
 extra_snaps=()
 desktop=""
+arch=""
 kde_session_snap=""
 kde_plasma_snap=""
 build_dir="build"
@@ -1123,6 +1134,7 @@ while [[ $# -gt 0 ]]; do
         --debug) debug=1; shift ;;
         --autologin) autologin=1; shift ;;
         --desktop) desktop="$2"; shift 2 ;;
+        --arch) arch="$2"; shift 2 ;;
         --user) user="$2"; shift 2 ;;
         --password) password="$2"; shift 2 ;;
         --root-password) root_password="$2"; shift 2 ;;
@@ -1145,17 +1157,65 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [[ ! ${build_dir} =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
-    echo "--build-dir must be a simple directory name under the project root." >&2
+# --build-dir is either a simple directory name under the project root
+# (the local wrappers' convention) or an absolute path: the arm64 CI
+# builds the 20G pc.img in a /mnt workspace because the runner's ~14G
+# root disk cannot hold it. Neither form may traverse with "..".
+case "${build_dir}" in
+    *..*)
+        bad_build_dir=1
+        ;;
+    /*)
+        [[ ${build_dir} =~ ^/[A-Za-z0-9._/-]+$ ]] || bad_build_dir=1
+        ;;
+    *)
+        [[ ${build_dir} =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || bad_build_dir=1
+        ;;
+esac
+if [[ -n ${bad_build_dir:-} ]]; then
+    echo "--build-dir must be a simple directory name under the project root, or an absolute path." >&2
     exit 1
 fi
 
+# Validate --arch and derive everything arch-shaped from it. The default
+# is a native build. dpkg-architecture honours a preset
+# DEB_HOST_MULTIARCH over -a, so it must be stripped for the target side
+# (the same gotcha the core-base-variant build-variant.sh guard hit).
+: "${arch:=$(dpkg --print-architecture)}"
+case "${arch}" in
+    amd64|arm64) ;;
+    *)
+        echo "Invalid --arch '${arch}' (must be 'amd64' or 'arm64')." >&2
+        exit 1
+        ;;
+esac
+TARGET_TRIPLET="$(env -u DEB_HOST_MULTIARCH dpkg-architecture -a "${arch}" -qDEB_HOST_MULTIARCH)"
+if [[ ${arch} == arm64 ]]; then
+    # arm64 has no ttyS0 (neither the QEMU virt machine nor typical arm
+    # boards); the serial console -- the primary boot-diagnosis channel
+    # -- lives on ttyAMA0 there.
+    serial_console=ttyAMA0
+else
+    serial_console=ttyS0
+fi
+cmdline_extra="systemd.journald.forward_to_console=1 systemd.journald.max_level_console=err console=${serial_console},115200n8"
+
 case "${desktop}" in
     gnome)
-        : "${model_json:=ubuntu-core-desktop-26-amd64-dangerous.json}"
+        if [[ -z ${model_json} ]]; then
+            if [[ ${arch} == arm64 ]]; then
+                model_json=ubuntu-core-desktop-26-arm64-amd64-dangerous.json
+            else
+                model_json=ubuntu-core-desktop-26-amd64-dangerous.json
+            fi
+        fi
         session_wrapper_args=(ubuntu-desktop-session ubuntu:GNOME)
         ;;
     kde)
+        if [[ ${arch} == arm64 ]]; then
+            echo "--desktop kde is not available for --arch arm64: the KDE snap set (kf6-core26, plasma-core-desktop, plasma-desktop-session) has no arm64 builds." >&2
+            exit 1
+        fi
         : "${model_json:=ubuntu-core-desktop-kde-26-amd64-dangerous.json}"
         session_wrapper_args=(plasma-desktop-session KDE)
         ;;
@@ -1243,7 +1303,7 @@ if [[ -z ${FAKEROOTKEY:-} ]]; then
 fi
 
 if [[ ${debug} == 1 ]]; then
-    cmdline_extra='snapd.debug=1 systemd.log_target=console systemd.journald.forward_to_console=1 console=ttyS0,115200n8'
+    cmdline_extra="snapd.debug=1 systemd.log_target=console systemd.journald.forward_to_console=1 console=${serial_console},115200n8"
 fi
 
 set -x
@@ -1332,8 +1392,8 @@ if [[ -n ${root_password} ]]; then
   usermod --prefix "$(pwd)/${BUILD_DIR}/squashfs-root" --password "${pw}" root
 fi
 
-# fix the serial console
-./fix-console "${BUILD_DIR}/squashfs-root"
+# fix the serial console (port is arch-dependent: ttyS0 / ttyAMA0)
+./fix-console "${BUILD_DIR}/squashfs-root" "${serial_console}"
 
 if [[ ${desktop} == gnome ]]; then
   # Snapd validates homedirs in initramfs, before the regular root is
