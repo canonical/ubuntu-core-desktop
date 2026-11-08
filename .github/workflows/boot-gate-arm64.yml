@@ -1,0 +1,515 @@
+name: boot-gate-arm64
+
+# One-shot arm64 boot gate (the final proof point of the arm64 image
+# pipeline): boot the published gnome-arm64 release under same-arch qemu
+# (TCG, no KVM on hosted arm64 runners) on ubuntu-26.04-arm and verify it
+# reaches a working wizard/greeter.
+#
+# Deliberately workflow_dispatch-only, never per-push: a TCG boot is a
+# 10-60 min burn, so this is a reusable one-shot gate dispatched when a
+# new image release needs boot verification.
+#
+# Two tiers (selectable, default both, run in parallel as separate jobs):
+#
+#   Tier A -- the PUBLISHED artifact: download the dated gnome-arm64
+#   release asset, decompress, boot, and assert boot milestones from the
+#   SERIAL console log (console=ttyAMA0 is baked into the gadget's
+#   cmdline.extra by build.sh, so the serial log is the diagnosis
+#   channel). The image is a nouser build with no credentials, so tier A
+#   is observational only: no SSH, no login.
+#
+#   Tier B -- a KEY-VARIANT image built in-job from the SAME snap set as
+#   the image-arm64 job (same release assets, same model) but with a
+#   CI-generated ephemeral keypair passed via build.sh
+#   --ssh-authorized-keys. That flag bakes root's authorized_keys (and
+#   PermitRootLogin yes) WITHOUT touching the wizard path: no --user is
+#   given, so InitialSetupEnable stays true and first boot still runs
+#   the ubuntu-desktop-init wizard via GDM initial-setup. Tier B boots
+#   that image with user-mode networking (hostfwd) and asserts the
+#   strong set over SSH: is-system-running, snap list, gdm active, the
+#   wizard/greeter session on seat0, provd, and the variant base
+#   mounted.
+#
+# Fix cycles are for qemu args / firmware / assertions ONLY: if the
+# image itself fails to boot, that is a finding to report, not to paper
+# over.
+#
+# ubuntu-26.04-arm on purpose (not 24.04-arm): tier B rebuilds the image
+# with ubuntu-image, which SIGABRTs inside calculate_rootfs_size on the
+# 24.04 runners' du (the same reason the image job pins ubuntu-26.04 /
+# ubuntu-26.04-arm; see build-image.yaml and actions/runner-images
+# #14747). Tier A could run on either, but keeping both jobs on the same
+# validated 26.04-arm label keeps the firmware/qemu versions identical.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: >-
+          Which tier(s) to run: A = published image, serial milestones;
+          B = key-variant build, SSH assertions; both = parallel.
+        required: true
+        default: both
+        type: choice
+        options:
+          - A
+          - B
+          - both
+      release_tag:
+        description: >-
+          Dated release tag whose img.zst tier A boots.
+        required: true
+        default: gnome-arm64-20261108
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  # Shared qemu machine shape for both tiers: -M virt with GICv3,
+  # -cpu max (TCG on an aarch64 host gets MTTCG + LSE), virtio disk/NIC/
+  # GPU/rng, no display, serial (the machine's PL011 -> guest ttyAMA0)
+  # captured to a file. AAVMF (qemu-efi-aarch64) is the UEFI firmware:
+  # the non-secboot build, since the gadget's shim/grub EFI chain does
+  # not need secure boot and the amd64 flow likewise boots plain OVMF.
+  # The package ships full 64 MiB flash images, so they can be used
+  # directly as pflash (a writable copy of the VARS image is required).
+  QEMU_ARGS: >-
+    -M virt,gic-version=3
+    -cpu max
+    -accel tcg,thread=multi
+    -smp 4
+    -m 4096
+  # Boot budget per the gate design: declare failure after 60 min of
+  # boot. Job timeout-minutes below adds slack for downloads/build.
+  BOOT_BUDGET: 3600
+
+jobs:
+  tier-a:
+    name: Tier A - published image boots to wizard (serial milestones)
+    runs-on: ubuntu-26.04-arm
+    timeout-minutes: 180
+    if: inputs.tier == 'A' || inputs.tier == 'both'
+    steps:
+      - name: Install qemu + AAVMF firmware
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            qemu-system-arm qemu-efi-aarch64 zstd
+          qemu-system-aarch64 --version
+          # Locate the firmware; tolerate both package layouts.
+          code=""
+          vars=""
+          for f in /usr/share/AAVMF/AAVMF_CODE.fd \
+                   /usr/share/qemu-efi-aarch64/AAVMF_CODE.fd; do
+            [ -e "$f" ] && code="$f" && break
+          done
+          for f in /usr/share/AAVMF/AAVMF_VARS.fd \
+                   /usr/share/qemu-efi-aarch64/AAVMF_VARS.fd; do
+            [ -e "$f" ] && vars="$f" && break
+          done
+          [ -n "$code" ] && [ -n "$vars" ] || {
+            echo "AAVMF firmware not found:" >&2
+            dpkg -L qemu-efi-aarch64 >&2 || true
+            exit 1
+          }
+          echo "AAVMF_CODE=$code" >> "$GITHUB_ENV"
+          echo "AAVMF_VARS=$vars" >> "$GITHUB_ENV"
+
+      - name: Download the published arm64 image release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /mnt/bootgate
+          cd /mnt/bootgate
+          df -h /mnt
+          gh release download "${{ inputs.release_tag }}" \
+            -R "$GITHUB_REPOSITORY" \
+            -p '*.img.zst' -p 'SHA256SUMS' --clobber
+          sha256sum -c SHA256SUMS
+
+      - name: Decompress (sparse; the image is a 20G sparse file)
+        run: |
+          cd /mnt/bootgate
+          zstd -T0 -d --sparse *.img.zst -o pc.img
+          ls -la pc.img
+          df -h /mnt
+
+      - name: Boot the published image and assert serial milestones
+        # Serial milestones (from /dev/console == ttyAMA0; the quiet
+        # cmdline.extra only limits journald->console forwarding to
+        # err+, systemd's own "[ OK ]" job lines still print):
+        #   kernel   - EFI stub / GRUB / kernel banner (boot happened)
+        #   seed     - snapd seeding evidence ("Finished Snap Seeder.",
+        #              reboot into run mode)  [warn-only: the install-
+        #              mode boot may phrase this differently, and the
+        #              reach of run mode below is itself the proof the
+        #              seed completed; tier B proves the seeded set]
+        #   graphical- "Reached target Graphical Interface."
+        #   gdm      - "Started GNOME Display Manager."
+        #   wizard   - the gnome-initial-setup session scope (GDM
+        #              initial setup: no user accounts exist on a nouser
+        #              build, so GDM runs the wizard session instead of
+        #              the plain greeter)
+        # kernel+graphical+gdm+wizard are REQUIRED; seed/snapd_daemon
+        # are reported and called out in the verdict if absent.
+        # set -u only: GH runs steps with bash -e already, and this
+        # script greps for many patterns that legitimately do not match
+        # (report-only milestones); failure paths exit 1 explicitly.
+        run: |
+          set -u
+          cd /mnt/bootgate
+          cp "$AAVMF_VARS" VARS.fd
+          rm -f serial.log qemu.log milestones.txt
+          qemu-system-aarch64 $QEMU_ARGS \
+            -drive if=pflash,format=raw,readonly=on,file="$AAVMF_CODE" \
+            -drive if=pflash,format=raw,file=VARS.fd \
+            -drive file=pc.img,if=none,format=raw,id=hd0 \
+            -device virtio-blk-pci,drive=hd0 \
+            -device virtio-gpu-pci,edid=on \
+            -device virtio-rng-pci \
+            -netdev user,id=net0 -device virtio-net-pci,netdev=net0 \
+            -display none \
+            -serial file:serial.log \
+            > qemu.log 2>&1 &
+          qpid=$!
+          echo "qemu pid: $qpid"
+
+          declare -A pat=(
+            [kernel]='EFI stub|GRUB|Booting Linux|Linux version [0-9]'
+            [seed]='Snap Seeder|snapd\.seeded|Rebooting into|Installing the system'
+            [graphical]='Reached target Graphical Interface'
+            [gdm]='GNOME Display Manager'
+            [wizard]='gnome-initial-setup'
+            [snapd_daemon]='Started Snap Daemon'
+          )
+          required="kernel graphical gdm wizard"
+
+          deadline=$((SECONDS + BOOT_BUDGET))
+          ok=0
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            if ! kill -0 "$qpid" 2>/dev/null; then
+              echo "FINDING: qemu exited early at t=${SECONDS}s"
+              tail -20 qemu.log || true
+              tail -60 serial.log || true
+              break
+            fi
+            line=""
+            miss=""
+            for k in kernel seed graphical gdm wizard snapd_daemon; do
+              if grep -aqE "${pat[$k]}" serial.log 2>/dev/null; then
+                line="$line $k=Y"
+              else
+                line="$line $k=-"
+                case " $required " in
+                  *" $k "*) miss="$miss $k" ;;
+                esac
+              fi
+            done
+            echo "t=${SECONDS}s:$line (serial bytes: $(stat -c%s serial.log 2>/dev/null || echo 0))"
+            if [ -z "$miss" ]; then ok=1; break; fi
+            sleep 30
+          done
+
+          if [ "$ok" = 1 ]; then
+            echo "all required serial milestones reached; dwelling 180s to catch late failures"
+            sleep 180
+          fi
+
+          {
+            echo "verdict: $([ "$ok" = 1 ] && echo PASS || echo FAIL)"
+            echo
+            echo "serial size: $(stat -c%s serial.log 2>/dev/null || echo 0) bytes"
+            echo "EFI stub events (>=1 per boot; >=2 => rebooted into run mode): $(grep -ac 'EFI stub' serial.log 2>/dev/null || echo 0)"
+            echo
+            echo "milestone matches:"
+            for k in kernel seed graphical gdm wizard snapd_daemon; do
+              echo "--- $k ($(grep -acE "${pat[$k]}" serial.log 2>/dev/null || echo 0) lines)"
+              grep -aE "${pat[$k]}" serial.log 2>/dev/null | head -5
+            done
+            echo
+            echo "all session/user-manager lines on serial:"
+            grep -aE 'Session .* of user|User Manager for UID' serial.log 2>/dev/null | head -20
+            echo
+            echo "err-level console lines (journald forwards err+; report-only):"
+            grep -acE 'Failed to start|apparmor="DENIED"' serial.log 2>/dev/null || true
+            grep -aE 'Failed to start|apparmor="DENIED"' serial.log 2>/dev/null | head -20 || true
+            echo
+            echo "serial tail (last 80 lines):"
+            tail -80 serial.log 2>/dev/null
+          } > milestones.txt
+          cat milestones.txt
+          [ "$ok" = 1 ] || exit 1
+
+      - name: Upload tier A artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-gate-arm64-tier-a
+          path: |
+            /mnt/bootgate/serial.log
+            /mnt/bootgate/qemu.log
+            /mnt/bootgate/milestones.txt
+          if-no-files-found: warn
+
+  tier-b:
+    name: Tier B - key-variant image, SSH assertions
+    runs-on: ubuntu-26.04-arm
+    timeout-minutes: 180
+    if: inputs.tier == 'B' || inputs.tier == 'both'
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install build deps (image job set) + qemu
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y squashfs-tools dosfstools mtools \
+            fakeroot crudini zstd qemu-system-arm qemu-efi-aarch64
+          sudo snap install --classic ubuntu-image
+          qemu-system-aarch64 --version
+          code=""
+          vars=""
+          for f in /usr/share/AAVMF/AAVMF_CODE.fd \
+                   /usr/share/qemu-efi-aarch64/AAVMF_CODE.fd; do
+            [ -e "$f" ] && code="$f" && break
+          done
+          for f in /usr/share/AAVMF/AAVMF_VARS.fd \
+                   /usr/share/qemu-efi-aarch64/AAVMF_VARS.fd; do
+            [ -e "$f" ] && vars="$f" && break
+          done
+          [ -n "$code" ] && [ -n "$vars" ] || {
+            echo "AAVMF firmware not found" >&2
+            dpkg -L qemu-efi-aarch64 >&2 || true
+            exit 1
+          }
+          echo "AAVMF_CODE=$code" >> "$GITHUB_ENV"
+          echo "AAVMF_VARS=$vars" >> "$GITHUB_ENV"
+
+      - name: Prepare the /mnt build workspace
+        # Same reason as the image job: the ~14G root disk cannot hold
+        # the 20G pc.img; /mnt can.
+        run: |
+          df -h / /mnt
+          sudo mkdir -p /mnt/ucd-bootgate /mnt/tmp /mnt/bootgate
+          sudo chown -R "$USER": /mnt/ucd-bootgate /mnt/tmp /mnt/bootgate
+
+      - name: Download snap inputs (desktop-26-latest assets, arm64)
+        # Verbatim snap set of the image-arm64 job: whatever it builds
+        # today, this key-variant builds with --ssh-authorized-keys
+        # added and nothing else changed.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p snaps
+          for i in $(seq 1 25); do
+            ok=1
+            for spec in \
+              canonical/pc-amd64-gadget-desktop:pc-desktop-arm64.snap \
+              canonical/ubuntu-core-desktop-snapd:snapd-arm64.snap \
+              canonical/ubuntu-desktop-session-snap:ubuntu-desktop-session-arm64.snap \
+              canonical/gnome-desktop-runtime:gnome-desktop-runtime-arm64.snap \
+              canonical/pipewire-snap:pipewire-arm64.snap \
+              canonical/accountsservice-snap:accountsservice-arm64.snap \
+              canonical/provd-snap:provd-arm64.snap \
+              canonical/fprintd-snap:fprintd-arm64.snap \
+              canonical/boltd-snap:bolt-arm64.snap \
+              canonical/geoclue-snap:geoclue-arm64.snap \
+              chris-bainbridge/ubuntu-desktop-provision:ubuntu-desktop-init-arm64.snap
+            do
+              repo=${spec%%:*}
+              asset=${spec#*:}
+              gh release view desktop-26-latest -R "$repo" --json assets \
+                -q '.assets[].name' 2>/dev/null | grep -qx "$asset" || ok=0
+            done
+            gh release view desktop-26-thin-latest -R canonical/core-base-desktop \
+              --json assets -q '.assets[].name' 2>/dev/null \
+              | grep -qx core26-desktop-arm64.snap || ok=0
+            [ "$ok" = 1 ] && break
+            echo "snap assets not all present yet; waiting ($i/25)"
+            sleep 120
+          done
+          [ "$ok" = 1 ] || { echo "timed out waiting for snap assets" >&2; exit 1; }
+          for spec in \
+            canonical/pc-amd64-gadget-desktop:pc-desktop-arm64.snap:pc-desktop.snap \
+            canonical/ubuntu-core-desktop-snapd:snapd-arm64.snap:snapd.snap \
+            canonical/ubuntu-desktop-session-snap:ubuntu-desktop-session-arm64.snap:ubuntu-desktop-session.snap \
+            canonical/gnome-desktop-runtime:gnome-desktop-runtime-arm64.snap:gnome-desktop-runtime.snap \
+            canonical/pipewire-snap:pipewire-arm64.snap:pipewire.snap \
+            canonical/accountsservice-snap:accountsservice-arm64.snap:accountsservice.snap \
+            canonical/provd-snap:provd-arm64.snap:provd.snap \
+            canonical/fprintd-snap:fprintd-arm64.snap:fprintd.snap \
+            canonical/boltd-snap:bolt-arm64.snap:bolt.snap \
+            canonical/geoclue-snap:geoclue-arm64.snap:geoclue.snap \
+            chris-bainbridge/ubuntu-desktop-provision:ubuntu-desktop-init-arm64.snap:ubuntu-desktop-init.snap
+          do
+            repo=$(printf '%s' "$spec" | cut -d: -f1)
+            asset=$(printf '%s' "$spec" | cut -d: -f2)
+            local_name=$(printf '%s' "$spec" | cut -d: -f3)
+            gh release download desktop-26-latest -R "$repo" -p "$asset" \
+              -O "snaps/$local_name" --clobber
+          done
+          gh release download desktop-26-thin-latest -R canonical/core-base-desktop \
+            -p core26-desktop-arm64.snap -O snaps/core26-desktop-variant.snap --clobber
+          ls -la snaps/
+
+      - name: Generate the ephemeral CI keypair
+        # Lives only on this runner; the PRIVATE key is never uploaded
+        # as an artifact (only gate_key.pub is, for the record).
+        run: |
+          ssh-keygen -t ed25519 -N '' -C boot-gate-arm64-ci \
+            -f /mnt/bootgate/gate_key
+          ssh-keygen -y -f /mnt/bootgate/gate_key
+
+      - name: Build the key-variant image
+        # Image-arm64 job's exact invocation plus --ssh-authorized-keys
+        # (bakes root's authorized_keys + PermitRootLogin yes; the
+        # wizard path is untouched since no --user is passed).
+        run: |
+          TMPDIR=/mnt/tmp ./build.sh \
+            --desktop gnome \
+            --arch arm64 \
+            --model-account-key ci/account-key.assert \
+            --ssh-authorized-keys /mnt/bootgate/gate_key.pub \
+            --base-snap snaps/core26-desktop-variant.snap \
+            --gadget-snap snaps/pc-desktop.snap \
+            --snapd-snap snaps/snapd.snap \
+            --snap snaps/accountsservice.snap \
+            --snap snaps/provd.snap \
+            --snap snaps/fprintd.snap \
+            --snap snaps/bolt.snap \
+            --snap snaps/geoclue.snap \
+            --snap snaps/ubuntu-desktop-session.snap \
+            --snap snaps/gnome-desktop-runtime.snap \
+            --snap snaps/pipewire.snap \
+            --snap snaps/ubuntu-desktop-init.snap \
+            --model ci/ubuntu-core-desktop-26-arm64-amd64-dangerous.model \
+            --build-dir /mnt/ucd-bootgate
+          ls -la /mnt/ucd-bootgate/pc.img
+
+      - name: Boot the key-variant image and run SSH assertions
+        # 60-min boot budget from qemu start (covers install-mode
+        # seeding + the automatic reboot into run mode, both inside the
+        # VM); then up to 10 min for GDM's wizard/greeter session to
+        # appear (sshd comes up with multi-user.target, which precedes
+        # graphical.target).
+        run: |
+          set -u
+          cd /mnt/bootgate
+          cp "$AAVMF_VARS" VARS.fd
+          rm -f serial.log qemu.log ssh-transcript.txt assertions.txt
+          qemu-system-aarch64 $QEMU_ARGS \
+            -drive if=pflash,format=raw,readonly=on,file="$AAVMF_CODE" \
+            -drive if=pflash,format=raw,file=VARS.fd \
+            -drive file=/mnt/ucd-bootgate/pc.img,if=none,format=raw,id=hd0 \
+            -device virtio-blk-pci,drive=hd0 \
+            -device virtio-gpu-pci,edid=on \
+            -device virtio-rng-pci \
+            -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 \
+            -device virtio-net-pci,netdev=net0 \
+            -display none \
+            -serial file:serial.log \
+            > qemu.log 2>&1 &
+          qpid=$!
+          echo "qemu pid: $qpid"
+
+          SSH=(ssh -i gate_key -p 2222 \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile=known_hosts \
+            -o ConnectTimeout=10 -o BatchMode=yes -o LogLevel=ERROR \
+            root@127.0.0.1)
+          rsh() { echo "\$ $*" >> ssh-transcript.txt; "${SSH[@]}" "$@" 2>&1 | tee -a ssh-transcript.txt; }
+
+          deadline=$((SECONDS + BOOT_BUDGET))
+          up=0
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            if ! kill -0 "$qpid" 2>/dev/null; then
+              echo "FINDING: qemu exited early at t=${SECONDS}s"
+              tail -20 qemu.log || true
+              tail -60 serial.log || true
+              exit 1
+            fi
+            if "${SSH[@]}" true 2>/dev/null; then
+              up=1
+              echo "SSH reachable at t=${SECONDS}s"
+              break
+            fi
+            echo "t=${SECONDS}s: ssh not up yet; serial: $(tail -c 300 serial.log 2>/dev/null | tr '\r' '\n' | tail -1)"
+            sleep 30
+          done
+          [ "$up" = 1 ] || {
+            echo "FINDING: sshd never came up within ${BOOT_BUDGET}s of boot"
+            tail -100 serial.log || true
+            exit 1
+          }
+
+          # Wait for the wizard/greeter session on seat0.
+          wizard=0; greeter=0
+          wdeadline=$((SECONDS + 600))
+          while [ "$SECONDS" -lt "$wdeadline" ]; do
+            sess="$(rsh 'loginctl list-sessions --no-legend 2>/dev/null' || true)"
+            echo "--- sessions at t=${SECONDS}s:"; echo "$sess"
+            if echo "$sess" | grep -q 'gnome-initial-setup'; then wizard=1; break; fi
+            if echo "$sess" | grep -q 'gdm-greeter'; then greeter=1; fi
+            sleep 30
+          done
+
+          rsh 'cat /proc/cmdline' || true
+          rsh 'systemctl is-system-running; systemctl --failed --no-pager || true' || true
+          rsh 'snap list' || true
+          rsh 'systemctl is-active gdm' || true
+          rsh 'loginctl list-sessions --no-legend || true' || true
+          rsh 'pgrep -ax provd; pgrep -af bin/ubuntu_init || true' || true
+          rsh 'test -d /snap/core26-desktop && ls /snap/core26-desktop/ && mount | grep core26-desktop | head -3' || true
+          rsh 'test -S /run/gnome-initial-setup/desktop-provision/init.socket && echo init.socket-present || echo init.socket-missing' || true
+          rsh 'journalctl -b --no-pager | tail -40' || true
+
+          # Gate verdict.
+          isrunning="$(rsh 'systemctl is-system-running' | head -1 || true)"
+          gdma="$(rsh 'systemctl is-active gdm' | head -1 || true)"
+          snaps="$(rsh 'snap list' || true)"
+          bases="$(rsh 'test -d /snap/core26-desktop && echo yes || echo no' | head -1 || true)"
+          provd="$(rsh 'pgrep -cx provd || true' | head -1 || true)"
+          failed=0
+          check() { # name value expected
+            if [ "$2" = "$3" ]; then echo "PASS: $1=$2"; else echo "FAIL: $1=$2 (want $3)"; failed=1; fi
+          }
+          case "$isrunning" in
+            running|degraded) echo "PASS: is-system-running=$isrunning" ;;
+            *) echo "FAIL: is-system-running=$isrunning"; failed=1 ;;
+          esac
+          check "gdm-active" "$gdma" active
+          for s in pc-desktop core26-desktop pc-kernel snapd \
+                   ubuntu-desktop-session gnome-desktop-runtime \
+                   ubuntu-desktop-init pipewire; do
+            if echo "$snaps" | grep -qE "^$s +[0-9]"; then
+              echo "PASS: snap $s present"
+            else
+              echo "FAIL: snap $s missing"; failed=1
+            fi
+          done
+          check "variant-base-mounted" "$bases" yes
+          if [ "$wizard" = 1 ] && [ "$provd" -ge 1 ] 2>/dev/null; then
+            echo "PASS: wizard session (gnome-initial-setup on seat0) + provd running"
+          elif [ "$greeter" = 1 ] && [ "$wizard" = 0 ]; then
+            echo "WARN: greeter-only session on seat0; wizard session never appeared"
+            failed=1
+          else
+            echo "FAIL: no wizard/greeter session appeared on seat0 within 600s"
+            failed=1
+          fi
+          echo "$snaps" > assertions.txt
+          [ "$failed" = 0 ] || exit 1
+
+      - name: Upload tier B artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-gate-arm64-tier-b
+          path: |
+            /mnt/bootgate/serial.log
+            /mnt/bootgate/qemu.log
+            /mnt/bootgate/ssh-transcript.txt
+            /mnt/bootgate/assertions.txt
+            /mnt/bootgate/gate_key.pub
+          if-no-files-found: warn
