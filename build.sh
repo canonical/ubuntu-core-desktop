@@ -1309,8 +1309,20 @@ fi
 set -x
 
 BUILD_DIR="${build_dir}"
-rm -rf "${BUILD_DIR}"
-mkdir -p "${BUILD_DIR}"
+case "${BUILD_DIR}" in
+    /*)
+        # An external absolute build dir (e.g. the arm64 CI's /mnt
+        # workspace): its parent is not writable by the build user, so
+        # removing the directory itself would fail with EACCES -- empty
+        # the directory and keep it instead.
+        mkdir -p "${BUILD_DIR}"
+        find "${BUILD_DIR}" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+        ;;
+    *)
+        rm -rf "${BUILD_DIR}"
+        mkdir -p "${BUILD_DIR}"
+        ;;
+esac
 
 rm -rf "${BUILD_DIR}/squashfs-root" "${BUILD_DIR}/gadget.snap"
 unsquashfs -d "${BUILD_DIR}/squashfs-root" "${gadget_snap}"
