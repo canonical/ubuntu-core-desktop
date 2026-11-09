@@ -90,15 +90,18 @@ env:
     -accel tcg,thread=multi
     -smp 4
     -m 4096
-  # Boot budget per the gate design: declare failure after 60 min of
-  # boot. Job timeout-minutes below adds slack for downloads/build.
-  BOOT_BUDGET: 3600
+  # Boot budget: 180 min per the gate design (BOOT_BUDGET in seconds),
+  # extended from the original 60-min sketch after the first full gate
+  # run measured it: first-boot install-mode seeding on a 4-vCPU TCG
+  # runner was still running at 60 min (recon's 30-90 min estimate was
+  # for a 32-core host). Job timeout adds slack for downloads/build.
+  BOOT_BUDGET: 10800
 
 jobs:
   tier-a:
     name: Tier A - published image boots to wizard (serial milestones)
     runs-on: ubuntu-26.04-arm
-    timeout-minutes: 180
+    timeout-minutes: 300
     if: inputs.tier == 'A' || inputs.tier == 'both'
     steps:
       - name: Install qemu + AAVMF firmware
@@ -269,7 +272,7 @@ jobs:
   tier-b:
     name: Tier B - key-variant image, SSH assertions
     runs-on: ubuntu-26.04-arm
-    timeout-minutes: 180
+    timeout-minutes: 300
     if: inputs.tier == 'B' || inputs.tier == 'both'
     steps:
       - name: Checkout source
@@ -402,11 +405,16 @@ jobs:
           ls -la /mnt/ucd-bootgate/pc.img
 
       - name: Boot the key-variant image and run SSH assertions
-        # 60-min boot budget from qemu start (covers install-mode
-        # seeding + the automatic reboot into run mode, both inside the
-        # VM); then up to 10 min for GDM's wizard/greeter session to
-        # appear (sshd comes up with multi-user.target, which precedes
-        # graphical.target).
+        # BOOT_BUDGET (from qemu start) covers the whole path to a
+        # seeded run-mode system: install-mode first boot (seeding,
+        # snapd then reboots in-VM), the automatic reboot, and the
+        # run-mode boot. DISCOVERY from the first gate run: the
+        # install-mode (recovery) system also runs sshd and accepts
+        # the baked root key, so "SSH up" does NOT mean run mode --
+        # the gate must wait for the seeded run-mode system (no
+        # snapd_recovery_mode=install on the cmdline AND pc-kernel in
+        # snap list) before asserting anything, and up to 20 min more
+        # for GDM's wizard/greeter session after run mode boots.
         run: |
           set -u
           cd /mnt/bootgate
@@ -457,9 +465,44 @@ jobs:
             exit 1
           }
 
-          # Wait for the wizard/greeter session on seat0.
+          # Wait for the seeded run-mode system: /proc/cmdline must no
+          # longer carry snapd_recovery_mode=install and snap list must
+          # contain pc-kernel (an asserted store snap, only present
+          # after seeding). Probes survive the in-VM reboot (sshd goes
+          # away for a few minutes while the VM reboots into run mode).
+          seeded=0
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            if ! kill -0 "$qpid" 2>/dev/null; then
+              echo "FINDING: qemu exited early at t=${SECONDS}s"
+              tail -20 qemu.log || true
+              tail -60 serial.log || true
+              exit 1
+            fi
+            if "${SSH[@]}" true 2>/dev/null; then
+              cmdline="$(rsh 'tr "\0" "\n" < /proc/cmdline | grep -c "snapd_recovery_mode=install" || true' | tail -1)"
+              nsnaps="$(rsh 'snap list 2>/dev/null | grep -c "^pc-kernel " || true' | tail -1)"
+              nall="$(rsh 'snap list 2>/dev/null | grep -c "" || true' | tail -1)"
+              if [ "$cmdline" = "0" ] && [ "$nsnaps" -ge 1 ] 2>/dev/null; then
+                seeded=1
+                echo "run-mode seeded system reached at t=${SECONDS}s (snap list: $nall snaps)"
+                break
+              fi
+              echo "t=${SECONDS}s: not yet a seeded run-mode system (install-mode=$cmdline, pc-kernel=$nsnaps, snaps=$nall)"
+            else
+              echo "t=${SECONDS}s: ssh not reachable (booting/rebooting in VM)"
+            fi
+            sleep 60
+          done
+          [ "$seeded" = 1 ] || {
+            echo "FINDING: no seeded run-mode system within ${BOOT_BUDGET}s of boot"
+            tail -100 serial.log || true
+            exit 1
+          }
+
+          # Wait for the wizard/greeter session on seat0 (run mode
+          # boots fresh; GDM initial setup can take minutes under TCG).
           wizard=0; greeter=0
-          wdeadline=$((SECONDS + 600))
+          wdeadline=$((SECONDS + 1200))
           while [ "$SECONDS" -lt "$wdeadline" ]; do
             sess="$(rsh 'loginctl list-sessions --no-legend 2>/dev/null' || true)"
             echo "--- sessions at t=${SECONDS}s:"; echo "$sess"
@@ -509,7 +552,7 @@ jobs:
             echo "WARN: greeter-only session on seat0; wizard session never appeared"
             failed=1
           else
-            echo "FAIL: no wizard/greeter session appeared on seat0 within 600s"
+            echo "FAIL: no wizard/greeter session appeared on seat0 within 1200s of run mode"
             failed=1
           fi
           echo "$snaps" > assertions.txt
