@@ -1324,6 +1324,66 @@ case "${BUILD_DIR}" in
         ;;
 esac
 
+# ---------------------------------------------------------------------
+# Per-build device identity (seeded serial). Each built image becomes a
+# unique "device": a fresh RSA-4096 device keypair is generated per
+# build, a serial assertion binding it to the model is signed with the
+# same brand key that signs the model (the serial's authority-id equals
+# the model's brand-id, so no serial-authority delegation is needed --
+# snapd accepts brand-signed serials, see asserts/serial_asserts.go
+# checkConsistency), the private key is planted into ubuntu-save on
+# first boot, and the signed serial is seeded on the ubuntu-seed
+# partition. snapd then treats the device as already initialized
+# (maybeRestoreAfterReset picks up the seeded serial + planted key) and
+# never contacts the store for a serial request, which is what unblocks
+# the install->run mode transition. Store access stays anonymous as
+# today; clones of one image share its identity (accepted trade-off).
+#
+# The feature is skipped (with a warning) when any prerequisite is
+# missing -- notably `snap sign` without the brand key, which is the
+# normal state on CI runners that build from a pre-signed model -- so
+# builds degrade to the previous serial-less behavior instead of
+# failing. Provision the signing key on a runner (SNAP_SIGN_KEY +
+# its keyring, like the model signing above) to get per-build serials
+# there too.
+# ---------------------------------------------------------------------
+serial_assert=""
+device_key_id=""
+if command -v python3 >/dev/null 2>&1 \
+   && command -v openssl >/dev/null 2>&1 \
+   && command -v mcopy >/dev/null 2>&1; then
+    # brand-id/model from the model JSON (plain JSON) or a pre-signed
+    # model assertion (plain assertion headers)
+    case "${model_json}" in
+        *.model)
+            brand_id=$(awk '/^brand-id:/ {print $2; exit}' "${model_json}")
+            model_name=$(awk '/^model:/ {print $2; exit}' "${model_json}")
+            ;;
+        *)
+            brand_id=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["brand-id"])' "${model_json}")
+            model_name=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["model"])' "${model_json}")
+            ;;
+    esac
+    if python3 tools/gen-device-key.py gen \
+        --out-dir "${BUILD_DIR}/device-key" \
+        --brand-id "${brand_id}" \
+        --model "${model_name}" \
+        > "${BUILD_DIR}/device-key.id" \
+        && device_key_id=$(cat "${BUILD_DIR}/device-key.id") \
+        && snap sign -k "${SNAP_SIGN_KEY:-test}" \
+            "${BUILD_DIR}/device-key/serial.json" \
+            > "${BUILD_DIR}/device-key/serial.assert"; then
+        serial_assert="${BUILD_DIR}/device-key/serial.assert"
+        echo "Per-build device serial: ${BUILD_DIR}/device-key/serial.assert (device key ${device_key_id})"
+    else
+        echo "WARNING: per-build device serial generation or signing failed (snap sign -k ${SNAP_SIGN_KEY:-test});" >&2
+        echo "WARNING: building without a seeded serial -- the image will not transition install->run mode." >&2
+        rm -rf "${BUILD_DIR}/device-key" "${BUILD_DIR}/device-key.id"
+    fi
+else
+    echo "WARNING: python3/openssl/mtools not all available; building without a seeded device serial." >&2
+fi
+
 rm -rf "${BUILD_DIR}/squashfs-root" "${BUILD_DIR}/gadget.snap"
 unsquashfs -d "${BUILD_DIR}/squashfs-root" "${gadget_snap}"
 printf '%s\n' "${cmdline_extra}" \
@@ -1770,6 +1830,57 @@ EOF
   fi
 fi
 
+# Bake the per-build device private key + a first-boot oneshot that
+# plants it where snapd's keypair manager looks (ubuntu-save,
+# private-keys-v1/<key id>). Runs before snapd (the base's
+# var-lib-snapd-save.mount already has ubuntu-save mounted by then), so
+# snapd's maybeRestoreAfterReset finds the seeded serial's device key
+# and completes device initialization without any store contact. The
+# base ships that mount unit in local-fs.target.requires; if ubuntu-save
+# is not mounted the Condition skips the plant and the system keeps
+# snapd's stock serial-less behavior (no regression either way).
+if [[ -n ${serial_assert} ]]; then
+  plant_root="${BUILD_DIR}/squashfs-root"
+  mkdir -p "${plant_root}/usr/share/snapd" \
+    "${plant_root}/usr/local/sbin" \
+    "${plant_root}/usr/lib/systemd/system/multi-user.target.wants"
+  install -m 600 "${BUILD_DIR}/device-key/device-key.privkey" \
+    "${plant_root}/usr/share/snapd/device-key"
+  cat > "${plant_root}/usr/local/sbin/plant-device-key" <<EOF
+#!/bin/sh
+# Plant the image's pre-provisioned snapd device key (per-build device
+# identity, see build.sh). Idempotent: snapd's keypair manager reads
+# private-keys-v1/<key id> from ubuntu-save.
+keysdir=/var/lib/snapd/save/device/private-keys-v1
+mkdir -p "\$keysdir"
+chmod 700 "\$keysdir"
+key="\$keysdir/${device_key_id}"
+if ! cmp -s /usr/share/snapd/device-key "\$key"; then
+    install -m 600 /usr/share/snapd/device-key "\$key"
+fi
+EOF
+  chmod 0755 "${plant_root}/usr/local/sbin/plant-device-key"
+  cat > "${plant_root}/usr/lib/systemd/system/snapd-plant-device-key.service" <<'EOF'
+[Unit]
+Description=Plant the image's pre-provisioned snapd device key
+# Only meaningful once ubuntu-save is actually mounted there; when it
+# is not, snapd's own device-key handling applies unchanged.
+ConditionPathIsMountPoint=/var/lib/snapd/save
+After=local-fs.target
+Before=snapd.service snapd-seeding.service snapd.seeded.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/plant-device-key
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  ln -sfn ../snapd-plant-device-key.service \
+    "${plant_root}/usr/lib/systemd/system/multi-user.target.wants/snapd-plant-device-key.service"
+fi
+
 mksquashfs "${BUILD_DIR}/squashfs-root" "${BUILD_DIR}/custom-core.snap" -noappend -comp zstd -Xcompression-level 1
 rm -rf "${BUILD_DIR}/squashfs-root"
 
@@ -1835,6 +1946,43 @@ env -u FAKEROOTKEY -u LD_PRELOAD \
   --image-size 20G \
   "${snap_args[@]}" \
   "${model_assert}"
+
+# Seed the per-build serial assertion onto the ubuntu-seed partition so
+# snapd loads it during first-boot seeding (seed/seed20.go LoadAssertions
+# reads every file in systems/<label>/assertions/). File order matters
+# only for readability: assertions are committed by a batch that sorts
+# prerequisites first, and the serial has none of its own; the signing
+# account-key chain already lands in model-etc. Done with mtools (no
+# root mount needed); the image stays byte-identical otherwise.
+if [[ -n ${serial_assert} ]]; then
+  img="$(readlink -f "${BUILD_DIR}/pc.img")"
+  offset="$(python3 tools/gen-device-key.py find-seed-part \
+    --image "${img}" --name ubuntu-seed)" || {
+    echo "WARNING: cannot locate the ubuntu-seed partition; not seeding the device serial." >&2
+    serial_assert=""
+  }
+fi
+if [[ -n ${serial_assert} ]]; then
+  export MTOOLSRC="${BUILD_DIR}/mtoolsrc"
+  printf 'drive s: file="%s" offset=%s\n' "${img}" "${offset}" > "${MTOOLSRC}"
+  seed_label="$(MTOOLSRC="${MTOOLSRC}" mdir -b s:/systems 2>/dev/null \
+    | sed -n 's#^S:/systems/\([^/]*\)/$#\1#p' | head -n1)"
+  if [[ -z ${seed_label} ]]; then
+    echo "WARNING: cannot determine the recovery system label on the ubuntu-seed partition; not seeding the device serial." >&2
+    serial_assert=""
+  else
+    if mcopy "${serial_assert}" \
+      "s:/systems/${seed_label}/assertions/serial.assert" \
+      && mdir -b "s:/systems/${seed_label}/assertions" \
+        | grep -q serial.assert; then
+      echo "Seeded device serial into ubuntu-seed: systems/${seed_label}/assertions/serial.assert"
+    else
+      echo "WARNING: mcopy failed; not seeding the device serial." >&2
+      serial_assert=""
+    fi
+  fi
+  rm -f "${MTOOLSRC}"
+fi
 
 # No seed ISO either way: with --user the account is pre-provisioned in
 # the image itself (the extrausers seeding above -- there is no
