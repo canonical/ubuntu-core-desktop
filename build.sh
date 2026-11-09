@@ -204,7 +204,8 @@ with open(path, "r", encoding="utf-8") as f:
     lines = f.readlines()
 
 simple_plugs = [
-    "account-control", "bluetooth-control", "desktop-launch", "fuse-device",
+    "account-control", "bluetooth-control", "desktop-launch",
+    "desktop-legacy", "fuse-device",
     "hardware-observe", "home", "hostname-control", "locale-control",
     "login-session-control", "login-session-observe", "mount-observe",
     "network-control", "network-observe", "polkit-agent",
