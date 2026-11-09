@@ -11,12 +11,31 @@ name: boot-gate-arm64
 #
 # Two tiers (selectable, default both, run in parallel as separate jobs):
 #
+#   MODE MODEL (verified 2026-11-09; record: mode-forensics.md in the
+#   core26-swap workspace): UC26 images boot DIRECTLY INTO RUN MODE on
+#   the first boot. The initramfs installer ("install-and-run-at-once")
+#   creates ubuntu-boot/save/data, writes modeenv mode=run, and CONTINUES
+#   THE SAME BOOT (initrd switch-root -- there is no install->run reboot
+#   to wait for, ever; an earlier gate version waited for one and burned
+#   its whole budget on healthy boots). snapd reads its mode from the
+#   modeenv FILE (boot.SystemMode reads the file first; the kernel
+#   cmdline label is only a fallback for a MISSING modeenv), so the
+#   boot-1 /proc/cmdline label snapd_recovery_mode=install is STALE for
+#   the entire first boot and must NEVER be used as mode evidence.
+#
 #   Tier A -- the PUBLISHED artifact: download the dated gnome-arm64
-#   release asset, decompress, boot, and assert boot milestones from the
-#   SERIAL console log (console=ttyAMA0 is baked into the gadget's
+#   release asset, decompress, boot, and assert SMOKE milestones from
+#   the SERIAL console log (console=ttyAMA0 is baked into the gadget's
 #   cmdline.extra by build.sh, so the serial log is the diagnosis
-#   channel). The image is a nouser build with no credentials, so tier A
-#   is observational only: no SSH, no login.
+#   channel). Required: kernel boot + seeding completion + single boot
+#   (no reboot). The serial console cannot see graphical activity (the
+#   quiet cmdline limits journald->console forwarding to err+, and
+#   session scopes never print), so tier A stays smoke-level: absence of
+#   graphical/gdm/wizard serial milestones is NOT a failure and must not
+#   be misread as "the wizard is unreachable" (that exact misreading
+#   cost a fix cycle on the first gate). Tier B is the real gate. The
+#   image is a nouser build with no credentials, so tier A is
+#   observational only: no SSH, no login.
 #
 #   Tier B -- a KEY-VARIANT image built in-job from the SAME snap set as
 #   the image-arm64 job (same release assets, same model) but with a
@@ -26,9 +45,14 @@ name: boot-gate-arm64
 #   given, so InitialSetupEnable stays true and first boot still runs
 #   the ubuntu-desktop-init wizard via GDM initial-setup. Tier B boots
 #   that image with user-mode networking (hostfwd) and asserts the
-#   strong set over SSH: is-system-running, snap list, gdm active, the
-#   wizard/greeter session on seat0, provd, and the variant base
-#   mounted.
+#   functional chain over SSH: modeenv=run (direct mode evidence), a
+#   single boot (one journal boot entry -- no transition/reboot), system
+#   running (degraded only for documented benign units), gdm active, the
+#   wizard session on seat0 (gnome-initial-setup + ubuntu_init running),
+#   the expected arm64 snap set, a store install (cowsay, then removed),
+#   and snap refresh --list. The "Initialize device" request-serial
+#   error/retry noise is EXPECTED on CI-built serial-less images and is
+#   reported, never gated on (it blocks nothing mode-related).
 #
 # Fix cycles are for qemu args / firmware / assertions ONLY: if the
 # image itself fails to boot, that is a finding to report, not to paper
@@ -84,24 +108,31 @@ env:
   # and the firmware boots from the virtio-blk disk with its built-in
   # driver, so the NIC option ROM is unnecessary — without it qemu
   # aborts at startup ("failed to find romfile efi-virtio.rom").
+  #
+  # Guest RAM is 8G (raised from 4G): the seeded desktop set includes
+  # multi-GB snap unpacks (gnome-desktop-runtime), and a 4G guest under
+  # TCG thrashed swap in the first gate legs (serial stall + SSH death
+  # ~22 min in). The runner has 16G, so 8G is safe and cheap.
   QEMU_ARGS: >-
     -M virt,gic-version=3
     -cpu cortex-a76
     -accel tcg,thread=multi
     -smp 4
-    -m 4096
-  # Boot budget: 180 min per the gate design (BOOT_BUDGET in seconds),
-  # extended from the original 60-min sketch after the first full gate
-  # run measured it: first-boot install-mode seeding on a 4-vCPU TCG
-  # runner was still running at 60 min (recon's 30-90 min estimate was
-  # for a 32-core host). Job timeout adds slack for downloads/build.
-  BOOT_BUDGET: 10800
+    -m 8192
+  # Boot budget: 240 min (BOOT_BUDGET in seconds). Realistic for the
+  # 4-vCPU TCG runner: earlier gate legs measured seeding still running
+  # at the 60-min and 180-min marks (and TCG legs see SSH stalls/deaths
+  # mid-boot), so 240 min covers the single-boot path (initramfs
+  # install-and-run-at-once, snapd seed change, GDM wizard start) with
+  # margin. A boot that is not up within this budget is a finding, not
+  # something more budget fixes.
+  BOOT_BUDGET: 14400
 
 jobs:
   tier-a:
-    name: Tier A - published image boots to wizard (serial milestones)
+    name: Tier A - published image smoke gate (serial milestones)
     runs-on: ubuntu-26.04-arm
-    timeout-minutes: 300
+    timeout-minutes: 330
     if: inputs.tier == 'A' || inputs.tier == 'both'
     steps:
       - name: Install qemu + AAVMF firmware
@@ -152,23 +183,32 @@ jobs:
           df -h /mnt
 
       - name: Boot the published image and assert serial milestones
-        # Serial milestones (from /dev/console == ttyAMA0; the quiet
-        # cmdline.extra only limits journald->console forwarding to
-        # err+, systemd's own "[ OK ]" job lines still print):
-        #   kernel   - EFI stub / GRUB / kernel banner (boot happened)
-        #   seed     - snapd seeding evidence ("Finished Snap Seeder.",
-        #              reboot into run mode)  [warn-only: the install-
-        #              mode boot may phrase this differently, and the
-        #              reach of run mode below is itself the proof the
-        #              seed completed; tier B proves the seeded set]
-        #   graphical- "Reached target Graphical Interface."
-        #   gdm      - "Started GNOME Display Manager."
-        #   wizard   - the gnome-initial-setup session scope (GDM
-        #              initial setup: no user accounts exist on a nouser
-        #              build, so GDM runs the wizard session instead of
-        #              the plain greeter)
-        # kernel+graphical+gdm+wizard are REQUIRED; seed/snapd_daemon
-        # are reported and called out in the verdict if absent.
+        # SMOKE tier -- serial milestones only (tier B is the real gate).
+        #
+        # On UC26 the initramfs installer writes modeenv mode=run mid-
+        # boot-1 and the system continues the SAME boot into run mode,
+        # so run mode is INFERRED here from the single boot completing
+        # seeding (no reboot happened; a UC26 system that finished
+        # seeding without rebooting is in run mode by construction). The
+        # boot-1 cmdline label (snapd_recovery_mode=install) is stale
+        # for the whole first boot and is deliberately NOT used as mode
+        # evidence.
+        #
+        # Required milestones:
+        #   kernel     - firmware/GRUB/kernel got going (boot happened)
+        #   seed_done  - snapd.seeded finished (seeding completed)
+        #   single boot- exactly ONE kernel boot (no reboot). UC26 never
+        #                reboots install->run, so a second boot would be
+        #                a FINDING (unexpected transition or crash).
+        #
+        # seed/snapd_daemon/graphical/gdm/wizard are REPORT-ONLY: the
+        # serial console cannot see graphical activity (journald->console
+        # forwarding is err+ under the quiet cmdline and no session
+        # scopes print), so their absence here is NOT a failure and must
+        # not be misread as "the wizard is unreachable" -- that misreading
+        # of the first gate run cost a fix cycle. Tier B (SSH) is the
+        # real gate.
+        #
         # set -u only: GH runs steps with bash -e already, and this
         # script greps for many patterns that legitimately do not match
         # (report-only milestones); failure paths exit 1 explicitly.
@@ -194,13 +234,14 @@ jobs:
 
           declare -A pat=(
             [kernel]='EFI stub|GRUB|Booting Linux|Linux version [0-9]'
-            [seed]='Snap Seeder|snapd\.seeded|Rebooting into|Installing the system'
+            [seed]='Snap Seeder|snapd\.seeded|Installing the system'
+            [seed_done]='Finished snapd\.seeded|Finished Snap Seeder|Seeding completed'
             [graphical]='Reached target Graphical Interface'
             [gdm]='GNOME Display Manager'
             [wizard]='gnome-initial-setup'
-            [snapd_daemon]='Started Snap Daemon'
+            [snapd_daemon]='Started snapd\.service|Started Snap Daemon'
           )
-          required="kernel graphical gdm wizard"
+          required="kernel seed_done"
 
           deadline=$((SECONDS + BOOT_BUDGET))
           ok=0
@@ -213,7 +254,7 @@ jobs:
             fi
             line=""
             miss=""
-            for k in kernel seed graphical gdm wizard snapd_daemon; do
+            for k in kernel seed seed_done graphical gdm wizard snapd_daemon; do
               if grep -aqE "${pat[$k]}" serial.log 2>/dev/null; then
                 line="$line $k=Y"
               else
@@ -229,23 +270,33 @@ jobs:
           done
 
           if [ "$ok" = 1 ]; then
-            echo "all required serial milestones reached; dwelling 180s to catch late failures"
-            sleep 180
+            echo "required milestones reached; dwelling 300s to catch a second boot or late failure"
+            sleep 300
+          fi
+
+          # Boot count: GRUB prints "Loading Linux <version> ..." exactly
+          # once per kernel boot and always reaches the serial console.
+          # Kernel-side markers cannot be counted (EFI stub prints
+          # several lines per boot; the kernel banner is quieted).
+          bootcount="$(grep -ac 'Loading Linux' serial.log 2>/dev/null || true)"
+          if [ "$bootcount" -eq 0 ]; then
+            bootcount="$(grep -ac 'EFI stub: Booting Linux Kernel' serial.log 2>/dev/null || true)"
           fi
 
           {
             echo "verdict: $([ "$ok" = 1 ] && echo PASS || echo FAIL)"
             echo
             echo "serial size: $(stat -c%s serial.log 2>/dev/null || echo 0) bytes"
-            echo "EFI stub events (>=1 per boot; >=2 => rebooted into run mode): $(grep -ac 'EFI stub' serial.log 2>/dev/null || echo 0)"
+            echo "boot count (Loading Linux lines; one per kernel boot): $bootcount"
+            echo "EFI stub lines (info only; several print per boot): $(grep -ac 'EFI stub' serial.log 2>/dev/null || echo 0)"
             echo
             echo "milestone matches:"
-            for k in kernel seed graphical gdm wizard snapd_daemon; do
+            for k in kernel seed seed_done graphical gdm wizard snapd_daemon; do
               echo "--- $k ($(grep -acE "${pat[$k]}" serial.log 2>/dev/null || echo 0) lines)"
               grep -aE "${pat[$k]}" serial.log 2>/dev/null | head -5
             done
             echo
-            echo "all session/user-manager lines on serial:"
+            echo "all session/user-manager lines on serial (report-only):"
             grep -aE 'Session .* of user|User Manager for UID' serial.log 2>/dev/null | head -20
             echo
             echo "err-level console lines (journald forwards err+; report-only):"
@@ -256,6 +307,22 @@ jobs:
             tail -80 serial.log 2>/dev/null
           } > milestones.txt
           cat milestones.txt
+
+          # Single-boot assertion: a second kernel boot on a UC26 image
+          # would mean an unexpected install->run reboot or a crash
+          # reboot -- a finding either way (the corrected model is ONE
+          # boot; the initramfs installer continues the same boot).
+          # A count of 0 means the boot marker was not printed (cannot
+          # verify from serial) -- that is reported, not failed: the
+          # kernel milestone already proved a boot happened.
+          if [ "$ok" = 1 ] && [ "$bootcount" -eq 1 ]; then
+            echo "PASS: single boot (no reboot), kernel up, seeding completed"
+          elif [ "$ok" = 1 ] && [ "$bootcount" -eq 0 ]; then
+            echo "WARN: boot-count marker not found on serial (boot count unverifiable); asserted via absence of a second boot marker"
+          elif [ "$ok" = 1 ]; then
+            echo "FAIL: bootcount=$bootcount (want exactly 1) -- unexpected second kernel boot"
+            ok=0
+          fi
           [ "$ok" = 1 ] || exit 1
 
       - name: Upload tier A artifacts
@@ -270,9 +337,9 @@ jobs:
           if-no-files-found: warn
 
   tier-b:
-    name: Tier B - key-variant image, SSH assertions
+    name: Tier B - key-variant image, SSH functional gate
     runs-on: ubuntu-26.04-arm
-    timeout-minutes: 300
+    timeout-minutes: 350
     if: inputs.tier == 'B' || inputs.tier == 'both'
     steps:
       - name: Checkout source
@@ -405,16 +472,29 @@ jobs:
           ls -la /mnt/ucd-bootgate/pc.img
 
       - name: Boot the key-variant image and run SSH assertions
-        # BOOT_BUDGET (from qemu start) covers the whole path to a
-        # seeded run-mode system: install-mode first boot (seeding,
-        # snapd then reboots in-VM), the automatic reboot, and the
-        # run-mode boot. DISCOVERY from the first gate run: the
-        # install-mode (recovery) system also runs sshd and accepts
-        # the baked root key, so "SSH up" does NOT mean run mode --
-        # the gate must wait for the seeded run-mode system (no
-        # snapd_recovery_mode=install on the cmdline AND pc-kernel in
-        # snap list) before asserting anything, and up to 20 min more
-        # for GDM's wizard/greeter session after run mode boots.
+        # THE REAL GATE. UC26 boots DIRECTLY into run mode on the first
+        # boot: the initramfs installer creates ubuntu-boot/save/data,
+        # writes modeenv mode=run, and CONTINUES THE SAME BOOT (initrd
+        # switch-root -- no reboot). snapd's mode comes from the modeenv
+        # FILE, so /proc/cmdline's boot-1 label
+        # snapd_recovery_mode=install is stale for the entire first boot
+        # and is NOT used as mode evidence (an earlier gate version
+        # waited for a cmdline without it -- an install->run reboot that
+        # UC26 images never perform -- and burned its budget waiting on
+        # a healthy boot).
+        #
+        # Mode evidence asserted here: /var/lib/snapd/modeenv says
+        # mode=run over SSH (direct), plus a completed snapd seed change
+        # ("Initialize system state") on a SINGLE boot (journalctl
+        # --list-boots == 1; no reboot is expected and a second boot is
+        # a finding).
+        #
+        # "Initialize device" (become-operational) request-serial errors
+        # and its ~5-10 min retry cadence are EXPECTED on CI-built
+        # images (no brand key -> no seeded device serial): reported,
+        # never gated on -- the serial failure blocks nothing
+        # mode-related, only auto-refresh scheduling (manual store ops
+        # always work).
         run: |
           set -u
           cd /mnt/bootgate
@@ -438,9 +518,25 @@ jobs:
           SSH=(ssh -i gate_key -p 2222 \
             -o StrictHostKeyChecking=accept-new \
             -o UserKnownHostsFile=known_hosts \
-            -o ConnectTimeout=10 -o BatchMode=yes -o LogLevel=ERROR \
+            -o ConnectTimeout=30 -o BatchMode=yes -o LogLevel=ERROR \
             root@127.0.0.1)
-          rsh() { echo "\$ $*" >> ssh-transcript.txt; "${SSH[@]}" "$@" 2>&1 | tee -a ssh-transcript.txt; }
+          # rsh with transport-failure retry: TCG can stall sshd long
+          # enough to drop an attempt (SSH died ~22 min in during the
+          # first gate legs). Only ssh's own exit code 255 (transport
+          # failure) retries; the remote command's exit status is
+          # preserved for the assertions below.
+          rsh() {
+            local out rc=0 i
+            echo "\$ $*" >> ssh-transcript.txt
+            for i in 1 2 3; do
+              out="$("${SSH[@]}" "$@" 2>&1)"; rc=$?
+              printf '%s\n' "$out" >> ssh-transcript.txt
+              [ "$rc" -ne 255 ] && break
+              sleep 20
+            done
+            printf '%s\n' "$out"
+            return "$rc"
+          }
 
           deadline=$((SECONDS + BOOT_BUDGET))
           up=0
@@ -465,11 +561,13 @@ jobs:
             exit 1
           }
 
-          # Wait for the seeded run-mode system: /proc/cmdline must no
-          # longer carry snapd_recovery_mode=install and snap list must
-          # contain pc-kernel (an asserted store snap, only present
-          # after seeding). Probes survive the in-VM reboot (sshd goes
-          # away for a few minutes while the VM reboots into run mode).
+          # Wait for the seeded RUN-MODE system on THIS boot (single-boot
+          # model: no reboot involved, so sshd never goes away -- if it
+          # does, that is a finding the loop will ride out and the
+          # deadline will catch). Evidence: modeenv says mode=run, snapd's
+          # seed change is Done, and the seeded kernel snap is installed.
+          # (The install-phase system also runs sshd and accepts the
+          # baked key, so "SSH up" alone proves nothing.)
           seeded=0
           while [ "$SECONDS" -lt "$deadline" ]; do
             if ! kill -0 "$qpid" 2>/dev/null; then
@@ -478,64 +576,131 @@ jobs:
               tail -60 serial.log || true
               exit 1
             fi
-            if "${SSH[@]}" true 2>/dev/null; then
-              cmdline="$(rsh 'tr "\0" "\n" < /proc/cmdline | grep -c "snapd_recovery_mode=install" || true' | tail -1)"
-              nsnaps="$(rsh 'snap list 2>/dev/null | grep -c "^pc-kernel " || true' | tail -1)"
-              nall="$(rsh 'snap list 2>/dev/null | grep -c "" || true' | tail -1)"
-              if [ "$cmdline" = "0" ] && [ "$nsnaps" -ge 1 ] 2>/dev/null; then
-                seeded=1
-                echo "run-mode seeded system reached at t=${SECONDS}s (snap list: $nall snaps)"
-                break
-              fi
-              echo "t=${SECONDS}s: not yet a seeded run-mode system (install-mode=$cmdline, pc-kernel=$nsnaps, snaps=$nall)"
-            else
-              echo "t=${SECONDS}s: ssh not reachable (booting/rebooting in VM)"
+            modeenv="$(rsh 'grep -E "^mode=" /var/lib/snapd/modeenv 2>/dev/null' | tail -1 || true)"
+            seedline="$(rsh 'snap changes 2>/dev/null | grep "Initialize system state"' | tail -1 || true)"
+            seedstate="$(printf '%s' "$seedline" | awk 'NF {print $2}')"
+            nkernel="$(rsh 'snap list 2>/dev/null | grep -c "^pc-kernel " || true' | tail -1 || true)"
+            nall="$(rsh 'snap list 2>/dev/null | grep -c "" || true' | tail -1 || true)"
+            if [ "$modeenv" = "mode=run" ] && [ "$seedstate" = "Done" ] && [ "$nkernel" -ge 1 ] 2>/dev/null; then
+              seeded=1
+              echo "seeded run-mode system reached at t=${SECONDS}s (modeenv=run, seed Done, snap list: $nall snaps)"
+              break
             fi
+            echo "t=${SECONDS}s: waiting for seeded run-mode system (modeenv='$modeenv' seed='$seedstate' pc-kernel=$nkernel snaps=$nall)"
             sleep 60
           done
           [ "$seeded" = 1 ] || {
             echo "FINDING: no seeded run-mode system within ${BOOT_BUDGET}s of boot"
+            # Best-effort in-guest diagnosis (this command set shows the
+            # seed/device state that serial-only observation could not).
+            rsh 'snap changes' || true
+            rsh 'journalctl -u snapd --no-pager | tail -60' || true
+            rsh 'cat /var/lib/snapd/modeenv' || true
+            rsh 'snap list' || true
             tail -100 serial.log || true
             exit 1
           }
 
-          # Wait for the wizard/greeter session on seat0 (run mode
-          # boots fresh; GDM initial setup can take minutes under TCG).
-          wizard=0; greeter=0
-          wdeadline=$((SECONDS + 1200))
+          # Wait for the wizard (gnome-initial-setup session) -- GDM runs
+          # initial setup when no user accounts exist. The account may be
+          # named gnome-initial-setup or gnome-initial-setup-<n> (GDM
+          # creates a transient account), so the grep is a prefix match.
+          wizard=0; greeter=0; sessid=""
+          wdeadline=$((SECONDS + 1800))
           while [ "$SECONDS" -lt "$wdeadline" ]; do
             sess="$(rsh 'loginctl list-sessions --no-legend 2>/dev/null' || true)"
             echo "--- sessions at t=${SECONDS}s:"; echo "$sess"
-            if echo "$sess" | grep -q 'gnome-initial-setup'; then wizard=1; break; fi
+            if echo "$sess" | grep -q 'gnome-initial-setup'; then
+              wizard=1
+              sessid="$(printf '%s\n' "$sess" | grep 'gnome-initial-setup' | awk 'NF {print $1}' | head -1)"
+              break
+            fi
             if echo "$sess" | grep -q 'gdm-greeter'; then greeter=1; fi
             sleep 30
           done
 
+          # Evidence capture (always collected).
           rsh 'cat /proc/cmdline' || true
-          rsh 'systemctl is-system-running; systemctl --failed --no-pager || true' || true
+          rsh 'cat /var/lib/snapd/modeenv' || true
+          rsh 'journalctl --list-boots --no-pager' || true
+          rsh 'snap changes' || true
           rsh 'snap list' || true
+          rsh 'systemctl is-system-running' || true
+          rsh 'systemctl --failed --no-pager' || true
           rsh 'systemctl is-active gdm' || true
-          rsh 'loginctl list-sessions --no-legend || true' || true
-          rsh 'pgrep -ax provd; pgrep -af bin/ubuntu_init || true' || true
+          rsh 'loginctl list-sessions --no-legend' || true
+          rsh 'pgrep -ax provd' || true
+          rsh 'pgrep -af "[u]buntu_init" || true; pgrep -af "[g]nome-initial-setup" || true' || true
           rsh 'test -d /snap/core26-desktop && ls /snap/core26-desktop/ && mount | grep core26-desktop | head -3' || true
           rsh 'test -S /run/gnome-initial-setup/desktop-provision/init.socket && echo init.socket-present || echo init.socket-missing' || true
           rsh 'journalctl -b --no-pager | tail -40' || true
 
-          # Gate verdict.
-          isrunning="$(rsh 'systemctl is-system-running' | head -1 || true)"
-          gdma="$(rsh 'systemctl is-active gdm' | head -1 || true)"
-          snaps="$(rsh 'snap list' || true)"
-          bases="$(rsh 'test -d /snap/core26-desktop && echo yes || echo no' | head -1 || true)"
-          provd="$(rsh 'pgrep -cx provd || true' | head -1 || true)"
+          # ---- Gate verdict (tier B is the real gate) ----
           failed=0
           check() { # name value expected
             if [ "$2" = "$3" ]; then echo "PASS: $1=$2"; else echo "FAIL: $1=$2 (want $3)"; failed=1; fi
           }
+
+          # 1. system running -- degraded accepted ONLY for documented
+          #    benign units (snapd.snap-repair.service: network fetch of
+          #    repair assertions fails on restricted CI networking).
+          isrunning="$(rsh 'systemctl is-system-running' | head -1 || true)"
           case "$isrunning" in
-            running|degraded) echo "PASS: is-system-running=$isrunning" ;;
+            running) echo "PASS: is-system-running=running" ;;
+            degraded)
+              echo "WARN: is-system-running=degraded; failed units:"
+              funits="$(rsh 'systemctl list-units --failed --no-legend || true')"
+              funits="$(printf '%s\n' "$funits" | awk 'NF && $1 != "UNIT" {print $1}' || true)"
+              echo "$funits"
+              badunits="$(printf '%s\n' "$funits" | grep -vE '^snapd\.snap-repair\.service$' || true)"
+              if [ -z "$badunits" ]; then
+                echo "PASS: is-system-running=degraded with only the documented benign unit (snapd.snap-repair.service)"
+              else
+                echo "FAIL: degraded with undocumented failed units: $badunits"
+                failed=1
+              fi
+              ;;
             *) echo "FAIL: is-system-running=$isrunning"; failed=1 ;;
           esac
+
+          # 2. gdm active
+          gdma="$(rsh 'systemctl is-active gdm' | head -1 || true)"
           check "gdm-active" "$gdma" active
+
+          # 3. wizard session on seat0: gnome-initial-setup session
+          #    (loginctl session name == the transient wizard user) plus
+          #    ubuntu_init actually running. ubuntu_init is execed by
+          #    launch-desktop-provision-init only AFTER provd's
+          #    init.socket appears, so allow a few minutes of lag after
+          #    the session shows up. pgrep -f + [c]haracter-class: a bare
+          #    remote `pgrep -f ubuntu_init` matches its own sh -c
+          #    command line (false positive).
+          uinit=0; gisetup=0; seat=""
+          if [ "$wizard" = 1 ] && [ -n "$sessid" ]; then
+            udeadline=$((SECONDS + 300))
+            while [ "$SECONDS" -lt "$udeadline" ]; do
+              gisetup="$(rsh 'pgrep -fc "[g]nome-initial-setup"' | head -1 || true)"
+              uinit="$(rsh 'pgrep -fc "[u]buntu_init"' | head -1 || true)"
+              [ "$uinit" -ge 1 ] 2>/dev/null && break
+              sleep 15
+            done
+            seat="$(rsh "loginctl show-session $sessid -p Seat" | head -1 || true)"
+            case "$seat" in
+              Seat=seat0) echo "PASS: wizard session on seat0 (id=$sessid)" ;;
+              *) echo "FAIL: wizard session not on seat0 ($seat)"; failed=1 ;;
+            esac
+            check "gnome-initial-setup running" "$( [ "$gisetup" -ge 1 ] 2>/dev/null && echo 1 || echo 0 )" 1
+            check "ubuntu_init running" "$( [ "$uinit" -ge 1 ] 2>/dev/null && echo 1 || echo 0 )" 1
+          elif [ "$greeter" = 1 ]; then
+            echo "FAIL: greeter-only session on seat0; gnome-initial-setup wizard session never appeared"
+            failed=1
+          else
+            echo "FAIL: no wizard/greeter session appeared on seat0 within 1800s"
+            failed=1
+          fi
+
+          # 4. expected arm64 snap set
+          snaps="$(rsh 'snap list' || true)"
           for s in pc-desktop core26-desktop pc-kernel snapd \
                    ubuntu-desktop-session gnome-desktop-runtime \
                    ubuntu-desktop-init pipewire; do
@@ -545,18 +710,76 @@ jobs:
               echo "FAIL: snap $s missing"; failed=1
             fi
           done
+
+          # 5. variant base mounted
+          bases="$(rsh 'test -d /snap/core26-desktop && echo yes || echo no' | head -1 || true)"
           check "variant-base-mounted" "$bases" yes
-          if [ "$wizard" = 1 ] && [ "$provd" -ge 1 ] 2>/dev/null; then
-            echo "PASS: wizard session (gnome-initial-setup on seat0) + provd running"
-          elif [ "$greeter" = 1 ] && [ "$wizard" = 0 ]; then
-            echo "WARN: greeter-only session on seat0; wizard session never appeared"
-            failed=1
+
+          # 6. modeenv = run (direct mode evidence; NOT the stale boot-1
+          #    cmdline label, which is expected to still read install)
+          modeenv="$(rsh 'cat /var/lib/snapd/modeenv' || true)"
+          echo "$modeenv" | head -5
+          if echo "$modeenv" | grep -qE '^mode=run($|[[:space:]])'; then
+            echo "PASS: modeenv mode=run"
           else
-            echo "FAIL: no wizard/greeter session appeared on seat0 within 1200s of run mode"
+            echo "FAIL: modeenv does not say mode=run"
             failed=1
           fi
-          echo "$snaps" > assertions.txt
+          cmdline="$(rsh 'tr "\0" "\n" < /proc/cmdline | grep snapd_recovery_mode || true' | head -1 || true)"
+          echo "REPORT: boot-1 cmdline label (stale by design, NOT mode evidence): $cmdline"
+
+          # 7. single boot: one entry in the journal (UC26 does NOT
+          #    reboot install->run; two entries would be a finding)
+          boots="$(rsh 'journalctl --list-boots --no-legend | wc -l' | head -1 || true)"
+          check "single-boot (journalctl --list-boots entries)" "$boots" 1
+
+          # 8. store install path: install a small public snap, then
+          #    remove it. Manual store ops are not gated by the
+          #    device-serial failure (only auto-refresh scheduling is).
+          if rsh 'timeout 900 snap install cowsay'; then
+            echo "PASS: store install cowsay"
+            rsh 'snap list cowsay' || true
+            rsh 'timeout 120 snap run cowsay Moo' || true
+            if rsh 'timeout 300 snap remove cowsay'; then
+              echo "PASS: store remove cowsay"
+            else
+              echo "FAIL: snap remove cowsay"; failed=1
+            fi
+          else
+            echo "FAIL: snap install cowsay"; failed=1
+            rsh 'snap changes' || true
+          fi
+
+          # 9. snap refresh --list works
+          if rsh 'timeout 300 snap refresh --list'; then
+            echo "PASS: snap refresh --list (exit 0)"
+          else
+            echo "FAIL: snap refresh --list"; failed=1
+          fi
+
+          # Expected CI noise, REPORT-ONLY: the dangerous model's
+          # request-serial fails on the store (no brand key -> no seeded
+          # serial on CI builds) and become-operational retries.
+          changes_out="$(rsh 'snap changes' || true)"
+          initdev_total="$(printf '%s\n' "$changes_out" | grep -c 'Initialize device' || true)"
+          initdev_err="$(printf '%s\n' "$changes_out" | grep 'Initialize device' | grep -c 'Error' || true)"
+          serial_errs="$(rsh 'journalctl -u snapd --no-pager | grep -c "device serial" || true' | tail -1 || true)"
+          echo "REPORT: Initialize-device changes=$initdev_total (errors=$initdev_err), snapd journal device-serial lines=$serial_errs -- EXPECTED retry noise on CI serial-less images; not gated on"
+
+          {
+            echo "modeenv:"; echo "$modeenv"
+            echo
+            echo "cmdline label (stale, report-only): $cmdline"
+            echo "journal boot entries: $boots"
+            echo "wizard session id: $sessid  seat: $seat  gnome-initial-setup procs: $gisetup  ubuntu_init procs: $uinit"
+            echo
+            echo "snap list:"; echo "$snaps"
+            echo
+            echo "Initialize device changes: $initdev_total (errors: $initdev_err) -- expected CI retry noise, not gated on"
+          } > assertions.txt
+
           [ "$failed" = 0 ] || exit 1
+          echo "TIER B VERDICT: PASS"
 
       - name: Upload tier B artifacts
         if: always()
