@@ -365,6 +365,46 @@ with open(path, "w", encoding="utf-8") as f:
 PYEOF
 }
 
+# The GNOME gadget connections reference five locally-provided provider
+# snaps (accountsservice/provd/fprintd/bolt/geoclue; udisks2/upower come
+# from the model). If one of them is missing from --snap, its baked
+# connection entries can never resolve at seed time and the provider-side
+# grants silently vanish from the generated profiles -- e.g. a missing
+# provd drops the per-connection dbus rules from the
+# snap.ubuntu-desktop-session.dconf-service profile (peer=
+# "snap.provd.provd" ca.desrt.dconf receive/send), denying every wizard
+# dconf write (the T7a dconf Writer.Change regression). Fail the build
+# loudly instead of baking a silently broken image.
+require_provider_snaps() {
+    local provided="" s name
+    for s in "${extra_snaps[@]:-}"; do
+        # snap file names are "<name>[_<version>].snap" and snap names
+        # cannot contain '_', so the stem up to the first '_' is the name
+        name="$(basename "$s" .snap)"
+        name="${name%%_*}"
+        provided+=" ${name} "
+    done
+    local missing=()
+    for name in accountsservice provd fprintd bolt geoclue; do
+        [[ ${provided} == *" ${name} "* ]] || missing+=("$name")
+    done
+    if ((${#missing[@]})); then
+        echo "ERROR: the GNOME image bakes gadget connections to these" >&2
+        echo "provider snaps, but none was provided via --snap:" >&2
+        printf '  %s\n' "${missing[@]}" >&2
+        echo "Pass them like the CI does" >&2
+        echo "(see .github/workflows/build-image.yaml 'Build image'):" >&2
+        echo "  --snap .../accountsservice.snap --snap .../provd.snap \\" >&2
+        echo "    --snap .../fprintd.snap --snap .../bolt.snap \\" >&2
+        echo "    --snap .../geoclue.snap" >&2
+        echo "Without them the provd:dbus-dconf and session<->provider dbus" >&2
+        echo "connections never resolve, and e.g. every wizard dconf write" >&2
+        echo "is denied (the per-connection dbus rules disappear from the" >&2
+        echo "dconf-service AppArmor profile)." >&2
+        exit 1
+    fi
+}
+
 kde_gadget_connections() {
     local gadget_yaml="$1"
     if ! grep -q '^connections:' "${gadget_yaml}"; then
@@ -1337,6 +1377,9 @@ sed -i \
   "${BUILD_DIR}/squashfs-root/meta/snap.yaml"
 sed -i 's/listen-address: 127.0.0.1/listen-address: 0.0.0.0/' "${BUILD_DIR}/squashfs-root/meta/gadget.yaml"
 
+if [[ ${desktop} == gnome ]]; then
+    require_provider_snaps
+fi
 "${desktop}_gadget_connections" "${BUILD_DIR}/squashfs-root/meta/gadget.yaml"
 mksquashfs "${BUILD_DIR}/squashfs-root" "${BUILD_DIR}/gadget.snap" -noappend -comp zstd -Xcompression-level 1
 
