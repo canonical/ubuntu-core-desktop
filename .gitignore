@@ -10,6 +10,11 @@
 # producing a new signature/timestamp each time even when unchanged.
 # Only the *.json source needs to be tracked.
 *-dangerous.model
+# Exception: the CI image build (build-image.yaml) consumes a PRE-SIGNED
+# model committed under ci/, so no signing key is needed on the build
+# machine.  Refresh it deliberately (snap sign -k test --update-timestamp)
+# when the JSON changes.
+!ci/*-dangerous.model
 
 # All build.sh output/scratch (disk images, signed model
 # assertions, customized snaps, unsquashed trees, etc.) lives here.

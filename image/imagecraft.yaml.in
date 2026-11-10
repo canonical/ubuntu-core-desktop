@@ -1,0 +1,68 @@
+# Boot check for ticket 08: the shape decided in ticket 07, @PLATFORM_LABEL@.
+# Volumes mirror pc-amd64-gadget-desktop gadget-amd64.yaml
+# (bios-boot edition 2, ubuntu-seed edition 3, ubuntu-boot edition 1).
+# The gadget's 440-byte `mbr` structure cannot be expressed here (no role);
+# it stays in the gadget only.
+name: @IMAGE_NAME@
+base: bare
+build-base: ubuntu@26.04
+version: '26.04'
+summary: @IMAGE_SUMMARY@
+description: @PLATFORM_LABEL@ Ubuntu Core Desktop development image (boot check)
+
+platforms:
+  amd64:
+    build-on: amd64
+    build-for: amd64
+
+volumes:
+  pc:
+    schema: gpt
+    structure:
+      # The schema requires a role; it has no effect on a BIOS-boot partition.
+      - name: bios-boot
+        role: system-boot
+        type: 21686148-6449-6E6F-744E-656564454649
+        filesystem: ext4
+        size: 1M
+      - name: ubuntu-seed
+        role: system-seed
+        type: C12A7328-F81F-11D2-BA4B-00A0C93EC93B
+        filesystem: vfat
+        size: 7000M
+      - name: ubuntu-boot
+        role: system-boot
+        type: 0FC63DAF-8483-4772-8E79-3D69D8477DE4
+        filesystem: ext4
+        size: 750M
+      - name: ubuntu-save
+        role: system-save
+        type: 0FC63DAF-8483-4772-8E79-3D69D8477DE4
+        filesystem: ext4
+        size: 32M
+      - name: ubuntu-data
+        role: system-data
+        type: 0FC63DAF-8483-4772-8E79-3D69D8477DE4
+        filesystem: ext4
+        size: 1G
+
+filesystems:
+  default:
+    - mount: /
+      device: (volume/pc/ubuntu-data)
+
+parts:
+  seed:
+    plugin: uc-prepare
+    source: .
+    uc-prepare-model-assert: model.assert
+    uc-prepare-assertions:
+      - account-key.assert
+    uc-prepare-validation: ignore
+    uc-prepare-write-revisions: true
+    uc-prepare-snaps:
+@CORE_SNAPS@
+      # Extra local snaps passed to build.sh.
+@EXTRA_SNAPS@
+    organize:
+      system-seed: (volume/pc/ubuntu-seed)
