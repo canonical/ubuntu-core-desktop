@@ -311,6 +311,13 @@ connections.extend([
     ("provd:timezone-control", "system:timezone-control"),
     ("provd:dbus-dconf", f"{session}:dbus-dconf"),
     ("provd:provd-run", "system:system-files"),
+    # T26 gap (c): the wizard->user accessibility handover - provd
+    # records the wizard session's a11y prefs + the created username
+    # under /etc/dconf at CreateUser; the base's static
+    # ucd-a11y-handover user unit applies them at the target user's
+    # first login. The write grant is provd's a11y-handover system-files
+    # plug (literal /etc/dconf) against the implicit core slot.
+    ("provd:a11y-handover", "system:system-files"),
     # provd self-binds its gRPC unix socket: the seccomp listen(2)
     # grant comes from the standard network-bind server-socket interface
     # (implicit core slot).
