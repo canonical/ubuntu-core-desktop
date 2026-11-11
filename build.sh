@@ -270,6 +270,26 @@ connections.extend([
     # network access for the location data sources.
     (f"{session}:geoclue", "geoclue:geoclue"),
     ("geoclue:network", "system:network"),
+    # Accessibility provider snap: the image's ONE org.a11y.Bus
+    # activation source (assert_single_a11y_bus_provider). dbus slots
+    # are deny-auto-connection in the base declaration, so every edge
+    # below is required -- the same-snap reader->bus consent too (the
+    # fprintd:fprintd-client entry above is the same shape).
+    #   session:dbus-a11y-bus-client -> a11y:dbus-a11y
+    #     consent edge for the confined shell's GetAddress (T16 gate-1:
+    #     a dbus slot's receive policy is scoped to connected plugs).
+    #   a11y:wayland-client -> session:wayland
+    #     the reader needs the session's relocated wayland socket (T16:
+    #     Gdk keymap init dies without it).
+    #   a11y:audio-playback -> pipewire:audio-playback
+    #     speech-dispatcher's synthesis output.
+    #   a11y:desktop-legacy -> system:desktop-legacy
+    #     the stock at-spi client recipe (T19 policy) for the reader.
+    (f"{session}:dbus-a11y-bus-client", "ubuntu-desktop-a11y:dbus-a11y"),
+    ("ubuntu-desktop-a11y:a11y-bus-client", "ubuntu-desktop-a11y:dbus-a11y"),
+    ("ubuntu-desktop-a11y:wayland-client", f"{session}:wayland"),
+    ("ubuntu-desktop-a11y:audio-playback", "pipewire:audio-playback"),
+    ("ubuntu-desktop-a11y:desktop-legacy", "system:desktop-legacy"),
     # First-boot wizard backend (provd, Phase B confinement): the
     # accountsservice client plug goes to the provider snap, gdm and the
     # control plugs to the implicit core slots, dbus-dconf makes the
@@ -365,16 +385,19 @@ with open(path, "w", encoding="utf-8") as f:
 PYEOF
 }
 
-# The GNOME gadget connections reference five locally-provided provider
-# snaps (accountsservice/provd/fprintd/bolt/geoclue; udisks2/upower come
-# from the model). If one of them is missing from --snap, its baked
-# connection entries can never resolve at seed time and the provider-side
-# grants silently vanish from the generated profiles -- e.g. a missing
-# provd drops the per-connection dbus rules from the
-# snap.ubuntu-desktop-session.dconf-service profile (peer=
+# The GNOME gadget connections reference six locally-provided provider
+# snaps (accountsservice/provd/fprintd/bolt/geoclue/ubuntu-desktop-a11y;
+# udisks2/upower come from the model). If one of them is missing from
+# --snap, its baked connection entries can never resolve at seed time
+# and the provider-side grants silently vanish from the generated
+# profiles -- e.g. a missing provd drops the per-connection dbus rules
+# from the snap.ubuntu-desktop-session.dconf-service profile (peer=
 # "snap.provd.provd" ca.desrt.dconf receive/send), denying every wizard
-# dconf write (the T7a dconf Writer.Change regression). Fail the build
-# loudly instead of baking a silently broken image.
+# dconf write (the T7a dconf Writer.Change regression); a missing
+# ubuntu-desktop-a11y leaves every session without an accessibility bus
+# (the org.a11y.Bus activation file is generated from that snap's dbus
+# slot alone). Fail the build loudly instead of baking a silently
+# broken image.
 require_provider_snaps() {
     local provided="" s name
     for s in "${extra_snaps[@]:-}"; do
@@ -385,7 +408,8 @@ require_provider_snaps() {
         provided+=" ${name} "
     done
     local missing=()
-    for name in accountsservice provd fprintd bolt geoclue; do
+    for name in accountsservice provd fprintd bolt geoclue \
+                ubuntu-desktop-a11y; do
         [[ ${provided} == *" ${name} "* ]] || missing+=("$name")
     done
     if ((${#missing[@]})); then
@@ -396,11 +420,57 @@ require_provider_snaps() {
         echo "(see .github/workflows/build-image.yaml 'Build image'):" >&2
         echo "  --snap .../accountsservice.snap --snap .../provd.snap \\" >&2
         echo "    --snap .../fprintd.snap --snap .../bolt.snap \\" >&2
-        echo "    --snap .../geoclue.snap" >&2
+        echo "    --snap .../geoclue.snap \\" >&2
+        echo "    --snap .../ubuntu-desktop-a11y.snap" >&2
         echo "Without them the provd:dbus-dconf and session<->provider dbus" >&2
         echo "connections never resolve, and e.g. every wizard dconf write" >&2
         echo "is denied (the per-connection dbus rules disappear from the" >&2
-        echo "dconf-service AppArmor profile)." >&2
+        echo "dconf-service AppArmor profile); without ubuntu-desktop-a11y" >&2
+        echo "no session can reach an accessibility bus at all." >&2
+        exit 1
+    fi
+}
+
+# T17 item 10 / T18 D9: the image must ship exactly ONE org.a11y.Bus
+# activation source -- the a11y snap's dbus slot, from which snapd
+# generates /var/lib/snapd/dbus-1/services/org.a11y.Bus.service. T13
+# measured that a base-rootfs servicedir wins the precedence fight
+# against the snapd-generated file, and T18 D9 split the second
+# collision shape into the systemd BusName refusal -- so a second
+# source means a silently broken (or unbootable-session) image. The fat
+# base ships both shapes (usr/share/dbus-1/services/org.a11y.Bus.service
+# and usr/lib/systemd/user/at-spi-dbus-bus.service); the thin base
+# ships neither. The a11y snap's own payload service file is inert (snap
+# payloads never join the host servicedir), so only a base-rootfs file
+# or another provided snap's declared session dbus slot counts.
+assert_single_a11y_bus_provider() {
+    local rootfs="$1" s name
+    local hits=()
+    local d hit
+    for d in usr/share/dbus-1/services usr/lib/systemd/user; do
+        # Match the activation shapes themselves, not comments: a
+        # [D-BUS Service] stanza's Name= (the adapter orca.service
+        # *mentions* org.a11y.Bus in prose and is an actuator, not a
+        # provider) and a Type=dbus unit's BusName=.
+        hit="$(grep -rlE '^Name=org\.a11y\.Bus\b' "${rootfs}/${d}" 2>/dev/null || true)"
+        if [[ -n ${hit} ]]; then hits+=("${hit}"); fi
+        hit="$(grep -rlE '^BusName=org\.a11y\.Bus\b' "${rootfs}/${d}" 2>/dev/null || true)"
+        if [[ -n ${hit} ]]; then hits+=("${hit}"); fi
+    done
+    for s in "${extra_snaps[@]:-}"; do
+        name="$(basename "$s" .snap)"
+        name="${name%%_*}"
+        [[ ${name} == ubuntu-desktop-a11y ]] && continue
+        if unsquashfs -cat "$s" meta/snap.yaml 2>/dev/null \
+           | awk '/^slots:/{f=1;next} /^[^ #]/{f=0} f&&/name: *org\.a11y\.Bus/{found=1} END{exit !found}'; then
+            hits+=("snap ${name} declares a session dbus slot for org.a11y.Bus")
+        fi
+    done
+    if ((${#hits[@]})); then
+        echo "ERROR: org.a11y.Bus activation sources besides the" >&2
+        echo "ubuntu-desktop-a11y snap found -- the image would ship two" >&2
+        echo "competing accessibility providers:" >&2
+        printf '  %s\n' "${hits[@]}" >&2
         exit 1
     fi
 }
@@ -1385,6 +1455,9 @@ mksquashfs "${BUILD_DIR}/squashfs-root" "${BUILD_DIR}/gadget.snap" -noappend -co
 
 rm -rf "${BUILD_DIR}/squashfs-root" "${BUILD_DIR}/custom-core.snap"
 unsquashfs -d "${BUILD_DIR}/squashfs-root" "${base_snap}"
+if [[ ${desktop} == gnome ]]; then
+    assert_single_a11y_bus_provider "${BUILD_DIR}/squashfs-root"
+fi
 # Polkit 127 uses this socket-activated helper instead of requiring the
 # polkit-agent-helper-1 binary to be setuid root. /etc is seeded from the
 # factory writable tree, so enable the socket there for the first boot.
