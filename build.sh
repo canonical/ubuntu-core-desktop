@@ -288,6 +288,13 @@ connections.extend([
     (f"{session}:dbus-a11y-bus-client", "ubuntu-desktop-a11y:dbus-a11y"),
     ("ubuntu-desktop-a11y:a11y-bus-client", "ubuntu-desktop-a11y:dbus-a11y"),
     ("ubuntu-desktop-a11y:wayland-client", f"{session}:wayland"),
+    # T26 gap (a): the wizard's Xwayland serves an ABSTRACT X11 socket
+    # (gdm display :1024); GDK connects to the abstract transport first
+    # and the orca profile denied it (T25 gate-4 AVC, verbatim in the
+    # snapcraft plug comment) -> the display came up None and orca
+    # crashed at keymap init. The x11 interface carries the abstract-
+    # addr grant; the slot is the session snap's.
+    ("ubuntu-desktop-a11y:x11", f"{session}:x11"),
     ("ubuntu-desktop-a11y:audio-playback", "pipewire:audio-playback"),
     ("ubuntu-desktop-a11y:desktop-legacy", "system:desktop-legacy"),
     # First-boot wizard backend (provd, Phase B confinement): the
