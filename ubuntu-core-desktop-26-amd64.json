@@ -98,7 +98,7 @@
         },
         {
             "name": "upower",
-            "default-channel": "24/stable",
+            "default-channel": "26/stable",
             "type": "app",
             "id": "XRBwbVdB9HsebMqoM9H9SKw5DRAfc4is"
         },
