@@ -287,6 +287,11 @@ connections.extend([
     #     the stock at-spi client recipe (T19 policy) for the reader.
     (f"{session}:dbus-a11y-bus-client", "ubuntu-desktop-a11y:dbus-a11y"),
     ("ubuntu-desktop-a11y:a11y-bus-client", "ubuntu-desktop-a11y:dbus-a11y"),
+    # T30 item 1: the reader role - the a11y snap's own orca app plugs
+    # the provider interface through the locally named "reader" plug;
+    # same-snap connection (the base declaration is deny-auto-connection,
+    # so this must be wired like the cross-snap edges, not left implicit)
+    ("ubuntu-desktop-a11y:reader", "ubuntu-desktop-a11y:accessibility-provider"),
     ("ubuntu-desktop-a11y:wayland-client", f"{session}:wayland"),
     # T26 gap (a): the wizard's Xwayland serves an ABSTRACT X11 socket
     # (gdm display :1024); GDK connects to the abstract transport first
