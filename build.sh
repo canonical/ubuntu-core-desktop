@@ -1572,6 +1572,41 @@ EOF
     "${BUILD_DIR}/squashfs-root/etc/writable/gdm3/custom.conf" \
     "${BUILD_DIR}/squashfs-root/usr/share/factory/writable/system-data/etc/writable/gdm3/custom.conf"
   do
+    # The fat base and the thin desktop variant both ship this file;
+    # the stock core26 (cloud-init variant) base does not. crudini
+    # cannot create files (it dies with ENOENT, fatal under set -e --
+    # notes/todo/20261112-fix-autologin-regression.txt), so seed the
+    # stock Debian content when the base omits it: the keys below then
+    # land in the same file GDM reads on every base shape, and the
+    # factory copy seeds /etc/writable/gdm3/custom.conf (the
+    # /etc/gdm3/custom.conf symlink target) at first boot.
+    if [[ ! -e ${gdm_conf} ]]; then
+      mkdir -p "$(dirname "${gdm_conf}")"
+      cat > "${gdm_conf}" <<'EOF'
+# GDM configuration storage
+#
+# See /usr/share/gdm/gdm.schemas for a list of available options.
+
+[daemon]
+
+# Enabling automatic login
+#  AutomaticLoginEnable = true
+#  AutomaticLogin = user1
+
+# Enabling timed login
+#  TimedLoginEnable = true
+#  TimedLogin = user1
+#  TimedLoginDelay = 10
+
+[security]
+
+[debug]
+# Uncomment the line below to turn on debugging
+# More verbose logs
+# Additionally lets the X server dump core if it crashes
+#Enable=true
+EOF
+    fi
     # With a build-time user the account is pre-provisioned in the
     # extrausers DB (below), so GDM's initial setup has nothing to do --
     # disable it to keep GDM on the plain greeter. Without --user, first
