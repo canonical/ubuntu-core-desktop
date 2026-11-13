@@ -4,7 +4,7 @@ This guide covers the current **GNOME image**: preparing the development host, b
 
 > **Development preview:** This procedure uses a **dangerous** model and unasserted local snaps. Images are for development only, not production or security-sensitive use, and cannot receive normal Snap Store refreshes.
 
-The following procedure was validated on **15 October 2026**, reaching the GNOME welcome-language selector under QEMU/KVM with UEFI. This does **not** establish that account creation or a full graphical session was validated.
+The procedure below is what [`.github/workflows/build-image.yaml`](../.github/workflows/build-image.yaml) runs on every push, and the published dated images are built from exactly these inputs. The full first-boot flow — wizard account creation through a working graphical session — was verified end-to-end under QEMU/KVM with UEFI in November 2026 on the thin desktop-variant base.
 
 ## Build Environment
 
@@ -29,7 +29,7 @@ lxc info
 snapcraft --version
 ```
 
-Build snaps explicitly in LXD containers with `snapcraft pack --use-lxd`. This avoids relying on Multipass or on whichever provider Snapcraft would otherwise choose. Use Snapcraft 9.x by default: all seven current `desktop/26` source builds were validated with Snapcraft 9.1.4 and `--use-lxd`. The snapd source recipe still recommends 8.x, so if a future source revision fails with a Snapcraft compatibility error, retry with `sudo snap install snapcraft --classic --channel=8.x/stable` and report the mismatch.
+Build snaps explicitly in LXD containers with `snapcraft pack --use-lxd`. This avoids relying on Multipass or on whichever provider Snapcraft would otherwise choose. Use Snapcraft 9.x by default: the current `desktop/26` source builds were validated with Snapcraft 9.1.4 (the base-variant and provider build scripts call the same `snapcraft` under the hood). The snapd source recipe still recommends 8.x, so if a future source revision fails with a Snapcraft compatibility error, retry with `sudo snap install snapcraft --classic --channel=8.x/stable` and report the mismatch.
 
 ## Build the GNOME Image
 
@@ -47,24 +47,55 @@ git clone --branch desktop/26 --single-branch https://github.com/canonical/ubunt
 git clone --branch desktop/26 --single-branch https://github.com/canonical/ubuntu-desktop-session-snap.git
 git clone --branch desktop/26 --single-branch https://github.com/canonical/gnome-desktop-runtime.git
 git clone --branch desktop/26 --single-branch https://github.com/canonical/pipewire-snap.git
+git clone --branch main --single-branch https://github.com/canonical/accountsservice-snap.git
+git clone --branch main --single-branch https://github.com/canonical/provd-snap.git
+git clone --branch main --single-branch https://github.com/canonical/fprintd-snap.git
+git clone --branch main --single-branch https://github.com/canonical/boltd-snap.git
+git clone --branch main --single-branch https://github.com/canonical/geoclue-snap.git
 git clone --branch desktop/26 --single-branch https://github.com/chris-bainbridge/ubuntu-desktop-provision.git
 git clone --branch desktop/26 --single-branch https://github.com/canonical/ubuntu-core-desktop.git
 ```
 
 The provisioning snap currently uses the `chris-bainbridge/ubuntu-desktop-provision` fork because its `desktop/26` branch contains required Snapcraft recipe changes. The canonical repository does not currently provide that branch.
 
+The five provider snaps (accountsservice, provd, fprintd, bolt, geoclue) carry the desktop system daemons that the thin desktop-variant base no longer ships; GNOME image assembly passes all five explicitly. `udisks2` and `upower` stay store snaps resolved by the model. The provider repositories build from `main` rather than a `desktop/26` branch.
+
 ### Build the Snaps
 
-Run `snapcraft pack --use-lxd` from each snap repository root. Snapcraft detects the recipe in each repository; the snapd recipe is under `build-aux/snap/` and is also detected automatically.
+Most snaps build with `snapcraft pack --use-lxd` from the repository root. Snapcraft detects the recipe in each repository; the snapd recipe is under `build-aux/snap/` and is also detected automatically.
+
+Three repositories need a wrapper script instead:
+
+- `core-base-desktop` builds the **desktop variant** of the base through `tools/build-variant.sh`. A plain `snapcraft pack` there produces a variant-less base with **no desktop payload** (it boots to a system with no display manager). The script selects the variant, packs, and verifies the result; if the checkout has previously built a different variant, run a full `snapcraft clean` first — cached part state can re-apply the other variant's settings and clobber the variant selection.
+- `accountsservice-snap` and `provd-snap` declare `base: core26-desktop`, which snapcraft's schema rejects. Their `build-github.sh` swaps in a plain `core26` base for every snapcraft call, then patches the packed snap's metadata back to `core26-desktop`.
 
 ```bash
 cd ~/ucd-build/core-base-desktop
-snapcraft pack --use-lxd
+./tools/build-variant.sh desktop
 
+cd ~/ucd-build/accountsservice-snap
+./build-github.sh
+
+cd ~/ucd-build/provd-snap
+./build-github.sh
+```
+
+Everything else builds the same way:
+
+```bash
 cd ~/ucd-build/pc-amd64-gadget-desktop
 snapcraft pack --use-lxd
 
 cd ~/ucd-build/ubuntu-core-desktop-snapd
+snapcraft pack --use-lxd
+
+cd ~/ucd-build/fprintd-snap
+snapcraft pack --use-lxd
+
+cd ~/ucd-build/boltd-snap
+snapcraft pack --use-lxd
+
+cd ~/ucd-build/geoclue-snap
 snapcraft pack --use-lxd
 
 cd ~/ucd-build/ubuntu-desktop-session-snap
@@ -82,9 +113,14 @@ snapcraft pack --use-lxd
 
 Expected outputs (exact filenames include the recipe version):
 
-- `core26-desktop_*.snap`
+- `core26-desktop_<version>+desktop_<arch>.snap` (the thin desktop-variant base)
 - `pc-desktop_*.snap`
 - `snapd_*.snap`
+- `accountsservice_*.snap`
+- `provd_*.snap`
+- `fprintd_*.snap`
+- `bolt_*.snap`
+- `geoclue_*.snap`
 - `ubuntu-desktop-session_*.snap`
 - `gnome-desktop-runtime_*.snap`
 - `pipewire_*.snap`
@@ -97,6 +133,11 @@ mkdir -p ~/ucd-build/snaps
 cp ~/ucd-build/core-base-desktop/core26-desktop_*.snap ~/ucd-build/snaps/core26-desktop.snap
 cp ~/ucd-build/pc-amd64-gadget-desktop/pc-desktop_*.snap ~/ucd-build/snaps/pc-desktop.snap
 cp ~/ucd-build/ubuntu-core-desktop-snapd/snapd_*.snap ~/ucd-build/snaps/snapd.snap
+cp ~/ucd-build/accountsservice-snap/accountsservice_*.snap ~/ucd-build/snaps/accountsservice.snap
+cp ~/ucd-build/provd-snap/provd_*.snap ~/ucd-build/snaps/provd.snap
+cp ~/ucd-build/fprintd-snap/fprintd_*.snap ~/ucd-build/snaps/fprintd.snap
+cp ~/ucd-build/boltd-snap/bolt_*.snap ~/ucd-build/snaps/bolt.snap
+cp ~/ucd-build/geoclue-snap/geoclue_*.snap ~/ucd-build/snaps/geoclue.snap
 cp ~/ucd-build/ubuntu-desktop-session-snap/ubuntu-desktop-session_*.snap ~/ucd-build/snaps/ubuntu-desktop-session.snap
 cp ~/ucd-build/gnome-desktop-runtime/gnome-desktop-runtime_*.snap ~/ucd-build/snaps/gnome-desktop-runtime.snap
 cp ~/ucd-build/pipewire-snap/pipewire_*.snap ~/ucd-build/snaps/pipewire.snap
@@ -117,6 +158,11 @@ cd ~/ucd-build/ubuntu-core-desktop
   --base-snap ~/ucd-build/snaps/core26-desktop.snap \
   --gadget-snap ~/ucd-build/snaps/pc-desktop.snap \
   --snapd-snap ~/ucd-build/snaps/snapd.snap \
+  --snap ~/ucd-build/snaps/accountsservice.snap \
+  --snap ~/ucd-build/snaps/provd.snap \
+  --snap ~/ucd-build/snaps/fprintd.snap \
+  --snap ~/ucd-build/snaps/bolt.snap \
+  --snap ~/ucd-build/snaps/geoclue.snap \
   --snap ~/ucd-build/snaps/ubuntu-desktop-session.snap \
   --snap ~/ucd-build/snaps/gnome-desktop-runtime.snap \
   --snap ~/ucd-build/snaps/pipewire.snap \
@@ -124,11 +170,11 @@ cd ~/ucd-build/ubuntu-core-desktop
   --model ci/ubuntu-core-desktop-26-amd64-dangerous.model
 ```
 
-The image is written to `build/pc.img`. The GNOME runtime and PipeWire snaps must be passed explicitly; although the model names the session, these content snaps are not model entries and provide runtime and audio content required by the confined session.
+The image is written to `build/pc.img`. The GNOME runtime and PipeWire snaps must be passed explicitly; although the model names the session, these content snaps are not model entries and provide runtime and audio content required by the confined session. The five provider snaps must also be passed explicitly: without them the image has no AccountsService (user account management), no provd (the first-boot wizard backend), and no fingerprint/Thunderbolt/geolocation daemons.
 
 The build script deletes and recreates its build output directory on each run. Do not keep personal keys or other files you need to preserve inside `build/`.
 
-For a faster assembly-only test, use the current `desktop-26-latest` snap assets downloaded by `.github/workflows/build-image.yaml`. This validates assembly against published snap inputs but does not exercise building the snap source repositories.
+For a faster assembly-only test, use the snap assets downloaded by `.github/workflows/build-image.yaml`: the thin desktop-variant base from the `desktop-26-thin-latest` release of `canonical/core-base-desktop`, and everything else from each repository's `desktop-26-latest` release. This validates assembly against published snap inputs but does not exercise building the snap source repositories.
 
 ## Test the Image in QEMU
 

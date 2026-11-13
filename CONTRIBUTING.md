@@ -13,7 +13,7 @@ Check existing issues and pull requests before beginning substantial work. For c
 ### Where to Contribute
 
 - **This repository:** image assembly (`build.sh`), models, CI automation, and documentation for the assembled image.
-- **Component repositories:** base, gadget, snapd, GNOME session, runtime, audio, and first-boot provisioning snaps. Follow the relevant component repository's contribution process. The [building guide](docs/building.md#clone-the-repositories) lists the current source repositories and branches.
+- **Component repositories:** base, gadget, snapd, GNOME session, runtime, audio, first-boot provisioning, and the desktop system-daemon provider snaps (AccountsService, provd, fprintd, bolt, geoclue). Follow the relevant component repository's contribution process. The [building guide](docs/building.md#clone-the-repositories) lists the current source repositories and branches.
 
 ## Build and Test
 
@@ -23,7 +23,7 @@ Select tests according to the change:
 
 | Change | Expected validation |
 | --- | --- |
-| Shell scripts | Run `bash -n build.sh` (and `bash -n build-cloud-init.sh` if changed) |
+| Shell scripts | Run `bash -n build.sh` |
 | Model, image assembly, or integration | Build an image with `build.sh`; check relevant CI and component tests |
 | First-boot or graphical behaviour | Boot the image in QEMU and test the affected behaviour |
 | Documentation only | Check links, commands, and Markdown for accuracy |
