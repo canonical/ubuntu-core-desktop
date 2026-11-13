@@ -156,8 +156,45 @@ Optional:
                               the project root (default: build), or an
                               absolute path (the arm64 CI builds in a
                               /mnt workspace); recreated on each build.
+  --image-size <size>         Total pc.img size passed to ubuntu-image
+                              (default: 20G). The image only writes the
+                              BIOS-boot and ubuntu-seed partitions --
+                              snapd creates ubuntu-boot, ubuntu-save and
+                              ubuntu-data on first boot, claiming the
+                              rest of the disk -- so this is almost
+                              entirely trailing free space. A smaller
+                              value trims the image's apparent size
+                              (e.g. 7G for a dev image, or a few MB over
+                              the gadget's ubuntu-seed declaration for a
+                              minimal one); the allocated and compressed
+                              artifact size is unchanged either way.
+                              Must leave room for the gadget's declared
+                              ubuntu-boot (750M), ubuntu-save (32M) and
+                              ubuntu-data (1G) after ubuntu-seed on the
+                              target disk, unless the target is resized
+                              first (installer/bmaptool flows handle
+                              that themselves).
   --debug                     Verbose kernel/snapd console logging
                               instead of the quiet default.
+  --minimal                   After ubuntu-image, truncate pc.img to its
+                              minimal size: only the leading partitions
+                              written at build time are kept (BIOS Boot +
+                              ubuntu-seed, the GPT backup header is
+                              relocated). On first boot snapd creates
+                              ubuntu-boot, ubuntu-save and ubuntu-data
+                              from the gadget layout, claiming the rest
+                              of the disk -- so the minimal image can be
+                              dd'd/bmaptool-copied to the start of any
+                              sufficiently large drive, or converted to
+                              a qcow2 with a larger virtual size for VMs
+                              (qemu-img convert + resize). NOTE: a
+                              minimal pc.img is NOT directly bootable as
+                              a fixed-size dev VM disk: it must be
+                              resized first (e.g. qemu-img resize
+                              pc.img +15G) so there is room for the
+                              first-boot partitions. The default
+                              (untruncated) image remains the
+                              ready-to-run dev artifact.
   -h, --help                  Show this help and exit.
 EOF
 }
@@ -1258,6 +1295,8 @@ arch=""
 kde_session_snap=""
 kde_plasma_snap=""
 build_dir="build"
+image_size="20G"
+minimal=0
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -1282,6 +1321,8 @@ while [[ $# -gt 0 ]]; do
         --kde-session-snap) kde_session_snap="$2"; shift 2 ;;
         --kde-plasma-snap) kde_plasma_snap="$2"; shift 2 ;;
         --build-dir) build_dir="$2"; shift 2 ;;
+        --image-size) image_size="$2"; shift 2 ;;
+        --minimal) minimal=1; shift ;;
         --snap) extra_snaps+=("$2"); shift 2 ;;
         *)
             echo "Unknown flag: ${1}" >&2
@@ -1323,6 +1364,13 @@ case "${arch}" in
         exit 1
         ;;
 esac
+# --image-size is handed to ubuntu-image verbatim; accept only its size
+# forms (bytes, or K/M/G/T with an optional iB) so a typo fails here
+# instead of deep inside the build.
+if ! [[ ${image_size} =~ ^[0-9]+([KMGTP]|KiB|MiB|GiB|TiB|PiB)?$ ]]; then
+    echo "Invalid --image-size '${image_size}' (expected e.g. 20G, 8G, 512M)." >&2
+    exit 1
+fi
 TARGET_TRIPLET="$(env -u DEB_HOST_MULTIARCH dpkg-architecture -a "${arch}" -qDEB_HOST_MULTIARCH)"
 if [[ ${arch} == arm64 ]]; then
     # arm64 has no ttyS0 (neither the QEMU virt machine nor typical arm
@@ -2007,7 +2055,7 @@ env -u FAKEROOTKEY -u LD_PRELOAD \
   --assertion "${model_account_key}" \
   --validation=ignore \
   --output-dir "${BUILD_DIR}" \
-  --image-size 20G \
+  --image-size "${image_size}" \
   "${snap_args[@]}" \
   "${model_assert}"
 
@@ -2018,5 +2066,31 @@ env -u FAKEROOTKEY -u LD_PRELOAD \
 # the account. Always drop the nouser marker so boot scripts know not
 # to attach a seed ISO.
 touch "${BUILD_DIR}/pc.img.nouser"
+
+if [[ ${minimal} == 1 ]]; then
+    # Post-build truncate (GPT, 512B logical sectors -- both gadget
+    # variants): keep the leading partitions ubuntu-image actually
+    # wrote (BIOS Boot + ubuntu-seed for this gadget) plus 1MiB of tail
+    # for the relocated GPT backup header, then move that header. The
+    # trailing space the full-size image carries (--image-size padding)
+    # is never written content-wise, so this loses no data: allocated
+    # size is unchanged; only the apparent size shrinks. snapd creates
+    # ubuntu-boot/save/data on first boot from the gadget layout.
+    img="${BUILD_DIR}/pc.img"
+    last_end="$(sgdisk -p "${img}" | awk '/^ +[0-9]+/ {end=$3} END {print end}')"
+    new_size=$(( (last_end + 1 + 2048) * 512 ))
+    cur_size="$(stat -c %s "${img}")"
+    if (( new_size >= cur_size )); then
+        echo "pc.img already minimal (${cur_size} bytes); not truncating"
+    else
+        truncate -s "${new_size}" "${img}"
+        if ! sgdisk -e "${img}" > /dev/null; then
+            echo "ERROR: sgdisk -e failed after truncation; pc.img has no GPT backup header." >&2
+            exit 1
+        fi
+        echo "Minimal pc.img: truncated $(numfmt --to=iec "${cur_size}") -> $(numfmt --to=iec "${new_size}")"
+        echo "(BIOS Boot + ubuntu-seed only; ubuntu-boot/save/data are created on first boot from the gadget layout)"
+    fi
+fi
 
 echo "Built ${BUILD_DIR}/pc.img"
