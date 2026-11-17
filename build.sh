@@ -1589,7 +1589,7 @@ if [[ -n ${root_password} ]]; then
     echo "Failed to hash --root-password: openssl produced no valid SHA-512 crypt hash." >&2
     exit 1
   fi
-  usermod --prefix "$(pwd)/${BUILD_DIR}/squashfs-root" --password "${pw}" root
+  usermod --prefix "$(realpath -m "${BUILD_DIR}/squashfs-root")" --password "${pw}" root
 fi
 
 # fix the serial console (port is arch-dependent: ttyS0 / ttyAMA0)
