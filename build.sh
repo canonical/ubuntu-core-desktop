@@ -352,6 +352,18 @@ connections.extend([
     ("provd:locale-control", "system:locale-control"),
     ("provd:timezone-control", "system:timezone-control"),
     ("provd:dbus-dconf", f"{session}:dbus-dconf"),
+    # The session's own dconf client edge. The plug is deliberately
+    # named "gsettings": GLib runs `snapctl is-connected gsettings` to
+    # decide between the dconf and the per-snap keyfile GSettings
+    # backend, and without a connected plug with that literal name the
+    # confined gnome-shell never sees org.gnome.desktop.input-sources
+    # (the wizard's layout selection is written to dconf by provd and
+    # silently ignored -> built-in "us" keymap). The interface is the
+    # session's ca.desrt.dconf dbus slot, so this also supplies the
+    # AppArmor send/receive grant for the shell. Same-snap connections
+    # need the explicit two-sided form (see the fprintd/bolt client
+    # entries above).
+    (f"{session}:gsettings", f"{session}:dbus-dconf"),
     ("provd:provd-run", "system:system-files"),
     # T26 gap (c): the wizard->user accessibility handover - provd
     # records the wizard session's a11y prefs + the created username
