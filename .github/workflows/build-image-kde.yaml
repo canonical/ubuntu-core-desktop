@@ -5,10 +5,10 @@ on:
     branches:
       - desktop/26
   workflow_dispatch:
-  schedule:
-    # Staggered from build-image.yaml's GNOME cron (0 5) so the two
-    # image builds don't contend for runner capacity.
-    - cron: "0 6 * * *"
+  # The daily build is dispatched from main by
+  # .github/workflows/daily-image-dispatch.yaml. A `schedule:` here can
+  # never fire: GitHub only evaluates schedules from the default branch,
+  # which is main (and main has no copy of this file at all).
 
 permissions:
   contents: write
@@ -115,9 +115,7 @@ jobs:
       - name: Compress
         id: compress
         run: |
-          day=$(date -u +%Y%m%d)
-          echo "day=$day" >> "$GITHUB_OUTPUT"
-          img="ubuntu-core-desktop-kde-${day}.img.zst"
+          img=ubuntu-core-desktop-kde.img.zst
           zstd -T0 -19 build/pc.img -o "$img"
 
           # GitHub release/API assets are capped at 2GiB
@@ -126,7 +124,7 @@ jobs:
           # it can land just over that cap where GNOME's doesn't (GH
           # run 38333363452: 422 "size must be less than 2147483648").
           # Split into <2GiB parts when needed; reassemble with:
-          #   cat ubuntu-core-desktop-kde-DATE.img.zst.part* > ubuntu-core-desktop-kde-DATE.img.zst
+          #   cat ubuntu-core-desktop-kde.img.zst.part* > ubuntu-core-desktop-kde.img.zst
           assets=()
           size=$(stat -c%s "$img")
           limit=$((1950*1000*1000))
@@ -156,49 +154,39 @@ jobs:
           compression-level: 0
           retention-days: 14
 
-      - name: Publish dated release
+      - name: Publish rolling release
         if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           ASSETS: ${{ steps.compress.outputs.assets }}
         run: |
-          day="${{ steps.compress.outputs.day }}"
-          tag="kde-${day}"
-          if gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            # Same-day rebuild: replace that date's release entirely so the
-            # tag always points at the newest run of the day.
-            gh release delete "$tag" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag
-          fi
-          gh release create "$tag" -R "$GITHUB_REPOSITORY" \
-            --title "Ubuntu Core Desktop 26 KDE (dangerous) - ${day}" \
-            --notes "DANGEROUS developer preview. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed. No credentials are baked in: first boot runs the plasma-setup first-boot wizard (the KDE equivalent of GNOME's ubuntu-desktop-init) to create the user account. If the image was split into \`*.img.zst.partNN\` files (GitHub's 2GiB asset cap), reassemble first: \`cat ubuntu-core-desktop-kde-${day}.img.zst.part* > ubuntu-core-desktop-kde-${day}.img.zst\`, then verify against SHA256SUMS. Decompress with: \`zstd -T0 -d --sparse ubuntu-core-desktop-kde-${day}.img.zst -o pc.img\` (the --sparse flag is required or the output allocates the full ~20G). Boot with virt-install or qemu per README.md." \
-            $ASSETS
-
-      - name: Expire old dated image releases
-        if: github.event_name != 'pull_request'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # GitHub has no default expiry for release assets (only workflow
-          # artifacts get retention-days), and each daily run publishes a
-          # dated ~2-4GiB image release, so they accumulate forever without
-          # this. Delete dated image releases (and their tags) older than 14
-          # days; match only gnome-YYYYMMDD/kde-YYYYMMDD tags so rolling or
-          # manually-cut releases are never touched.
-          cutoff=$(date -u -d '14 days ago' +%Y-%m-%dT%H:%M:%SZ)
-          # Skip today's tags: the other job may be mid-publish on one of
-          # them right now, and an in-flight (unpublished) release shows
-          # publishedAt=null, which jq's string comparison treats as older
-          # than any cutoff -- deleting it would break the other job's
-          # asset upload.
+          # Same rolling-release scheme as build-image.yaml (see the
+          # comment on its amd64 publish step): stable asset names, no
+          # dated tags, provenance in manifest.txt. --latest=false so the
+          # repo's "Latest" badge stays on the amd64 GNOME image.
+          tag=kde-latest
           day=$(date -u +%Y%m%d)
-          gh release list -R "$GITHUB_REPOSITORY" --limit 250 --json tagName,publishedAt \
-            | jq -r --arg cutoff "$cutoff" --arg day "$day" \
-                '.[] | select(.tagName | test("^(gnome|kde)-[0-9]{8}$"))
-                     | select(.tagName != "gnome-\($day)" and .tagName != "kde-\($day)")
-                     | select(.publishedAt != null and .publishedAt < $cutoff)
-                     | .tagName' \
-            | while read -r old_tag; do
-                echo "deleting expired image release: ${old_tag}"
-                gh release delete "$old_tag" -R "$GITHUB_REPOSITORY" --yes --cleanup-tag
-              done
+
+          {
+            printf 'built: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            printf 'commit: %s\n' "$GITHUB_SHA"
+            printf 'run: %s/%s/actions/runs/%s\n' \
+              "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID"
+            printf 'snaps:\n'
+            for s in snaps/*.snap; do
+              ver=$(unsquashfs -cat "$s" meta/snap.yaml 2>/dev/null \
+                    | sed -n 's/^version: //p' | head -1)
+              printf '  %s (%s)\n' "$(basename "$s")" "${ver:-unknown}"
+            done
+          } > manifest.txt
+
+          gh release view "$tag" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$tag" -R "$GITHUB_REPOSITORY" --latest=false \
+                 --title "Ubuntu Core Desktop 26 KDE (dangerous)" \
+                 --notes "Rolling developer preview (KDE); replaced by every green build."
+          gh release upload "$tag" $ASSETS manifest.txt \
+            -R "$GITHUB_REPOSITORY" --clobber
+          gh release edit "$tag" -R "$GITHUB_REPOSITORY" --latest=false \
+            --title "Ubuntu Core Desktop 26 KDE (dangerous) - ${day}" \
+            --notes "Rolling developer preview, replaced by every green build on desktop/26. Signed with an individual's registered test key; snaps are unasserted and can never be refreshed. No credentials are baked in: first boot runs the plasma-setup first-boot wizard (the KDE equivalent of GNOME's ubuntu-desktop-init) to create the user account. See manifest.txt for the source commit and the snap versions in this image. If the image was split into \`*.img.zst.partNN\` files (GitHub's 2GiB asset cap), reassemble first: \`cat ubuntu-core-desktop-kde.img.zst.part* > ubuntu-core-desktop-kde.img.zst\`, then verify against SHA256SUMS. Decompress with: \`zstd -T0 -d --sparse ubuntu-core-desktop-kde.img.zst -o pc.img\` (the --sparse flag is required or the output allocates the full ~20G). Boot with virt-install or qemu per README.md."
+

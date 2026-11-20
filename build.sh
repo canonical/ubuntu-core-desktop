@@ -491,9 +491,8 @@ require_provider_snaps() {
         echo "    --snap .../geoclue.snap \\" >&2
         echo "    --snap .../ubuntu-desktop-a11y.snap" >&2
         echo "(the local go-build wrapper resolves all of these from the" >&2
-        echo "source repos' build outputs; the CI workflow wiring for" >&2
-        echo "ubuntu-desktop-a11y is pending -- pass it explicitly here" >&2
-        echo "until the a11y snap repo publishes desktop-26-latest)" >&2
+        echo "source repos' build outputs; CI downloads them from each" >&2
+        echo "repo's desktop-26-latest release)" >&2
         echo "Without them the provd:dbus-dconf and session<->provider dbus" >&2
         echo "connections never resolve, and e.g. every wizard dconf write" >&2
         echo "is denied (the per-connection dbus rules disappear from the" >&2

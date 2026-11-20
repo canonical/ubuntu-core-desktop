@@ -16,20 +16,23 @@ It differs from the GNOME image in three ways:
 
 ## Download a Prebuilt KDE Image
 
-Visit the [GitHub Releases page](https://github.com/canonical/ubuntu-core-desktop/releases) and download:
+Visit the [GitHub Releases page](https://github.com/canonical/ubuntu-core-desktop/releases), open the **Ubuntu Core Desktop 26 KDE** release (`kde-latest`), and download:
 
-- The latest KDE image (`ubuntu-core-desktop-kde-YYYYMMDD.img.zst`)
+- `ubuntu-core-desktop-kde.img.zst`
 - The corresponding `SHA256SUMS` file
+- Optionally `manifest.txt`: the source commit and the snap versions in this image
 
-GitHub release assets are capped at 2 GiB, and the KDE image (which carries more snaps than the GNOME image) can land just over that. A release may therefore ship the image split into `ubuntu-core-desktop-kde-YYYYMMDD.img.zst.part00`, `.part01`, ... instead of a single `.img.zst`. Reassemble the parts before decompressing, then verify and extract (replace `YYYYMMDD` with the date in the filename):
+That release is replaced by every green build on `desktop/26`, so it is never more than a day or two old.
+
+GitHub release assets are capped at 2 GiB, and the KDE image (which carries more snaps than the GNOME image) can land just over that. A release may therefore ship the image split into `ubuntu-core-desktop-kde.img.zst.part00`, `.part01`, ... instead of a single `.img.zst`. Reassemble the parts before decompressing, then verify and extract:
 
 ```bash
-cat ubuntu-core-desktop-kde-YYYYMMDD.img.zst.part* > ubuntu-core-desktop-kde-YYYYMMDD.img.zst
+cat ubuntu-core-desktop-kde.img.zst.part* > ubuntu-core-desktop-kde.img.zst
 sha256sum -c SHA256SUMS
-zstd -T0 -d --sparse ubuntu-core-desktop-kde-YYYYMMDD.img.zst -o pc.img
+zstd -T0 -d --sparse ubuntu-core-desktop-kde.img.zst -o pc.img
 ```
 
-`sha256sum -c` may report missing files if `SHA256SUMS` lists other release assets; ensure the KDE archive reports `OK` before proceeding. The `--sparse` option avoids allocating the full 20 GiB disk image when decompressing.
+The `--sparse` option avoids allocating the full 20 GiB disk image when decompressing.
 
 ## Build the KDE Image
 

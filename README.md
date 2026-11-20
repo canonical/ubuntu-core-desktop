@@ -25,19 +25,18 @@ For the configuration below, use a host with KVM acceleration available and enou
 
 ### 2. Download and extract an image
 
-Visit the [GitHub Releases page](https://github.com/canonical/ubuntu-core-desktop/releases) and download:
+Visit the [GitHub Releases page](https://github.com/canonical/ubuntu-core-desktop/releases), open the **Ubuntu Core Desktop 26 GNOME** release (`gnome-latest`), and download:
 
-- The latest GNOME image (`ubuntu-core-desktop-gnome-YYYYMMDD.img.zst`)
+- `ubuntu-core-desktop-gnome.img.zst`
 - The corresponding `SHA256SUMS` file
+- Optionally `manifest.txt`: the source commit and the snap versions in this image
 
-From the directory containing the downloaded files, verify the archive and extract the disk image. Replace `YYYYMMDD` with the date in the filename:
+That release is replaced by every green build on `desktop/26`, so it is never more than a day or two old. Verify the archive and extract the disk image:
 
 ```bash
 sha256sum -c SHA256SUMS
-zstd -T0 -d --sparse ubuntu-core-desktop-gnome-YYYYMMDD.img.zst -o pc.img
+zstd -T0 -d --sparse ubuntu-core-desktop-gnome.img.zst -o pc.img
 ```
-
-**Note:** `SHA256SUMS` may also list other release assets. If so, `sha256sum -c` can report missing files; ensure the downloaded GNOME archive reports `OK` before proceeding.
 
 The `--sparse` option avoids allocating the full 20 GiB disk image when decompressing it.
 
