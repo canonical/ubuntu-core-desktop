@@ -1,0 +1,45 @@
+name: daily-image
+# The image builds live on desktop/26, but GitHub only evaluates
+# `on: schedule` from the default branch - so the daily cron cannot live
+# in build-image.yaml / build-image-kde.yaml there (it never fired; see
+# the zero schedule-event runs in this repo's history). This workflow
+# lives on main (the default branch) and dispatches the real workflows on
+# their own ref.
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Dispatch the image builds on desktop/26
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: desktop/26
+        run: |
+          # GITHUB_TOKEN is sufficient here: workflow_dispatch events
+          # always create runs, unlike push/pull_request events triggered
+          # by the token (no PAT or app token needed).
+          #
+          # Resolve each workflow by ID: build-image-kde.yaml does not
+          # exist on main, so a name/path lookup against the default
+          # branch would not find it.
+          for wf in build-image.yaml build-image-kde.yaml; do
+            id=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows?per_page=100" \
+                  --jq ".workflows[] | select(.path | endswith(\"/$wf\")) | .id" \
+                  | head -1)
+            if [ -z "$id" ]; then
+              echo "::error::workflow $wf not found; cannot dispatch"
+              exit 1
+            fi
+            echo "dispatching $wf (id $id) on ref $REF"
+            gh api -X POST \
+              "repos/$GITHUB_REPOSITORY/actions/workflows/$id/dispatches" \
+              -f ref="$REF"
+          done
