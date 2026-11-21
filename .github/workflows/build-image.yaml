@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download snap inputs (desktop-26-latest release assets)
         env:
@@ -135,7 +135,7 @@ jobs:
           sha256sum ubuntu-core-desktop-gnome.img.zst > SHA256SUMS
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: image
           path: |
@@ -206,7 +206,7 @@ jobs:
     runs-on: ubuntu-26.04-arm
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Prepare the /mnt build workspace
         # The runner's ~14G root disk cannot hold the 20G pc.img; the
@@ -338,7 +338,7 @@ jobs:
           sha256sum ubuntu-core-desktop-gnome-arm64.img.zst > SHA256SUMS
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: image-arm64
           path: |
