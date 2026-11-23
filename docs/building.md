@@ -174,7 +174,7 @@ The image is written to `build/pc.img`. The GNOME runtime and PipeWire snaps mus
 
 The build script deletes and recreates its build output directory on each run. Do not keep personal keys or other files you need to preserve inside `build/`.
 
-For a faster assembly-only test, use the snap assets downloaded by `.github/workflows/build-image.yaml`: the thin desktop-variant base from the `desktop-26-thin-latest` release of `canonical/core-base-desktop`, and everything else from each repository's `desktop-26-latest` release. This validates assembly against published snap inputs but does not exercise building the snap source repositories.
+For a faster assembly-only test, use the snap assets downloaded by `.github/workflows/build-image.yaml`: every component, including the desktop-variant base, comes from its repository's `desktop-26-latest` release (the base from `canonical/core-base-desktop`'s `build-snap-variant` workflow). This validates assembly against published snap inputs but does not exercise building the snap source repositories.
 
 ## Test the Image in QEMU
 

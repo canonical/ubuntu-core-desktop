@@ -31,9 +31,10 @@ jobs:
           mkdir -p snaps
           # Wait for the rolling snap releases to exist: snap builds take
           # up to ~40min, and a schedule/push trigger can race with one.
-          # The core26-desktop BASE comes from the desktop-26-thin-latest
-          # release (the desktop-variant build on desktop/26-thin), NOT
-          # the fat desktop-26-latest one. KDE does not seed the provider
+          # Every component, including the core26-desktop BASE, comes from
+          # its repo's desktop-26-latest release; the base is the
+          # desktop-variant build from canonical/core-base-desktop's
+          # build-snap-variant workflow. KDE does not seed the provider
           # snaps (build.sh's kde_gadget_connections references none of
           # them); only the GNOME build does.
           for i in $(seq 1 15); do
@@ -46,7 +47,7 @@ jobs:
                         chris-bainbridge/plasma-desktop-session; do
               gh release view desktop-26-latest -R "$repo" >/dev/null 2>&1 || ok=0
             done
-            gh release view desktop-26-thin-latest -R canonical/core-base-desktop >/dev/null 2>&1 || ok=0
+            gh release view desktop-26-latest -R canonical/core-base-desktop >/dev/null 2>&1 || ok=0
             [ "$ok" = 1 ] && break
             echo "snap releases not all present yet; waiting ($i/15)"
             sleep 120
@@ -66,10 +67,10 @@ jobs:
             gh release download desktop-26-latest -R "$repo" -p "$asset" \
               -O "snaps/$local_name" --clobber
           done
-          # Thin (desktop-variant) core26-desktop base, built by
+          # Desktop-variant core26-desktop base, built by
           # canonical/core-base-desktop's build-snap-variant workflow on
-          # desktop/26-thin.
-          gh release download desktop-26-thin-latest -R canonical/core-base-desktop \
+          # desktop/26.
+          gh release download desktop-26-latest -R canonical/core-base-desktop \
             -p core26-desktop.snap -O snaps/core26-desktop-variant.snap --clobber
           ls -la snaps/
 
@@ -93,7 +94,7 @@ jobs:
         # todo/20261009-build-and-publish-kde-dangerous.txt.
         #
         # Thin-variant build: --base-snap is the desktop-variant
-        # core26-desktop built from desktop/26-thin (build.sh bakes the
+        # core26-desktop built from desktop/26 (build.sh bakes the
         # kf6 mesa/GL symlinks the chisel-cut variant lacks). No provider
         # snaps are seeded on KDE: build.sh's kde_gadget_connections
         # references none of them.
