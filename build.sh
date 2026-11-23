@@ -1453,14 +1453,25 @@ esac
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 [[ ${snaps_dir} = /* ]] || snaps_dir="${script_dir}/${snaps_dir}"
 
-# Add a snap to extra_snaps unless the caller already passed one with the
-# same file name (--snap may point at a hand-built copy elsewhere).
+# Add a snap to extra_snaps unless the caller already passed one for the
+# same snap (--snap may point at a hand-built copy elsewhere). Compare
+# snap NAMES, not file names: a hand-built copy is normally
+# version-stamped ("<name>_<version>.snap"), so a literal file-name
+# comparison misses it and ubuntu-image then rejects the image for a
+# repeated local snap. Snap names cannot contain '_', so the stem up to
+# the first '_' is the name (same normalisation as
+# require_provider_snaps below).
 add_default_snap() {
-    local want=$1 f
+    local want=$1 f name
+    want="${want%.snap}"
+    want="${want%%_*}"
     for f in "${extra_snaps[@]:-}"; do
-        [[ -n ${f} && $(basename "${f}") == "${want}" ]] && return 0
+        [[ -n ${f} ]] || continue
+        name="$(basename "${f}" .snap)"
+        name="${name%%_*}"
+        [[ ${name} == "${want}" ]] && return 0
     done
-    extra_snaps+=("${snaps_dir}/${want}")
+    extra_snaps+=("${snaps_dir}/${want}.snap")
 }
 
 if [[ ${build_snaps} == 1 ]]; then
