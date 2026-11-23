@@ -56,6 +56,10 @@ refresh the cache later:
 ./build-snaps.sh sync
 ```
 
+`sync` asks the GitHub API for each asset's sha256 digest and downloads
+only the ones that actually moved, so it is cheap to run routinely.
+`./build-snaps.sh sync --force` re-downloads everything.
+
 Nothing refreshes the cache on its own: the releases are rolling, so a
 build stays reproducible until you explicitly ask for newer snaps.
 
