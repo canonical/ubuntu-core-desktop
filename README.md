@@ -91,6 +91,7 @@ To build an image from source, test changes, or contribute to the project, see [
 This repository is responsible for image assembly. Most snap payloads are maintained in separate repositories.
 
 - [`build.sh`](build.sh) customizes the base and gadget snaps, includes requested local snaps, and invokes `ubuntu-image`.
+- [`build-snaps.sh`](build-snaps.sh) fills the `snaps/` cache from the components' rolling GitHub releases, and [`build-snap.sh`](build-snap.sh) builds one component from a clone in `local-sources/` when you are working on it. `build.sh` calls both, so a plain `./build.sh` needs no snap arguments.
 - [`.github/workflows/build-image.yaml`](.github/workflows/build-image.yaml) describes the CI image assembly inputs and release workflow.
 - [`docs/models.md`](docs/models.md) explains the image model.
 

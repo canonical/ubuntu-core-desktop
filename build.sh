@@ -30,9 +30,14 @@ set -e
 
 usage() {
     cat <<'EOF'
-Usage: build.sh --desktop gnome|kde --model-account-key <path> \
-           --base-snap <path> --gadget-snap <path> --snapd-snap <path> \
-           [--snap <path>]... [options]
+Usage: build.sh --desktop gnome|kde --model-account-key <path> [options]
+
+Snap inputs are taken from the snaps/ cache by default: build.sh calls
+build-snaps.sh, which builds any component you have cloned into
+local-sources/ and downloads the rest from their desktop-26-latest
+releases, then fills in any snap path you did not pass yourself. Pass
+--no-build-snaps to require every snap path explicitly instead (the CI
+image workflows pass all of them).
 
 Builds <build-dir>/pc.img (an Ubuntu Core Desktop disk image) using
 ubuntu-image. The default build directory is "build". If --user is
@@ -65,17 +70,27 @@ Required:
                               header with, e.g.:
                                 snap known --remote account-key \
                                   public-key-sha3-384=<sign-key-sha3-384>
-  --base-snap <path>          Core base snap to customize (e.g. a
-                              core26-desktop build). There is no public
-                              place to get this yet.
-  --gadget-snap <path>        Gadget snap to customize (e.g. a
-                              pc-desktop build). There is no public
-                              place to get this yet.
-  --snapd-snap <path>         snapd snap, included in the image
-                              unmodified. There is no public place to
-                              get this yet.
 
 Optional:
+  --snaps-dir <dir>           Where the prebuilt snaps are cached
+                              (default: snaps). Any snap path not
+                              passed on the command line is filled in
+                              from here, after build-snaps.sh has
+                              built or downloaded whatever is missing.
+  --no-build-snaps            Do not populate the snap cache and do not
+                              fill in defaults: every snap path must be
+                              passed explicitly (the CI image workflows
+                              do this).
+  --base-snap <path>          Core base snap to customize (default:
+                              <snaps-dir>/core26-desktop-variant.snap,
+                              the desktop variant from
+                              core-base-desktop's build-snap-variant
+                              workflow).
+  --gadget-snap <path>        Gadget snap to customize (default:
+                              <snaps-dir>/pc-desktop.snap).
+  --snapd-snap <path>         snapd snap, included in the image
+                              unmodified (default:
+                              <snaps-dir>/snapd.snap).
   --snap <path>               Extra snap to include in the image
                               unmodified. Repeatable, e.g.:
                                 --snap ubuntu-desktop-session.snap \
@@ -148,10 +163,11 @@ Optional:
                               --user (which becomes required). Without
                               this, the login prompt is used.
   --kde-session-snap <path>   KDE session snap supplying SDDM and its
-                              greeter runtime (required for --desktop kde).
+                              greeter runtime (default:
+                              <snaps-dir>/plasma-desktop-session.snap).
   --kde-plasma-snap <path>    KDE plasma content snap supplying the
-                              screen-locker PAM service files
-                              (required for --desktop kde).
+                              screen-locker PAM service files (default:
+                              <snaps-dir>/plasma-core-desktop.snap).
   --build-dir <name|path>     Output directory: a simple name under
                               the project root (default: build), or an
                               absolute path (the arm64 CI builds in a
@@ -1308,6 +1324,8 @@ kde_plasma_snap=""
 build_dir="build"
 image_size="20G"
 minimal=0
+snaps_dir="snaps"
+build_snaps=1
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -1333,6 +1351,8 @@ while [[ $# -gt 0 ]]; do
         --kde-plasma-snap) kde_plasma_snap="$2"; shift 2 ;;
         --build-dir) build_dir="$2"; shift 2 ;;
         --image-size) image_size="$2"; shift 2 ;;
+        --snaps-dir) snaps_dir="$2"; shift 2 ;;
+        --no-build-snaps) build_snaps=0; shift ;;
         --minimal) minimal=1; shift ;;
         --snap) extra_snaps+=("$2"); shift 2 ;;
         *)
@@ -1421,6 +1441,58 @@ case "${desktop}" in
         exit 1
         ;;
 esac
+
+# --- Snap inputs ------------------------------------------------------
+#
+# The snaps that make up the image come from the snaps/ cache unless the
+# caller passes them explicitly. build-snaps.sh builds every component
+# that has a clone in local-sources/ (skipping the ones whose tree has
+# not changed since the last build) and downloads the rest from their
+# desktop-26-latest releases. CI passes every snap path itself, so the
+# defaulting below is a no-op there.
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+[[ ${snaps_dir} = /* ]] || snaps_dir="${script_dir}/${snaps_dir}"
+
+# Add a snap to extra_snaps unless the caller already passed one with the
+# same file name (--snap may point at a hand-built copy elsewhere).
+add_default_snap() {
+    local want=$1 f
+    for f in "${extra_snaps[@]:-}"; do
+        [[ -n ${f} && $(basename "${f}") == "${want}" ]] && return 0
+    done
+    extra_snaps+=("${snaps_dir}/${want}")
+}
+
+if [[ ${build_snaps} == 1 ]]; then
+    # The fakeroot re-exec must not run this: the outer invocation has
+    # already populated the cache, and snapcraft must not run as root.
+    if [[ -z ${FAKEROOTKEY:-} ]]; then
+        "${script_dir}/build-snaps.sh" --desktop "${desktop}" --snaps-dir "${snaps_dir}"
+    fi
+
+    [[ -n ${base_snap} ]]   || base_snap="${snaps_dir}/core26-desktop-variant.snap"
+    [[ -n ${gadget_snap} ]] || gadget_snap="${snaps_dir}/pc-desktop.snap"
+    [[ -n ${snapd_snap} ]]  || snapd_snap="${snaps_dir}/snapd.snap"
+
+    case "${desktop}" in
+        gnome)
+            for want in accountsservice provd fprintd bolt geoclue \
+                        ubuntu-desktop-a11y ubuntu-desktop-session \
+                        gnome-desktop-runtime pipewire ubuntu-desktop-init; do
+                add_default_snap "${want}.snap"
+            done
+            ;;
+        kde)
+            add_default_snap plasma-core-desktop.snap
+            add_default_snap kf6-core26.snap
+            add_default_snap ubuntu-desktop-init.snap
+            [[ -n ${kde_session_snap} ]] ||
+                kde_session_snap="${snaps_dir}/plasma-desktop-session.snap"
+            [[ -n ${kde_plasma_snap} ]] ||
+                kde_plasma_snap="${snaps_dir}/plasma-core-desktop.snap"
+            ;;
+    esac
+fi
 
 if [[ ${autologin} == 1 && -z ${user} ]]; then
     echo "--autologin requires --user <name> to be set." >&2

@@ -23,7 +23,7 @@ Select tests according to the change:
 
 | Change | Expected validation |
 | --- | --- |
-| Shell scripts | Run `bash -n build.sh` |
+| Shell scripts | Run `bash -n build.sh build-snaps.sh build-snap.sh` |
 | Model, image assembly, or integration | Build an image with `build.sh`; check relevant CI and component tests |
 | First-boot or graphical behaviour | Boot the image in QEMU and test the affected behaviour |
 | Documentation only | Check links, commands, and Markdown for accuracy |

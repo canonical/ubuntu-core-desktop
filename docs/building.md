@@ -33,6 +33,56 @@ Build snaps explicitly in LXD containers with `snapcraft pack --use-lxd`. This a
 
 ## Build the GNOME Image
 
+### Quick start: assemble from cached snaps
+
+You do not have to build every component to get an image. The repository
+keeps a cache of prebuilt snaps in `snaps/` (gitignored) and assembles
+from it by default:
+
+```bash
+git clone --branch desktop/26 --single-branch https://github.com/canonical/ubuntu-core-desktop.git
+cd ubuntu-core-desktop
+./build.sh --desktop gnome \
+  --model-account-key ci/account-key.assert \
+  --model ci/ubuntu-core-desktop-26-amd64-dangerous.model
+```
+
+`build.sh` calls `build-snaps.sh`, which downloads whatever is missing
+from the components' `desktop-26-latest` GitHub releases (a few hundred
+MB, once) and then fills in every snap argument you did not pass. To
+refresh the cache later:
+
+```bash
+./build-snaps.sh sync
+```
+
+Nothing refreshes the cache on its own: the releases are rolling, so a
+build stays reproducible until you explicitly ask for newer snaps.
+
+### Working on one component
+
+Clone just the component you care about into `local-sources/`:
+
+```bash
+cd local-sources
+git clone https://github.com/canonical/accountsservice-snap
+```
+
+Run `./build.sh` as above. That component is now built from your clone
+while everything else still comes from the cache. It is rebuilt only when
+its tree changes (HEAD, the diff against HEAD, or untracked files), so
+rerunning is cheap; `./build-snap.sh <component> --force` rebuilds
+regardless, and `./build-snap.sh --list` lists the components.
+
+Every build ends with `snapcraft clean`, whether it succeeded or failed,
+so no LXD build instance is left behind holding disk.
+
+### Build every component from source by hand
+
+The rest of this section is the long way round - useful when you are
+changing several components at once or debugging a build - and is what
+the snap repositories' own CI does.
+
 ### Clone the Repositories
 
 Keep the snap sources and this assembly repository in a common parent directory. Each snap source repository is built independently:
