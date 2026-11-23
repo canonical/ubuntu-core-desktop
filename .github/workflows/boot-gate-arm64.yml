@@ -406,7 +406,7 @@ jobs:
               gh release view desktop-26-latest -R "$repo" --json assets \
                 -q '.assets[].name' 2>/dev/null | grep -qx "$asset" || ok=0
             done
-            gh release view desktop-26-thin-latest -R canonical/core-base-desktop \
+            gh release view desktop-26-latest -R canonical/core-base-desktop \
               --json assets -q '.assets[].name' 2>/dev/null \
               | grep -qx core26-desktop-arm64.snap || ok=0
             [ "$ok" = 1 ] && break
@@ -433,7 +433,7 @@ jobs:
             gh release download desktop-26-latest -R "$repo" -p "$asset" \
               -O "snaps/$local_name" --clobber
           done
-          gh release download desktop-26-thin-latest -R canonical/core-base-desktop \
+          gh release download desktop-26-latest -R canonical/core-base-desktop \
             -p core26-desktop-arm64.snap -O snaps/core26-desktop-variant.snap --clobber
           ls -la snaps/
 
