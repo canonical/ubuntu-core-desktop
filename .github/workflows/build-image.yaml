@@ -220,8 +220,14 @@ jobs:
 
           echo "==> waiting for the GNOME session"
           ok=0
-          for _ in $(seq 1 60); do
+          for i in $(seq 1 90); do
             if sshg 'pgrep -x gnome-shell' >/dev/null 2>&1; then ok=1; break; fi
+            # Log where it is stuck, so a failure is diagnosable from the
+            # job log alone (the compositor can be slow to appear while
+            # snapd is still seeding).
+            if [ $((i % 6)) -eq 0 ]; then
+              echo "+$((i * 10))s: $(sshg 'systemctl is-active gdm graphical.target | tr "\n" " "; loginctl list-sessions --no-legend | wc -l' 2>/dev/null || echo unreachable)"
+            fi
             sleep 10
           done
 
@@ -229,7 +235,7 @@ jobs:
 
           if [ "$ok" != 1 ]; then
             echo "::error::GNOME session did not start; failing before publish" >&2
-            sshg 'sudo journalctl -b --no-pager | grep -iE "gnome-shell|gdm|segv" | tail -40' >&2 || true
+            sshg 'echo "--- gdm:"; systemctl status gdm --no-pager | tail -15; echo "--- gdm journal:"; sudo journalctl -b -u gdm --no-pager | tail -25; echo "--- drm:"; sudo dmesg | grep -iE "drm|virtio" | tail -5' >&2 || true
             exit 1
           fi
           if ! sshg 'loginctl list-sessions --no-legend | grep -q "seat0"'; then
