@@ -1582,8 +1582,6 @@ if [[ ${debug} == 1 ]]; then
     cmdline_extra="snapd.debug=1 systemd.log_target=console systemd.journald.forward_to_console=1 console=${serial_console},115200n8"
 fi
 
-set -x
-
 BUILD_DIR="${build_dir}"
 case "${BUILD_DIR}" in
     /*)
