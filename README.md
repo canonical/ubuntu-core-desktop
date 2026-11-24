@@ -74,7 +74,7 @@ If KVM is unavailable, replace `-machine accel=kvm -cpu host` with `-machine acc
 
 Allow the initial boot to complete; the system may restart once during initialization. The GNOME first-boot wizard (`ubuntu-desktop-init`) should then appear. Select your language and follow the prompts to create a user account.
 
-The current image has been tested with QEMU/KVM, UEFI, 2 vCPUs, and 4 GiB of RAM **through the welcome-language screen**. Completion of the entire setup flow is not established by that test.
+The current image is tested with QEMU/KVM, UEFI, 2 vCPUs, and 4 GiB of RAM. CI also boots every assembled image headless before publishing it and requires `gnome-shell` to be running for an autologin session, so a published image is known to reach a working graphical session; completing the interactive wizard prompts is not covered by that automated check.
 
 ## Current limitations
 

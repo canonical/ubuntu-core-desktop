@@ -85,6 +85,9 @@ cd local-sources
 git clone https://github.com/chris-bainbridge/plasma-desktop-session
 ```
 
+Check that the checkout is on `desktop/26` (the branch CI builds these
+from); `build-snap.sh` warns if it isn't.
+
 and rerun `./build.sh --desktop kde ...`. `./build-snap.sh --list` shows
 the component names; `./build-snap.sh plasma-desktop-session` builds one
 by hand. Every other component keeps coming from the cache.

@@ -15,11 +15,16 @@ key: the release model resolves what it can from the Snap Store
 (each snap's `default-channel`), but the base (`core26-desktop`) is
 deliberately never store-published (the plan is to drop it for a
 plain `core26` base), and `grade: signed` requires every model snap to
-be store-published. The dev model is identical apart from the name;
-local snaps passed to `build.sh` (`--snap`, `--base-snap`, ...) always
-override the model's channel resolution, which is how the dev
-fast-path keeps working while snaps are migrated to the store one at
-a time (see notes/todo/20261103-publish-core-desktop-snaps-to-the-store.txt).
+be store-published. The dev model is identical apart from the name.
+
+Snaps the image needs beyond the model are supplied by `build.sh`:
+by default it takes them from the `snaps/` cache (filling it from the
+components' rolling `desktop-26-latest` GitHub releases, or building any
+component cloned into `local-sources/`), and a path passed explicitly
+(`--snap`, `--base-snap`, ...) wins over both. Local snaps always
+override the model's channel resolution, which is how the dev fast-path
+keeps working while snaps are migrated to the store one at a time (see
+notes/todo/20261103-publish-core-desktop-snaps-to-the-store.txt).
 
 The `grade` property allows us to build with unpublished snaps, which
 is primarily intended to allow testing of modified snaps prior to

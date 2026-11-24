@@ -109,6 +109,13 @@ cd local-sources
 git clone https://github.com/canonical/accountsservice-snap
 ```
 
+The checkout must be the branch CI builds that component from: `desktop/26`
+for most components, `main` for the five provider snaps (accountsservice,
+provd, fprintd, boltd, geoclue). The default branch is right for all of
+them except `ubuntu-desktop-provision`, whose default is `main` while CI
+builds `desktop/26`; `build-snap.sh` warns when the checkout differs from
+the branch CI uses.
+
 Then run `./build.sh` exactly as above. That component is built from your
 clone with [`build-snap.sh`](../build-snap.sh) while everything else still
 comes from the cache. A build happens only when the tree changed — HEAD,
