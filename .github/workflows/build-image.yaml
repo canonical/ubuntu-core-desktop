@@ -174,67 +174,79 @@ jobs:
           }
           trap stop_qemu EXIT
 
-          # One full attempt: boot, wait for SSH, wait for the session.
-          # Returns non-zero if the session never appears.
-          attempt_gate() {
+          # A hosted runner's disk is slow enough that the first boot of a
+          # fresh image spends >12 min in snap seeding (the same image seeds
+          # in ~90s locally), with GDM queued behind snapd.seeded. So split
+          # the gate in two boots instead of waiting for a session that
+          # cannot start yet:
+          #   1. cold boot: wait for snapd.seeded to finish (the slow part);
+          #   2. warm boot: assert the session appears promptly.
+          # cache=unsafe is deliberate: the image is disposable and a
+          # crashed boot only loses it, while ignoring flushes removes most
+          # of the seeding cost on this storage.
+          boot_vm() {
             rm -f gate-serial.log
             qemu-system-x86_64 "${accel[@]}" -m 4096 -smp 2 \
               -bios /usr/share/ovmf/OVMF.fd \
-              -drive file=gate-build/pc.img,if=virtio,format=raw \
+              -drive file=gate-build/pc.img,if=virtio,format=raw,cache=unsafe \
               -device virtio-vga -display none \
               -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 \
               -device virtio-net-pci,netdev=net0 \
               -serial file:gate-serial.log &
             qemu=$!
-
             echo "==> waiting for the gate image to accept SSH"
-            up=0
-            for _ in $(seq 1 30); do
-              if sshg true 2>/dev/null; then up=1; break; fi
+            for _ in $(seq 1 60); do
+              if sshg true 2>/dev/null; then return 0; fi
               sleep 10
             done
-            if [ "$up" != 1 ]; then
-              echo "attempt: never accepted SSH; serial tail:" >&2
-              tail -20 gate-serial.log >&2 || true
-              return 1
+            echo "never accepted SSH; serial tail:" >&2
+            tail -20 gate-serial.log >&2 || true
+            return 1
+          }
+
+          echo "==> cold boot: waiting for snap seeding"
+          boot_vm || exit 1
+          seeded=0
+          for i in $(seq 1 120); do
+            if sshg 'systemctl is-active --quiet snapd.seeded'; then seeded=1; break; fi
+            if [ $((i % 6)) -eq 0 ]; then
+              echo "+$((i * 10))s: seeded=$(sshg 'systemctl is-active snapd.seeded' 2>/dev/null || echo unreachable)"
             fi
+            sleep 10
+          done
+          if [ "$seeded" != 1 ]; then
+            echo "::error::snap seeding did not finish within 20 minutes" >&2
+            sshg 'systemctl status snapd.seeded snapd --no-pager | tail -20' >&2 || true
+            exit 1
+          fi
+          echo "==> seeded; rebooting for the session check"
+          stop_qemu
+          sleep 5
+
+          ok=0
+          for attempt in 1 2; do
+            echo "==> warm boot attempt ${attempt}"
+            if ! boot_vm; then stop_qemu; continue; fi
 
             echo "==> waiting for the GNOME session"
-            for i in $(seq 1 72); do
-              if sshg 'pgrep -x gnome-shell' >/dev/null 2>&1; then
-                return 0
-              fi
-              # Say where it is stuck, so a failure is diagnosable from the
-              # job log alone (the compositor can take a while to appear on
-              # a slow runner while snapd is still seeding).
+            got=0
+            for i in $(seq 1 48); do
+              if sshg 'pgrep -x gnome-shell' >/dev/null 2>&1; then got=1; break; fi
               if [ $((i % 6)) -eq 0 ]; then
                 echo "+$((i * 10))s: $(sshg 'systemctl is-active snapd.seeded gdm graphical.target 2>/dev/null | tr "\n" " "; loginctl list-sessions --no-legend | wc -l' 2>/dev/null || echo unreachable)"
               fi
               sleep 10
             done
+            if [ "$got" = 1 ]; then ok=1; break; fi
 
-            # Dump the state now: the caller kills the VM between attempts.
+            # Dump while the VM is still alive.
             echo "--- jobs:" >&2; sshg 'systemctl list-jobs --no-pager' >&2 || true
             echo "--- gdm:" >&2; sshg 'systemctl status gdm --no-pager | tail -12' >&2 || true
             echo "--- gdm journal:" >&2; sshg 'sudo journalctl -b -u gdm --no-pager | tail -25' >&2 || true
-            echo "--- seeded/graphical:" >&2; sshg 'systemctl is-active snapd.seeded graphical.target' >&2 || true
-            return 1
-          }
-
-          # One retry. The first boot of a fresh image is the slow, racy
-          # one (a run has been seen to sit with GDM never starting); a
-          # second boot of the same image is warm. A genuinely broken snap
-          # set crash-loops on both attempts, so this hides flakiness
-          # without hiding real failures.
-          ok=0
-          for attempt in 1 2; do
-            echo "==> boot attempt ${attempt}"
-            if attempt_gate; then ok=1; break; fi
             echo "::warning::attempt ${attempt} did not reach the session"
             stop_qemu
             sleep 5
           done
-
           sshg 'echo "--- sessions:"; loginctl list-sessions --no-legend; echo "--- procs:"; pgrep -a gnome-shell || true' || true
 
           if [ "$ok" != 1 ]; then
