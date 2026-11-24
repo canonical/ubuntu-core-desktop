@@ -199,7 +199,7 @@ jobs:
 
             echo "==> waiting for the gate image to accept SSH"
             up=0
-            for _ in $(seq 1 90); do
+            for _ in $(seq 1 30); do
               if sshg true 2>/dev/null; then up=1; break; fi
               sleep 10
             done
@@ -210,7 +210,7 @@ jobs:
             fi
 
             echo "==> waiting for the Plasma session"
-            for i in $(seq 1 90); do
+            for i in $(seq 1 48); do
               if sshg 'pgrep -x plasmashell' >/dev/null 2>&1; then
                 return 0
               fi
