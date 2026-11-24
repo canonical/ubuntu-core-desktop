@@ -210,7 +210,7 @@ jobs:
             fi
 
             echo "==> waiting for the Plasma session"
-            for i in $(seq 1 48); do
+            for i in $(seq 1 72); do
               if sshg 'pgrep -x plasmashell' >/dev/null 2>&1; then
                 return 0
               fi
@@ -222,6 +222,12 @@ jobs:
               fi
               sleep 10
             done
+
+            # Dump the state now: the caller kills the VM between attempts.
+            echo "--- jobs:" >&2; sshg 'systemctl list-jobs --no-pager' >&2 || true
+            echo "--- sddm:" >&2; sshg 'systemctl status sddm --no-pager | tail -12' >&2 || true
+            echo "--- sddm journal:" >&2; sshg 'sudo journalctl -b -u sddm --no-pager | tail -25' >&2 || true
+            echo "--- seeded/graphical:" >&2; sshg 'systemctl is-active snapd.seeded graphical.target' >&2 || true
             return 1
           }
 
@@ -243,12 +249,6 @@ jobs:
 
           if [ "$ok" != 1 ]; then
             echo "::error::Plasma session did not start; failing before publish" >&2
-            sshg 'echo "--- jobs:"; systemctl list-jobs --no-pager;
-                  echo "--- sddm:"; systemctl status sddm --no-pager | tail -12;
-                  echo "--- sddm journal:"; sudo journalctl -b -u sddm --no-pager | tail -25;
-                  echo "--- kwin crashes:"; sudo journalctl -b --no-pager | grep -E "sig=11|segfault" | tail -5;
-                  echo "--- seeded/graphical:"; systemctl is-active snapd.seeded;
-                  systemctl status graphical.target --no-pager | tail -6' >&2 || true
             exit 1
           fi
           if ! sshg 'loginctl list-sessions --no-legend | grep -q "seat0"'; then

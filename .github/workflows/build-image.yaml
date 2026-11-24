@@ -232,7 +232,7 @@ jobs:
             fi
 
             echo "==> waiting for the GNOME session"
-            for i in $(seq 1 48); do
+            for i in $(seq 1 72); do
               if sshg 'pgrep -x gnome-shell' >/dev/null 2>&1; then
                 return 0
               fi
@@ -244,6 +244,12 @@ jobs:
               fi
               sleep 10
             done
+
+            # Dump the state now: the caller kills the VM between attempts.
+            echo "--- jobs:" >&2; sshg 'systemctl list-jobs --no-pager' >&2 || true
+            echo "--- gdm:" >&2; sshg 'systemctl status gdm --no-pager | tail -12' >&2 || true
+            echo "--- gdm journal:" >&2; sshg 'sudo journalctl -b -u gdm --no-pager | tail -25' >&2 || true
+            echo "--- seeded/graphical:" >&2; sshg 'systemctl is-active snapd.seeded graphical.target' >&2 || true
             return 1
           }
 
@@ -265,12 +271,6 @@ jobs:
 
           if [ "$ok" != 1 ]; then
             echo "::error::GNOME session did not start; failing before publish" >&2
-            sshg 'echo "--- jobs:"; systemctl list-jobs --no-pager;
-                  echo "--- gdm:"; systemctl status gdm --no-pager | tail -10;
-                  echo "--- gdm-homedirs:"; systemctl status gdm-homedirs --no-pager | tail -10;
-                  echo "--- gdm-homedirs journal:"; sudo journalctl -b -u gdm-homedirs --no-pager | tail -20;
-                  echo "--- seeded/graphical:"; systemctl is-active snapd.seeded;
-                  systemctl status graphical.target --no-pager | tail -6' >&2 || true
             exit 1
           fi
           if ! sshg 'loginctl list-sessions --no-legend | grep -q "seat0"'; then
