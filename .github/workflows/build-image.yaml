@@ -190,57 +190,87 @@ jobs:
             echo "::warning::/dev/kvm not writable; booting under TCG"
           fi
 
-          qemu-system-x86_64 "${accel[@]}" -m 4096 -smp 2 \
-            -bios /usr/share/ovmf/OVMF.fd \
-            -drive file=gate-build/pc.img,if=virtio,format=raw \
-            -device virtio-vga -display none \
-            -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 \
-            -device virtio-net-pci,netdev=net0 \
-            -serial file:gate-serial.log &
-          qemu=$!
-          trap 'kill "$qemu" 2>/dev/null || true' EXIT
-
           sshg() {
             ssh -p 2222 -i gate_key \
               -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
               -o ConnectTimeout=5 -o BatchMode=yes gate@127.0.0.1 "$@"
           }
 
-          echo "==> waiting for the gate image to accept SSH"
-          up=0
-          for _ in $(seq 1 90); do
-            if sshg true 2>/dev/null; then up=1; break; fi
-            sleep 10
-          done
-          if [ "$up" != 1 ]; then
-            echo "::error::gate image never accepted SSH; serial tail:" >&2
-            tail -40 gate-serial.log >&2 || true
-            exit 1
-          fi
-
-          echo "==> waiting for the GNOME session"
-          ok=0
-          for i in $(seq 1 90); do
-            if sshg 'pgrep -x gnome-shell' >/dev/null 2>&1; then ok=1; break; fi
-            # Log where it is stuck, so a failure is diagnosable from the
-            # job log alone (the compositor can be slow to appear while
-            # snapd is still seeding).
-            if [ $((i % 6)) -eq 0 ]; then
-              echo "+$((i * 10))s: $(sshg 'systemctl is-active gdm graphical.target | tr "\n" " "; loginctl list-sessions --no-legend | wc -l' 2>/dev/null || echo unreachable)"
+          qemu=""
+          stop_qemu() {
+            if [ -n "$qemu" ]; then
+              kill "$qemu" 2>/dev/null || true
+              wait "$qemu" 2>/dev/null || true
+              qemu=""
             fi
-            sleep 10
+          }
+          trap stop_qemu EXIT
+
+          # One full attempt: boot, wait for SSH, wait for the session.
+          # Returns non-zero if the session never appears.
+          attempt_gate() {
+            rm -f gate-serial.log
+            qemu-system-x86_64 "${accel[@]}" -m 4096 -smp 2 \
+              -bios /usr/share/ovmf/OVMF.fd \
+              -drive file=gate-build/pc.img,if=virtio,format=raw \
+              -device virtio-vga -display none \
+              -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 \
+              -device virtio-net-pci,netdev=net0 \
+              -serial file:gate-serial.log &
+            qemu=$!
+
+            echo "==> waiting for the gate image to accept SSH"
+            up=0
+            for _ in $(seq 1 90); do
+              if sshg true 2>/dev/null; then up=1; break; fi
+              sleep 10
+            done
+            if [ "$up" != 1 ]; then
+              echo "attempt: never accepted SSH; serial tail:" >&2
+              tail -20 gate-serial.log >&2 || true
+              return 1
+            fi
+
+            echo "==> waiting for the GNOME session"
+            for i in $(seq 1 90); do
+              if sshg 'pgrep -x gnome-shell' >/dev/null 2>&1; then
+                return 0
+              fi
+              # Say where it is stuck, so a failure is diagnosable from the
+              # job log alone (the compositor can take a while to appear on
+              # a slow runner while snapd is still seeding).
+              if [ $((i % 6)) -eq 0 ]; then
+                echo "+$((i * 10))s: $(sshg 'systemctl is-active gdm graphical.target 2>/dev/null | tr "\n" " "; loginctl list-sessions --no-legend | wc -l' 2>/dev/null || echo unreachable)"
+              fi
+              sleep 10
+            done
+            return 1
+          }
+
+          # One retry. The first boot of a fresh image is the slow, racy
+          # one (a run has been seen to sit with GDM never starting); a
+          # second boot of the same image is warm. A genuinely broken snap
+          # set crash-loops on both attempts, so this hides flakiness
+          # without hiding real failures.
+          ok=0
+          for attempt in 1 2; do
+            echo "==> boot attempt ${attempt}"
+            if attempt_gate; then ok=1; break; fi
+            echo "::warning::attempt ${attempt} did not reach the session"
+            stop_qemu
+            sleep 5
           done
 
-          sshg 'echo "--- sessions:"; loginctl list-sessions --no-legend; echo "--- shell:"; pgrep -a gnome-shell || true' || true
+          sshg 'echo "--- sessions:"; loginctl list-sessions --no-legend; echo "--- procs:"; pgrep -a gnome-shell || true' || true
 
           if [ "$ok" != 1 ]; then
             echo "::error::GNOME session did not start; failing before publish" >&2
             sshg 'echo "--- jobs:"; systemctl list-jobs --no-pager;
-                  echo "--- gdm:"; systemctl status gdm --no-pager | tail -15;
-                  echo "--- gdm-homedirs:"; systemctl status gdm-homedirs --no-pager | tail -15;
+                  echo "--- gdm:"; systemctl status gdm --no-pager | tail -10;
+                  echo "--- gdm-homedirs:"; systemctl status gdm-homedirs --no-pager | tail -10;
                   echo "--- gdm-homedirs journal:"; sudo journalctl -b -u gdm-homedirs --no-pager | tail -20;
-                  echo "--- seeded:"; systemctl is-active snapd.seeded;
-                  echo "--- graphical:"; systemctl status graphical.target --no-pager | tail -8' >&2 || true
+                  echo "--- seeded/graphical:"; systemctl is-active snapd.seeded;
+                  systemctl status graphical.target --no-pager | tail -6' >&2 || true
             exit 1
           fi
           if ! sshg 'loginctl list-sessions --no-legend | grep -q "seat0"'; then
@@ -249,6 +279,7 @@ jobs:
           fi
 
           echo "==> boot gate passed: autologin session running gnome-shell"
+          stop_qemu
           rm -rf gate-build
 
       - name: Compress
