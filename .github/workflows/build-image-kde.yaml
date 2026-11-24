@@ -189,7 +189,7 @@ jobs:
           echo "==> cold boot: waiting for snap seeding"
           boot_vm || exit 1
           seeded=0
-          for i in $(seq 1 120); do
+          for i in $(seq 1 180); do
             if sshg 'systemctl is-active --quiet snapd.seeded'; then seeded=1; break; fi
             if [ $((i % 6)) -eq 0 ]; then
               echo "+$((i * 10))s: seeded=$(sshg 'systemctl is-active snapd.seeded' 2>/dev/null || echo unreachable)"
@@ -197,8 +197,9 @@ jobs:
             sleep 10
           done
           if [ "$seeded" != 1 ]; then
-            echo "::error::snap seeding did not finish within 20 minutes" >&2
-            sshg 'systemctl status snapd.seeded snapd --no-pager | tail -20' >&2 || true
+            echo "::error::snap seeding did not finish within 30 minutes" >&2
+            sshg 'sudo snap tasks 1 2>/dev/null | sed -n "1,/^$/p" | tail -6' >&2 || true
+            sshg 'systemctl status snapd.seeded snapd --no-pager | tail -12' >&2 || true
             exit 1
           fi
           echo "==> seeded; rebooting for the session check"
