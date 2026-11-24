@@ -235,7 +235,12 @@ jobs:
 
           if [ "$ok" != 1 ]; then
             echo "::error::GNOME session did not start; failing before publish" >&2
-            sshg 'echo "--- gdm:"; systemctl status gdm --no-pager | tail -15; echo "--- gdm journal:"; sudo journalctl -b -u gdm --no-pager | tail -25; echo "--- drm:"; sudo dmesg | grep -iE "drm|virtio" | tail -5' >&2 || true
+            sshg 'echo "--- jobs:"; systemctl list-jobs --no-pager;
+                  echo "--- gdm:"; systemctl status gdm --no-pager | tail -15;
+                  echo "--- gdm-homedirs:"; systemctl status gdm-homedirs --no-pager | tail -15;
+                  echo "--- gdm-homedirs journal:"; sudo journalctl -b -u gdm-homedirs --no-pager | tail -20;
+                  echo "--- seeded:"; systemctl is-active snapd.seeded;
+                  echo "--- graphical:"; systemctl status graphical.target --no-pager | tail -8' >&2 || true
             exit 1
           fi
           if ! sshg 'loginctl list-sessions --no-legend | grep -q "seat0"'; then
