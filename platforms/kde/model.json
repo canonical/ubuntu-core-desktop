@@ -3,11 +3,11 @@
     "authority-id": "UJySllegsYenHktWHqU1R1PAk9FzxMoj",
     "brand-id": "UJySllegsYenHktWHqU1R1PAk9FzxMoj",
     "series": "16",
-    "model": "ubuntu-core-desktop-26-amd64-dangerous",
-    "display-name":"Ubuntu Core Desktop 26 (amd64) (dangerous)",
+    "model": "ubuntu-core-desktop-kde-26-amd64-dangerous",
+    "display-name": "Ubuntu Core Desktop KDE 26 (amd64) (dangerous)",
     "architecture": "amd64",
     "revision": "0",
-    "timestamp": "2026-09-01T14:00:00Z",
+    "timestamp": "2026-09-21T10:00:00Z",
     "grade": "dangerous",
     "storage-safety": "prefer-encrypted",
     "base": "core26-desktop",
@@ -37,22 +37,34 @@
             "id": "j78KCOObDaxyocjOxyqkTSrYbwPeuBBg"
         },
         {
-            "name": "ubuntu-desktop-session",
-            "default-channel": "26/stable",
+            "name": "plasma-desktop-session",
+            "default-channel": "latest/stable",
             "type": "app",
-            "id": "LVkazk0JLrL0ivuHRlv3wp3bK1nAgwtN"
+            "id": "shFM21t3gsBQnlceeTRrWEdNoaLD88my"
         },
         {
-            "name": "core26",
+            "name": "plasma-core26-desktop",
             "default-channel": "latest/stable",
-            "type": "base",
-            "id": "cUqM61hRuZAJYmIS898Ux66VY61gBbZf"
+            "type": "app",
+            "id": "YsIAEPpbeAuIUcNo6znKlIhaEnNbkinh"
+        },
+        {
+            "name": "kf6-core26",
+            "default-channel": "latest/stable",
+            "type": "app",
+            "id": "kvNmVu4h6kL6NMJjXqPyvG3K3EhDO1S9"
         },
         {
             "name": "core24",
             "default-channel": "latest/stable",
             "type": "base",
             "id": "dwTAh7MZZ01zyriOZErqd1JynQLiOGvM"
+        },
+        {
+            "name": "core26",
+            "default-channel": "latest/stable",
+            "type": "base",
+            "id": "cUqM61hRuZAJYmIS898Ux66VY61gBbZf"
         },
         {
             "name": "network-manager",
@@ -73,18 +85,6 @@
             "id": "jZLfBRzf1cYlYysIjD2bwSzNtngY0qit"
         },
         {
-            "name": "gnome-46-2404",
-            "default-channel": "latest/stable",
-            "type": "app",
-            "id": "ew7OxpbRTxfK7ImpIygRR85lkxvU7Pzt"
-        },
-        {
-            "name": "mesa-2404",
-            "default-channel": "latest/stable",
-            "type": "app",
-            "id": "HyhSEBPv3vHsW6uOHkQR384NgI7S6zpj"
-        },
-        {
             "name": "avahi",
             "default-channel": "26/stable",
             "type": "app",
@@ -97,16 +97,10 @@
             "id": "JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS"
         },
         {
-            "name": "upower",
-            "default-channel": "24/stable",
+            "name": "udisks2",
+            "default-channel": "26/stable",
             "type": "app",
-            "id": "XRBwbVdB9HsebMqoM9H9SKw5DRAfc4is"
-        },
-        {
-            "name": "snap-store",
-            "default-channel": "2/stable",
-            "type": "app",
-            "id": "gjf3IPXoRiipCu9K0kVu52f0H56fIksg"
+            "id": "KTyDAsgNZg4u9UBJ63MHn6q12fmUjOfn"
         },
         {
             "name": "ubuntu-desktop-init",

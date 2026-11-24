@@ -1,0 +1,25 @@
+# Plasma session plugs
+plasma-desktop-session:desktop-launch system:desktop-launch
+plasma-desktop-session:hardware-observe system:hardware-observe
+plasma-desktop-session:home system:home
+plasma-desktop-session:hostname-control system:hostname-control
+plasma-desktop-session:locale-control system:locale-control
+plasma-desktop-session:login-session-observe system:login-session-observe
+plasma-desktop-session:login-session-control system:login-session-control
+plasma-desktop-session:mount-observe system:mount-observe
+plasma-desktop-session:network-control system:network-control
+plasma-desktop-session:network-observe system:network-observe
+plasma-desktop-session:bluetooth-control system:bluetooth-control
+plasma-desktop-session:systemd-user-control system:systemd-user-control
+plasma-desktop-session:polkit-agent system:polkit-agent
+plasma-desktop-session:ssh-keys system:ssh-keys
+plasma-desktop-session:dot-hidden snapd:personal-files
+plasma-desktop-session:shell-session-locale-files snapd:personal-files
+plasma-desktop-session:avahi-control avahi:avahi-control
+plasma-desktop-session:network-manager RmBXKl6HO6YOC2DE4G2q1JzWImC04EUy:service
+plasma-desktop-session:bluez JmzJi9kQvHUWddZ32PDJpBRXUpGRxvNS:service
+plasma-desktop-session:shell-config-files system:system-files
+plasma-desktop-session:x11 plasma-desktop-session:x11-server
+plasma-desktop-session:wayland-client plasma-desktop-session:wayland
+plasma-desktop-session:plasma-core26 plasma-core26-desktop:plasma-core26
+plasma-desktop-session:kf6-core26 kf6-core26:kf6-core26
