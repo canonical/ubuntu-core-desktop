@@ -30,6 +30,8 @@ Select tests according to the change:
 
 When reporting testing, distinguish **syntax checks**, **successful image assembly**, **boot to the welcome-language screen**, and **completed account setup with a working graphical session**. Do not claim a stage you did not test. The [building guide](docs/building.md#test-the-image-in-qemu) describes the QEMU configuration and current validation limits.
 
+Both image workflows now boot the assembled image before publishing it (`Boot gate`): a second, throwaway image with a gate account is built, booted headless under QEMU on the runner, and must reach a running `gnome-shell` (GNOME) or `plasmashell` (KDE) in the seat0 session. That is the step that catches cross-snap breakage — a version or dependency mismatch in the component snaps that assembles cleanly and only fails at runtime. A red `Boot gate` means the image would not have booted for a user; do not work around it by publishing anyway.
+
 ## Contribution Guidelines
 
 - Keep changes focused and explain the problem they solve and their impact.
