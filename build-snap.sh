@@ -31,7 +31,7 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# name|repo|release tag|release asset|local snap name|desktops
+# name|repo|release tag|release asset|local snap name|desktops|branch
 #
 # Every component publishes the desktop-variant rolling release
 # desktop-26-latest from its desktop/26 branch (the base included - it used
@@ -40,22 +40,22 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # gadget, snapd and the first-boot wizard are shared.
 component_table() {
     cat <<'EOF'
-core-base-desktop|canonical/core-base-desktop|desktop-26-latest|core26-desktop.snap|core26-desktop-variant.snap|both
-pc-amd64-gadget-desktop|canonical/pc-amd64-gadget-desktop|desktop-26-latest|pc-desktop.snap|pc-desktop.snap|both
-ubuntu-core-desktop-snapd|canonical/ubuntu-core-desktop-snapd|desktop-26-latest|snapd.snap|snapd.snap|both
-accountsservice-snap|canonical/accountsservice-snap|desktop-26-latest|accountsservice.snap|accountsservice.snap|gnome
-provd-snap|canonical/provd-snap|desktop-26-latest|provd.snap|provd.snap|gnome
-fprintd-snap|canonical/fprintd-snap|desktop-26-latest|fprintd.snap|fprintd.snap|gnome
-boltd-snap|canonical/boltd-snap|desktop-26-latest|bolt.snap|bolt.snap|gnome
-geoclue-snap|canonical/geoclue-snap|desktop-26-latest|geoclue.snap|geoclue.snap|gnome
-ubuntu-desktop-a11y|canonical/ubuntu-desktop-a11y|desktop-26-latest|ubuntu-desktop-a11y.snap|ubuntu-desktop-a11y.snap|gnome
-ubuntu-desktop-session-snap|canonical/ubuntu-desktop-session-snap|desktop-26-latest|ubuntu-desktop-session.snap|ubuntu-desktop-session.snap|gnome
-gnome-desktop-runtime|canonical/gnome-desktop-runtime|desktop-26-latest|gnome-desktop-runtime.snap|gnome-desktop-runtime.snap|gnome
-pipewire-snap|canonical/pipewire-snap|desktop-26-latest|pipewire.snap|pipewire.snap|gnome
-ubuntu-desktop-provision|chris-bainbridge/ubuntu-desktop-provision|desktop-26-latest|ubuntu-desktop-init.snap|ubuntu-desktop-init.snap|both
-kf6-core26|chris-bainbridge/kf6-core26|desktop-26-latest|kf6-core26.snap|kf6-core26.snap|kde
-plasma-core-desktop|chris-bainbridge/plasma-core-desktop|desktop-26-latest|plasma-core-desktop.snap|plasma-core-desktop.snap|kde
-plasma-desktop-session|chris-bainbridge/plasma-desktop-session|desktop-26-latest|plasma-desktop-session.snap|plasma-desktop-session.snap|kde
+core-base-desktop|canonical/core-base-desktop|desktop-26-latest|core26-desktop.snap|core26-desktop-variant.snap|both|desktop/26
+pc-amd64-gadget-desktop|canonical/pc-amd64-gadget-desktop|desktop-26-latest|pc-desktop.snap|pc-desktop.snap|both|desktop/26
+ubuntu-core-desktop-snapd|canonical/ubuntu-core-desktop-snapd|desktop-26-latest|snapd.snap|snapd.snap|both|desktop/26
+accountsservice-snap|canonical/accountsservice-snap|desktop-26-latest|accountsservice.snap|accountsservice.snap|gnome|main
+provd-snap|canonical/provd-snap|desktop-26-latest|provd.snap|provd.snap|gnome|main
+fprintd-snap|canonical/fprintd-snap|desktop-26-latest|fprintd.snap|fprintd.snap|gnome|main
+boltd-snap|canonical/boltd-snap|desktop-26-latest|bolt.snap|bolt.snap|gnome|main
+geoclue-snap|canonical/geoclue-snap|desktop-26-latest|geoclue.snap|geoclue.snap|gnome|main
+ubuntu-desktop-a11y|canonical/ubuntu-desktop-a11y|desktop-26-latest|ubuntu-desktop-a11y.snap|ubuntu-desktop-a11y.snap|gnome|desktop/26
+ubuntu-desktop-session-snap|canonical/ubuntu-desktop-session-snap|desktop-26-latest|ubuntu-desktop-session.snap|ubuntu-desktop-session.snap|gnome|desktop/26
+gnome-desktop-runtime|canonical/gnome-desktop-runtime|desktop-26-latest|gnome-desktop-runtime.snap|gnome-desktop-runtime.snap|gnome|desktop/26
+pipewire-snap|canonical/pipewire-snap|desktop-26-latest|pipewire.snap|pipewire.snap|gnome|desktop/26
+ubuntu-desktop-provision|chris-bainbridge/ubuntu-desktop-provision|desktop-26-latest|ubuntu-desktop-init.snap|ubuntu-desktop-init.snap|both|desktop/26
+kf6-core26|chris-bainbridge/kf6-core26|desktop-26-latest|kf6-core26.snap|kf6-core26.snap|kde|desktop/26
+plasma-core-desktop|chris-bainbridge/plasma-core-desktop|desktop-26-latest|plasma-core-desktop.snap|plasma-core-desktop.snap|kde|desktop/26
+plasma-desktop-session|chris-bainbridge/plasma-desktop-session|desktop-26-latest|plasma-desktop-session.snap|plasma-desktop-session.snap|kde|desktop/26
 EOF
 }
 
@@ -216,6 +216,20 @@ if [[ ! -d ${source_dir} ]]; then
     echo "Clone it there first, e.g.:" >&2
     echo "  git clone https://github.com/$(meta_field "${component}" 2) ${source_dir#"${here}/"}" >&2
     exit 1
+fi
+
+# A clone on the wrong branch builds something that does not match the
+# published snap. The default branch is right for most components, but not
+# all of them (ubuntu-desktop-provision's default is main while CI builds
+# desktop/26), and a feature branch is a legitimate choice, so warn rather
+# than fail.
+expected_branch="$(meta_field "${component}" 7 || true)"
+if [[ -n ${expected_branch} ]] && git -C "${source_dir}" rev-parse --git-dir >/dev/null 2>&1; then
+    actual_branch="$(git -C "${source_dir}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+    if [[ -n ${actual_branch} && ${actual_branch} != HEAD && ${actual_branch} != "${expected_branch}" ]]; then
+        echo "warning: ${component} is checked out on '${actual_branch}' but CI builds it from '${expected_branch}'" >&2
+        echo "         the snap will be built from what is checked out, not from what CI publishes" >&2
+    fi
 fi
 
 mkdir -p "${snaps_dir}/.build-state"

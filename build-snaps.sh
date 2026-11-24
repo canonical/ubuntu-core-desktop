@@ -110,7 +110,8 @@ downloaded=0
 cached=0
 current=0
 
-while IFS='|' read -r name repo tag asset local desktops; do
+# shellcheck disable=SC2034  # 'branch' is part of the table shape; build-snap.sh owns it
+while IFS='|' read -r name repo tag asset local desktops branch; do
     [[ -n ${name} ]] || continue
     if [[ -n ${desktop} && ${desktops} != both && ${desktops} != "${desktop}" ]]; then
         continue
