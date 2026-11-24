@@ -80,39 +80,6 @@ jobs:
           sudo apt-get install -y squashfs-tools dosfstools mtools fakeroot crudini zstd
           sudo snap install --classic ubuntu-image
 
-      - name: Build image
-        # No --user / --password / --autologin / --root-password /
-        # --ssh-authorized-keys: the published image has no baked
-        # credentials (nouser build, per the go-build wrapper
-        # conventions) and never carries personal dev/ SSH keys. First
-        # boot runs the plasma-setup first-boot account-creation wizard
-        # (the KDE equivalent of GNOME's ubuntu-desktop-init; wired up by
-        # build.sh on no-user KDE builds) to create the user account, so
-        # no seed.iso is built or shipped. The model is pre-signed and
-        # committed (see ci/), so no signing key is needed here beyond
-        # the committed account-key assertion. See
-        # todo/20261009-build-and-publish-kde-dangerous.txt.
-        #
-        # Thin-variant build: --base-snap is the desktop-variant
-        # core26-desktop built from desktop/26 (build.sh bakes the
-        # kf6 mesa/GL symlinks the chisel-cut variant lacks). No provider
-        # snaps are seeded on KDE: build.sh's kde_gadget_connections
-        # references none of them.
-        run: |
-          du --version | head -1
-          ./build.sh \
-            --desktop kde \
-            --model-account-key ci/account-key.assert \
-            --base-snap snaps/core26-desktop-variant.snap \
-            --gadget-snap snaps/pc-desktop.snap \
-            --snapd-snap snaps/snapd.snap \
-            --snap snaps/plasma-core-desktop.snap \
-            --snap snaps/kf6-core26.snap \
-            --snap snaps/ubuntu-desktop-init.snap \
-            --kde-session-snap snaps/plasma-desktop-session.snap \
-            --kde-plasma-snap snaps/plasma-core-desktop.snap \
-            --model ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model
-
       - name: Enable KVM and install QEMU for the boot gate
         run: |
           sudo apt-get update
@@ -141,6 +108,11 @@ jobs:
           set -euo pipefail
 
           ssh-keygen -q -t ed25519 -N '' -f gate_key
+
+          # The runner's disk is small (14G) and snap seeding writes several
+          # GB into the image; log free space so a slow/failed boot can be
+          # correlated with it.
+          df -h /
 
           ./build.sh \
             --desktop kde \
@@ -218,7 +190,7 @@ jobs:
               # job log alone (the compositor can take a while to appear on
               # a slow runner while snapd is still seeding).
               if [ $((i % 6)) -eq 0 ]; then
-                echo "+$((i * 10))s: $(sshg 'systemctl is-active sddm graphical.target 2>/dev/null | tr "\n" " "; loginctl list-sessions --no-legend | wc -l' 2>/dev/null || echo unreachable)"
+                echo "+$((i * 10))s: $(sshg 'systemctl is-active snapd.seeded sddm graphical.target 2>/dev/null | tr "\n" " "; loginctl list-sessions --no-legend | wc -l' 2>/dev/null || echo unreachable)"
               fi
               sleep 10
             done
@@ -259,6 +231,39 @@ jobs:
           echo "==> boot gate passed: autologin session running plasmashell"
           stop_qemu
           rm -rf gate-build
+
+      - name: Build image
+        # No --user / --password / --autologin / --root-password /
+        # --ssh-authorized-keys: the published image has no baked
+        # credentials (nouser build, per the go-build wrapper
+        # conventions) and never carries personal dev/ SSH keys. First
+        # boot runs the plasma-setup first-boot account-creation wizard
+        # (the KDE equivalent of GNOME's ubuntu-desktop-init; wired up by
+        # build.sh on no-user KDE builds) to create the user account, so
+        # no seed.iso is built or shipped. The model is pre-signed and
+        # committed (see ci/), so no signing key is needed here beyond
+        # the committed account-key assertion. See
+        # todo/20261009-build-and-publish-kde-dangerous.txt.
+        #
+        # Thin-variant build: --base-snap is the desktop-variant
+        # core26-desktop built from desktop/26 (build.sh bakes the
+        # kf6 mesa/GL symlinks the chisel-cut variant lacks). No provider
+        # snaps are seeded on KDE: build.sh's kde_gadget_connections
+        # references none of them.
+        run: |
+          du --version | head -1
+          ./build.sh \
+            --desktop kde \
+            --model-account-key ci/account-key.assert \
+            --base-snap snaps/core26-desktop-variant.snap \
+            --gadget-snap snaps/pc-desktop.snap \
+            --snapd-snap snaps/snapd.snap \
+            --snap snaps/plasma-core-desktop.snap \
+            --snap snaps/kf6-core26.snap \
+            --snap snaps/ubuntu-desktop-init.snap \
+            --kde-session-snap snaps/plasma-desktop-session.snap \
+            --kde-plasma-snap snaps/plasma-core-desktop.snap \
+            --model ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model
 
       - name: Compress
         id: compress

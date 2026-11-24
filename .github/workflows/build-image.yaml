@@ -94,43 +94,6 @@ jobs:
           sudo apt-get install -y squashfs-tools dosfstools mtools fakeroot crudini zstd
           sudo snap install --classic ubuntu-image
 
-      - name: Build image
-        # No --user / --autologin / --root-password / --ssh-authorized-keys:
-        # the published image has no baked credentials (nouser build, per
-        # the go-build wrapper conventions) and never carries personal
-        # dev/ SSH keys; first boot runs the ubuntu-desktop-init wizard
-        # via GDM initial-setup.  The model is pre-signed and committed
-        # (see ci/), so no signing key is needed here beyond the
-        # committed account-key assertion.  See
-        # todo/20261009-build-and-publish-gnome-dangerous.txt.
-        #
-        # Thin-variant build: --base-snap is the desktop-variant
-        # core26-desktop (built from desktop/26 by core-base-desktop's
-        # build-snap-variant workflow), and the five
-        # provider snaps (accountsservice/provd/fprintd/bolt/geoclue) are
-        # seeded explicitly so build.sh's baked gadget.yaml connections
-        # to their slots resolve at seed time. udisks2/upower remain
-        # store snaps pulled in via the model.
-        run: |
-          du --version | head -1
-          ./build.sh \
-            --desktop gnome \
-            --model-account-key ci/account-key.assert \
-            --base-snap snaps/core26-desktop-variant.snap \
-            --gadget-snap snaps/pc-desktop.snap \
-            --snapd-snap snaps/snapd.snap \
-            --snap snaps/accountsservice.snap \
-            --snap snaps/provd.snap \
-            --snap snaps/fprintd.snap \
-            --snap snaps/bolt.snap \
-            --snap snaps/geoclue.snap \
-            --snap snaps/ubuntu-desktop-a11y.snap \
-            --snap snaps/ubuntu-desktop-session.snap \
-            --snap snaps/gnome-desktop-runtime.snap \
-            --snap snaps/pipewire.snap \
-            --snap snaps/ubuntu-desktop-init.snap \
-            --model ci/ubuntu-core-desktop-26-amd64-dangerous.model
-
       - name: Enable KVM and install QEMU for the boot gate
         run: |
           sudo apt-get update
@@ -158,6 +121,11 @@ jobs:
           set -euo pipefail
 
           ssh-keygen -q -t ed25519 -N '' -f gate_key
+
+          # The runner's disk is small (14G) and snap seeding writes several
+          # GB into the image; log free space so a slow/failed boot can be
+          # correlated with it.
+          df -h /
 
           ./build.sh \
             --desktop gnome \
@@ -240,7 +208,7 @@ jobs:
               # job log alone (the compositor can take a while to appear on
               # a slow runner while snapd is still seeding).
               if [ $((i % 6)) -eq 0 ]; then
-                echo "+$((i * 10))s: $(sshg 'systemctl is-active gdm graphical.target 2>/dev/null | tr "\n" " "; loginctl list-sessions --no-legend | wc -l' 2>/dev/null || echo unreachable)"
+                echo "+$((i * 10))s: $(sshg 'systemctl is-active snapd.seeded gdm graphical.target 2>/dev/null | tr "\n" " "; loginctl list-sessions --no-legend | wc -l' 2>/dev/null || echo unreachable)"
               fi
               sleep 10
             done
@@ -281,6 +249,43 @@ jobs:
           echo "==> boot gate passed: autologin session running gnome-shell"
           stop_qemu
           rm -rf gate-build
+
+      - name: Build image
+        # No --user / --autologin / --root-password / --ssh-authorized-keys:
+        # the published image has no baked credentials (nouser build, per
+        # the go-build wrapper conventions) and never carries personal
+        # dev/ SSH keys; first boot runs the ubuntu-desktop-init wizard
+        # via GDM initial-setup.  The model is pre-signed and committed
+        # (see ci/), so no signing key is needed here beyond the
+        # committed account-key assertion.  See
+        # todo/20261009-build-and-publish-gnome-dangerous.txt.
+        #
+        # Thin-variant build: --base-snap is the desktop-variant
+        # core26-desktop (built from desktop/26 by core-base-desktop's
+        # build-snap-variant workflow), and the five
+        # provider snaps (accountsservice/provd/fprintd/bolt/geoclue) are
+        # seeded explicitly so build.sh's baked gadget.yaml connections
+        # to their slots resolve at seed time. udisks2/upower remain
+        # store snaps pulled in via the model.
+        run: |
+          du --version | head -1
+          ./build.sh \
+            --desktop gnome \
+            --model-account-key ci/account-key.assert \
+            --base-snap snaps/core26-desktop-variant.snap \
+            --gadget-snap snaps/pc-desktop.snap \
+            --snapd-snap snaps/snapd.snap \
+            --snap snaps/accountsservice.snap \
+            --snap snaps/provd.snap \
+            --snap snaps/fprintd.snap \
+            --snap snaps/bolt.snap \
+            --snap snaps/geoclue.snap \
+            --snap snaps/ubuntu-desktop-a11y.snap \
+            --snap snaps/ubuntu-desktop-session.snap \
+            --snap snaps/gnome-desktop-runtime.snap \
+            --snap snaps/pipewire.snap \
+            --snap snaps/ubuntu-desktop-init.snap \
+            --model ci/ubuntu-core-desktop-26-amd64-dangerous.model
 
       - name: Compress
         run: |
