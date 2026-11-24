@@ -38,93 +38,77 @@ The `--sparse` option avoids allocating the full 20 GiB disk image when decompre
 
 ### Build Environment
 
-The build environment is the same as for the GNOME image; see [docs/building.md](building.md#build-environment) for the required tools and the Snapcraft/LXD setup.
+The build environment is the same as for the GNOME image; see
+[docs/building.md](building.md#build-environment) for the required tools
+and the Snapcraft/LXD setup.
 
-### Clone the Repositories
-
-Keep the snap sources and this assembly repository in a common parent directory:
+### Quick Start: Assemble from Cached Snaps
 
 ```bash
-mkdir -p ~/ucd-build
-cd ~/ucd-build
-
-git clone --branch desktop/26 --single-branch https://github.com/canonical/core-base-desktop.git
-git clone --branch desktop/26 --single-branch https://github.com/canonical/pc-amd64-gadget-desktop.git
-git clone --branch desktop/26 --single-branch https://github.com/canonical/ubuntu-core-desktop-snapd.git
-git clone --branch desktop/26 --single-branch https://github.com/chris-bainbridge/ubuntu-desktop-provision.git
-git clone --branch desktop/26 --single-branch https://github.com/chris-bainbridge/plasma-desktop-session.git
-git clone --branch desktop/26 --single-branch https://github.com/chris-bainbridge/plasma-core-desktop.git
-git clone --branch desktop/26 --single-branch https://github.com/chris-bainbridge/kf6-core26.git
 git clone --branch desktop/26 --single-branch https://github.com/canonical/ubuntu-core-desktop.git
-```
-
-The provisioning snap and the Plasma snaps are currently maintained under the [`chris-bainbridge`](https://github.com/chris-bainbridge) forks; see [docs/building.md](building.md#clone-the-repositories) for the corresponding notes.
-
-### Build the Snaps
-
-```bash
-cd ~/ucd-build/core-base-desktop
-snapcraft pack --use-lxd
-
-cd ~/ucd-build/pc-amd64-gadget-desktop
-snapcraft pack --use-lxd
-
-cd ~/ucd-build/ubuntu-core-desktop-snapd
-snapcraft pack --use-lxd
-
-cd ~/ucd-build/ubuntu-desktop-provision
-snapcraft pack --use-lxd
-
-cd ~/ucd-build/plasma-desktop-session
-snapcraft pack --use-lxd
-
-cd ~/ucd-build/plasma-core-desktop
-snapcraft pack --use-lxd
-
-cd ~/ucd-build/kf6-core26
-snapcraft pack --use-lxd
-```
-
-Copy the generated snaps to stable filenames for image assembly. **Check for stale build artifacts first.** If a wildcard matches multiple files, the corresponding `cp` command may fail; select the intended current artifact explicitly or remove outdated build outputs before copying.
-
-```bash
-mkdir -p ~/ucd-build/snaps
-cp ~/ucd-build/core-base-desktop/core26-desktop_*.snap ~/ucd-build/snaps/core26-desktop.snap
-cp ~/ucd-build/pc-amd64-gadget-desktop/pc-desktop_*.snap ~/ucd-build/snaps/pc-desktop.snap
-cp ~/ucd-build/ubuntu-core-desktop-snapd/snapd_*.snap ~/ucd-build/snaps/snapd.snap
-cp ~/ucd-build/ubuntu-desktop-provision/ubuntu-desktop-init_*.snap ~/ucd-build/snaps/ubuntu-desktop-init.snap
-cp ~/ucd-build/plasma-desktop-session/plasma-desktop-session_*.snap ~/ucd-build/snaps/plasma-desktop-session.snap
-cp ~/ucd-build/plasma-core-desktop/plasma-core26-desktop_*.snap ~/ucd-build/snaps/plasma-core26-desktop.snap
-cp ~/ucd-build/kf6-core26/kf6-core26_*.snap ~/ucd-build/snaps/kf6-core26.snap
-```
-
-### Assemble the Image
-
-The repository contains a pre-signed dangerous model and its account-key assertion under `ci/`. Use both so local assembly does not require creating or registering a personal model-signing key (see [docs/models.md](models.md)).
-
-```bash
-cd ~/ucd-build/ubuntu-core-desktop
-./build.sh \
-  --desktop kde \
+cd ubuntu-core-desktop
+./build.sh --desktop kde \
   --model-account-key ci/account-key.assert \
-  --base-snap ~/ucd-build/snaps/core26-desktop.snap \
-  --gadget-snap ~/ucd-build/snaps/pc-desktop.snap \
-  --snapd-snap ~/ucd-build/snaps/snapd.snap \
-  --kde-session-snap ~/ucd-build/snaps/plasma-desktop-session.snap \
-  --kde-plasma-snap ~/ucd-build/snaps/plasma-core26-desktop.snap \
-  --snap ~/ucd-build/snaps/plasma-core26-desktop.snap \
-  --snap ~/ucd-build/snaps/kf6-core26.snap \
-  --snap ~/ucd-build/snaps/ubuntu-desktop-init.snap \
   --model ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model
 ```
 
-The image is written to `build/pc.img`. `--kde-plasma-snap` selects the snap the build script extracts integration files from; the same snap is also included in the image unmodified via `--snap`.
+`build.sh` downloads the KDE component snaps from their `desktop-26-latest`
+GitHub releases into `snaps/`, then assembles them; no snap arguments are
+needed. `./build-snaps.sh sync --desktop kde` refreshes the cache. See
+[docs/building.md](building.md#quick-start-assemble-from-cached-snaps) for
+the cache and override model in full.
 
-Without `--user`, no account is baked in: first boot runs the plasma-setup wizard from the SDDM login screen to create the user account, and `build/pc.img.nouser` is dropped so a run script knows not to attach a seed ISO. Pass `--user <name>` together with `--password <password>` (plus `--autologin` and/or `--ssh-authorized-keys <path>` if wanted) to create the account at first boot via cloud-init from a seed ISO instead; see `./build.sh --help` for the full option list.
+The image is written to `build/pc.img`.
 
-The build script deletes and recreates its build output directory on each run. Do not keep personal keys or other files you need to preserve inside `build/`.
+Without `--user`, no account is baked in: first boot runs the plasma-setup
+wizard from the SDDM login screen to create the user account, and
+`build/pc.img.nouser` is dropped so a run script knows not to attach a
+seed ISO. Pass `--user <name>` together with `--password <password>`
+(plus `--autologin` and/or `--ssh-authorized-keys <path>` if wanted) to
+create the account at build time instead; see `./build.sh --help`.
 
-For a faster assembly-only test, use the current `desktop-26-latest` snap assets downloaded by [`.github/workflows/build-image-kde.yaml`](../.github/workflows/build-image-kde.yaml).
+The build script deletes and recreates its build output directory on each
+run. Do not keep personal keys or other files you need to preserve inside
+`build/`.
+
+### Build the KDE Components from Source
+
+The KDE image needs five snaps in addition to the shared base, gadget,
+snapd and first-boot wizard: `plasma-desktop-session`, `plasma-core-desktop`
+and `kf6-core26` (all currently under the
+[`chris-bainbridge`](https://github.com/chris-bainbridge) forks).
+
+Clone the one you are changing into `local-sources/`:
+
+```bash
+cd local-sources
+git clone https://github.com/chris-bainbridge/plasma-desktop-session
+```
+
+and rerun `./build.sh --desktop kde ...`. `./build-snap.sh --list` shows
+the component names; `./build-snap.sh plasma-desktop-session` builds one
+by hand. Every other component keeps coming from the cache.
+
+To build the whole KDE set yourself, use the same per-repository commands
+as their CI (`./build-github.sh` for the two Plasma snaps, `./build.sh`
+for `kf6-core26`, `tools/build-variant.sh desktop` for the base), then
+copy the results into `snaps/` under the names assembly expects:
+
+- `core26-desktop_*.snap` → `snaps/core26-desktop-variant.snap`
+- `pc-desktop_*.snap` → `snaps/pc-desktop.snap`
+- `snapd_*.snap` → `snaps/snapd.snap`
+- `ubuntu-desktop-init_*.snap` → `snaps/ubuntu-desktop-init.snap`
+- `plasma-desktop-session_*.snap` → `snaps/plasma-desktop-session.snap`
+- `plasma-core-desktop_*.snap` → `snaps/plasma-core-desktop.snap`
+- `kf6-core26_*.snap` → `snaps/kf6-core26.snap`
+
+**Check for stale build artifacts first.** If a wildcard matches multiple
+files, a `cp` may pick the wrong one; select the current artifact
+explicitly or remove outdated build outputs.
+
+`--kde-plasma-snap` selects the snap the build script extracts integration
+files from; the same snap is also included in the image unmodified via
+`--snap`, which is why `plasma-core-desktop.snap` appears in both places.
 
 ## Test the Image in QEMU
 
