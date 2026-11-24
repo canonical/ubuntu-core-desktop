@@ -113,6 +113,111 @@ jobs:
             --kde-plasma-snap snaps/plasma-core-desktop.snap \
             --model ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model
 
+      - name: Enable KVM and install QEMU for the boot gate
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 ovmf
+          # Hosted runners expose /dev/kvm but only to the kvm group
+          # (github.blog changelog 2024-04-02, "hardware accelerated
+          # Android virtualization").
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm || true
+
+      - name: Boot gate (asserts the Plasma session actually starts)
+        # The published image has no credentials (first boot runs the
+        # plasma-setup wizard), so it cannot be driven over SSH. Build a
+        # second, throwaway image with a gate account, boot it headless and
+        # require plasmashell to be running.
+        #
+        # This is the only check that catches cross-snap breakage: in
+        # 2026-11 kf6-core26 started shipping Qt 6.12 while kwin in the
+        # Plasma snaps was still built against 6.11, and the session
+        # crash-looped while every version manifest and dependency check
+        # stayed green.
+        run: |
+          set -euo pipefail
+
+          ssh-keygen -q -t ed25519 -N '' -f gate_key
+
+          ./build.sh \
+            --desktop kde \
+            --model-account-key ci/account-key.assert \
+            --base-snap snaps/core26-desktop-variant.snap \
+            --gadget-snap snaps/pc-desktop.snap \
+            --snapd-snap snaps/snapd.snap \
+            --snap snaps/plasma-core-desktop.snap \
+            --snap snaps/kf6-core26.snap \
+            --snap snaps/ubuntu-desktop-init.snap \
+            --kde-session-snap snaps/plasma-desktop-session.snap \
+            --kde-plasma-snap snaps/plasma-core-desktop.snap \
+            --user gate --password gate --autologin \
+            --ssh-authorized-keys gate_key.pub \
+            --build-dir gate-build \
+            --model ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model
+
+          # Hosted runners have no GPU: virtio-vga without virgl, and kwin
+          # falls back to llvmpipe (verified: session up, 0 crashes). KVM
+          # when the runner exposes it, TCG otherwise (much slower).
+          accel=(-accel tcg -cpu max)
+          if [ -w /dev/kvm ]; then
+            accel=(-enable-kvm -cpu host)
+          else
+            echo "::warning::/dev/kvm not writable; booting under TCG"
+          fi
+
+          qemu-system-x86_64 "${accel[@]}" -m 4096 -smp 2 \
+            -bios /usr/share/ovmf/OVMF.fd \
+            -drive file=gate-build/pc.img,if=virtio,format=raw \
+            -device virtio-vga -display none \
+            -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 \
+            -device virtio-net-pci,netdev=net0 \
+            -serial file:gate-serial.log &
+          qemu=$!
+          trap 'kill "$qemu" 2>/dev/null || true' EXIT
+
+          sshg() {
+            ssh -p 2222 -i gate_key \
+              -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+              -o ConnectTimeout=5 -o BatchMode=yes gate@127.0.0.1 "$@"
+          }
+
+          echo "==> waiting for the gate image to accept SSH"
+          up=0
+          for _ in $(seq 1 90); do
+            if sshg true 2>/dev/null; then up=1; break; fi
+            sleep 10
+          done
+          if [ "$up" != 1 ]; then
+            echo "::error::gate image never accepted SSH; serial tail:" >&2
+            tail -40 gate-serial.log >&2 || true
+            exit 1
+          fi
+
+          echo "==> waiting for the Plasma session"
+          ok=0
+          for _ in $(seq 1 60); do
+            if sshg 'pgrep -x plasmashell' >/dev/null 2>&1; then ok=1; break; fi
+            sleep 10
+          done
+
+          sshg 'echo "--- sessions:"; loginctl list-sessions --no-legend; echo "--- plasma:"; pgrep -a plasmashell || true' || true
+
+          if [ "$ok" != 1 ]; then
+            echo "::error::Plasma session did not start; failing before publish" >&2
+            sshg 'sudo journalctl -b --no-pager | grep -iE "kwin|plasmashell|sig=11|segv" | tail -40' >&2 || true
+            exit 1
+          fi
+          if ! sshg 'loginctl list-sessions --no-legend | grep -q "seat0"'; then
+            echo "::error::no session on seat0 (autologin did not take)" >&2
+            exit 1
+          fi
+
+          echo "==> boot gate passed: autologin session running plasmashell"
+          rm -rf gate-build
+
       - name: Compress
         id: compress
         run: |
