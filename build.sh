@@ -1688,6 +1688,24 @@ fi
 ./fix-console "${BUILD_DIR}/squashfs-root" "${serial_console}"
 
 if [[ ${desktop} == gnome ]]; then
+  # The greeter and first-boot wizard resolve /usr/share/backgrounds
+  # against the base rootfs, but the wallpaper payload lives in the
+  # gnome-desktop-runtime content snap (pulled in transitively through
+  # gnome-shell's ubuntu-wallpapers dependency) -- the same absolute
+  # paths its compiled 90_ubuntu-core-desktop-background.gschema.override
+  # references. Graft the rootfs paths onto the runtime's copy (the
+  # same approach as the KDE "Next" wallpaper symlink in
+  # kde_sddm_integration) instead of staging ~66 MB of
+  # ubuntu-wallpapers into the base snap itself.
+  for wallpaper_path in backgrounds gnome-background-properties; do
+    wallpaper_dir="${BUILD_DIR}/squashfs-root/usr/share/${wallpaper_path}"
+    if [[ -e ${wallpaper_dir} && ! -L ${wallpaper_dir} ]]; then
+      echo "Unexpected existing wallpaper path: ${wallpaper_dir}" >&2
+      exit 1
+    fi
+    ln -sfn "/snap/gnome-desktop-runtime/current/usr/share/${wallpaper_path}" \
+      "${wallpaper_dir}"
+  done
   # Snapd validates homedirs in initramfs, before the regular root is
   # available. Configure it after seeding, once the path can be created.
   gdm_homedirs_unit="${BUILD_DIR}/squashfs-root/usr/lib/systemd/system/gdm-homedirs.service"
