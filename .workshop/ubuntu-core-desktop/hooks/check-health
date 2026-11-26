@@ -1,0 +1,36 @@
+#!/bin/bash
+
+missing=()
+for command in fakeroot gh mksquashfs qemu-system-x86_64 ubuntu-image unsquashfs; do
+  command -v "${command}" >/dev/null 2>&1 || missing+=("${command}")
+done
+
+for path in \
+  /project/build.sh \
+  /project/build-snaps.sh \
+  /project/ci/account-key.assert \
+  /project/ci/ubuntu-core-desktop-26-amd64-dangerous.model \
+  /project/ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model
+do
+  [[ -e ${path} ]] || missing+=("${path}")
+done
+
+firmware=0
+for path in \
+  /usr/share/OVMF/OVMF_CODE_4M.fd \
+  /usr/share/OVMF/OVMF_CODE.fd \
+  /usr/share/ovmf/OVMF.fd
+do
+  [[ -e ${path} ]] && firmware=1
+done
+[[ ${firmware} == 1 ]] || missing+=("OVMF firmware")
+
+if ! qemu-system-x86_64 -display help 2>&1 | grep -qx gtk; then
+  missing+=("QEMU GTK display backend")
+fi
+
+if (( ${#missing[@]} > 0 )); then
+  workshopctl set-health error "missing required build files or tools: ${missing[*]}"
+else
+  workshopctl set-health okay
+fi

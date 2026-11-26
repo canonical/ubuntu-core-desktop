@@ -1,0 +1,19 @@
+name: ubuntu-core-desktop
+base: ubuntu@26.04
+sdks:
+  - name: project-ubuntu-core-desktop
+actions:
+  build-gnome: |
+    ./build.sh --desktop gnome \
+      --model-account-key ci/account-key.assert \
+      --model ci/ubuntu-core-desktop-26-amd64-dangerous.model "$@"
+  build-kde: |
+    ./build.sh --desktop kde \
+      --model-account-key ci/account-key.assert \
+      --model ci/ubuntu-core-desktop-kde-26-amd64-dangerous.model "$@"
+  sync-snaps: |
+    ./build-snaps.sh sync "$@"
+  run-qemu: |
+    .workshop/ubuntu-core-desktop/run-qemu "$@"
+  clean: |
+    rm -rf build
