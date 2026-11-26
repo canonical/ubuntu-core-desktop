@@ -130,3 +130,19 @@ critical path / blocker for the whole project.
   hooks/004-remove-openssh-server-host-keys.chroot (it references a tool
   that isn't installed/used anywhere in this image; the real mechanism is
   snapd.sshd-keygen.service / core-sshd-host-keygen). Offered, not yet done.
+
+## Resolution (established in later work; note appended on import)
+
+The port happened by rebuilding rather than patch-porting: the
+desktop-snappers PPA was dropped from the build entirely (it no
+longer appears anywhere in core-base-desktop's snapcraft.yaml), and
+the functionality it carried was re-derived natively on the resolute
+line — the chisel-build re-derivation commits of 2026-09-10 (GDM +
+confined session + session wrapper, desktop users/groups,
+NSS/extrausers config, locales, dconf defaults, wallpapers) plus the
+UCD-PPA packages (passwd/adduser +ucd1) for the extrausers-aware
+account tooling. This file's audit plan was thereby made moot; its
+per-package checklists are superseded by the current build. See
+`20260905-investigate-gnome-session.md` and
+`20260906-gnome-session-investigation-findings.md` for the
+gnome-session half that motivated this port.

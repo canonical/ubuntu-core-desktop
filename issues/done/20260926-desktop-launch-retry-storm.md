@@ -97,3 +97,17 @@ continued testing, not a fix, and is not committed anywhere.
    `io.snapcraft.Launcher`/`snap userd` or the desktop-launch path
    should have its own rate-limiting as defense in depth, given how
    easily this can be triggered by a single user click.
+
+## Resolution (established in later work; note appended on import)
+
+The suspected origin was never root-caused, but the storm is not
+reproduced on current images: the icon-click launch path was
+rewritten since (the XDG_RUNTIME_DIR/XAUTHORITY leak fix and the
+session environment broker — see
+`20260926-xwayland-xauthority-private-runtime-dir.md` and
+`20260927-gnome-session-service-environment-broker.md`), and the
+later broker work's validation gate ("real cold App Center icon
+click shows the window in <=2 seconds, no retry storm") passed. The
+rate-limiting defense-in-depth idea below was never implemented; if
+the storm ever reappears, the investigation recipe in this file
+still applies.

@@ -433,3 +433,17 @@ baseline) to confirm no functional regressions.
   chisel doesn't have slices for yet.
 - Leave the pre-chisel-rebase-backup tag and 26-pre-chisel branch in
   place; do not delete either without being asked.
+
+## Resolution (2026-09-10..16; note appended on import)
+
+Executed, with one change of method: instead of a literal `git
+rebase` of the old branch onto core-base's main (the plan's §0
+concern about rebase risk proved well-founded), the desktop payload
+was RE-DERIVED as clean commits directly on the chisel build line —
+the "chisel re-derive of <hash>" commit series (2026-09-10..16: GDM +
+confined session, users/groups, locales, writable paths, dconf
+defaults, wallpapers, the gnome-session confinement and getty-race
+fixes). The result lives on as the `desktop/26-fat` lineage and the
+thin `desktop/26` desktop-variant line that superseded it; the old
+`26`-on-debootstrap line's remaining branches are historical. See
+core-base-desktop.md and kde-internals.md for the current build.

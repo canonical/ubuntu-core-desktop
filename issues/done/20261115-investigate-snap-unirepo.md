@@ -183,3 +183,14 @@ Execution:
   `/tmp/build-vlc/` workspace.
 * CI uploads the result to the Snap Store channels defined in
   `metadata.yaml`.
+
+## Resolution (realized by the follow-up campaign; note appended on
+## import)
+
+The gentoo-style monorepo model described here was adopted and
+executed as the snaps recipe monorepo: see
+`20261118-snaps-recipe-monorepo-build-campaign.md` (one directory per
+snap, all 138 packages building on core26, per-wave fix commits).
+This file's investigation and the two-workflow design below are the
+design record for that campaign; the scaling questions it raises are
+answered there in practice.

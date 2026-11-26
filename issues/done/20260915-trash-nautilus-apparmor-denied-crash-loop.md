@@ -182,3 +182,14 @@ allow) for the confined `ubuntu-desktop-session` snap's
 4. Update the confinement documentation's AppArmor-gaps bullet list to
    reflect the fix (or, if only partially fixed, to correct the
    still-open subset).
+
+## Resolution (established in later work; note appended on import)
+
+Superseded by
+`20260918-nautilus-gvfs-tracker-portal-denials-slow-degraded-file-manager.md`,
+which re-confirmed this file's diagnosis (gnome-shell unconfined ->
+nautilus-service denied on its display/launch path, crash-loop-then-give-up),
+recorded the fix of that root cause (gnome-shell confined per
+`20260916-confine-gnome-session-user-units.md`), and carried the still-open
+denial subset forward — that file remains the live tracker for the
+Nautilus/gvfs/Tracker work; this one is the historical first pass.

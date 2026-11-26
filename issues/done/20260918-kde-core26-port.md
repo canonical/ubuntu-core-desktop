@@ -123,3 +123,19 @@ REMAINING:
 
 Version set locked (do NOT downgrade): Qt 6.11.1 + KF6 6.30.0 + Plasma
 6.7.5.
+
+## Resolution (established in later work; note appended on import)
+
+Completed via the follow-on work rather than this file's own step
+list: the core26 SDK snaps were rebuilt
+(`20260921-update-kde-core24-sdk-snaps-to-core26.md`), the
+plasma/plasma-desktop snaps moved to core26 and dropped the core
+version from their names
+(`20260923-remove-core-version-from-plasma-desktop-snap-name.md`),
+the remaining boot/lock-screen/activation bugs were fixed
+(`20260922-kwin-drm-master-black-screen.md`,
+`20261015-fix-kde-boot-errors.md`, screen-lock items), and the
+full core26 KDE pipeline builds and boots end-to-end (see
+kde-internals.md's "core26 full pipeline" section). The from-source
+pipeline's black-desktop/cursor/DRM-master/wallpaper bugs are
+explicitly historical — do not re-derive.

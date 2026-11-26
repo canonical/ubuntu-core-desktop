@@ -51,3 +51,15 @@ around.
   still works fine when the .model file is untracked/gitignored (it
   should, since it's just `snap sign ... > $@`).
 - Clean up the stray `*~` backup copies while at it.
+
+## Resolution (appended on import)
+
+Done in this repository (canonical/ubuntu-core-desktop) by commit
+6d7c416 "Stop tracking dangerous (dev-only) model files": the four
+tracked `*-dangerous.model` files were untracked (kept on disk) and
+`*-dangerous.model` added to .gitignore, so only the `*.json` sources
+are tracked. A later commit (bd2cde1) re-added the pre-signed
+`ci/*-dangerous.model` files image CI consumes, with a matching
+.gitignore exception — the current state: `*.json` sources plus
+`ci/*-dangerous.model` tracked, generated root-level `.model` output
+ignored.

@@ -46,3 +46,14 @@ by upstream commit 8736d00 ("Stop tracking dangerous model files"). The
 KDE model files may need to be handled the same way (gitignored, not
 committed) — check what the main repo's convention is before committing
 them.
+
+## Resolution (appended on import)
+
+Done: the KDE-specific work now lives in this repository
+(canonical/ubuntu-core-desktop, branch desktop/26) — the KDE model
+source `ubuntu-core-desktop-kde-26-amd64-dangerous.json` (with the
+pre-signed `ci/` copy), the KDE image workflow
+`.github/workflows/build-image-kde.yaml`, and the `--desktop kde` image
+build target. The separate `ubuntu-core-desktop-kde` repo remains
+documented only as the core24 reference build in docs/kde-internals.md
+(not the current 26-series source).

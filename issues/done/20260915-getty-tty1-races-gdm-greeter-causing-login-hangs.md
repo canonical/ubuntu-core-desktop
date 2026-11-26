@@ -105,3 +105,16 @@ Two separate things would need fixing for a durable solution:
 2. Confirm login succeeds and a full gnome-session/gnome-shell launches
    every time, including on a boot where the first greeter attempt
    happens to crash (if that can be forced/observed).
+
+## Resolution (2026-09-16; established in later work, note appended on
+## import)
+
+Fixed by masking: getty@tty1.service is masked on the image so its
+`Restart=always` behavior cannot reclaim tty1 during a GDM greeter
+retry (the analysis in this file; the fix landed as the
+`005.1-mask-gdm-getty.chroot` hook, see
+`20260915-fix-gdm-greeter-fail-restart.md`). The current thin
+desktop-variant base carries the equivalent mask in
+`variants/desktop/static/etc/systemd/system/getty@tty1.service`
+(-> /dev/null), together with the console-conf mask, so the race no
+longer exists on current images.

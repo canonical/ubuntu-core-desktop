@@ -61,3 +61,19 @@ Note: this is KDE-specific and NOT a duplicate of the existing GNOME
 AppArmor items (nautilus/gvfs, bwrap, app-center) — those are different
 snaps/interfaces. But the fix approach (complain-mode gap collection,
 then add rules) is the same methodology.
+
+## Resolution (partially; established in later work, note appended on
+## import)
+
+The polkit-agent and powerdevil failures here are the same ones
+recorded as remaining known issues in kde-internals.md (powerdevil
+restart-loop on an AppArmor dbus_bind denial; polkit-agent failing on
+the unrelated /proc/<pid>/cgroup read denial) — they are NOT yet
+fixed on the current line. Follow-ups:
+`20261029-polkit-client-interface-for-kcm-prompts.md` (the polkit
+prompt gap) and `20261015-fix-kde-boot-errors.md` (the boot-time
+AppArmor/activation errors). The confinement-model section in
+kde-internals.md describes the per-app-profile design these fixes
+follow. Treat this file's fix-approach analysis (complain-mode gap
+collection, then add rules) as the reusable methodology; do not treat
+these two services as working.
