@@ -1,30 +1,62 @@
 # Building the KDE Ubuntu Core Desktop Image
 
-This guide covers the current **KDE image**: downloading a prebuilt image, building the component snaps, assembling an Ubuntu Core 26 image, and testing it in QEMU. For the GNOME image, see [docs/building.md](building.md); for the contribution process, see [CONTRIBUTING.md](../CONTRIBUTING.md); for a general project overview, see the [README](../README.md).
+This guide covers the current **KDE image**: downloading a prebuilt
+image, building the component snaps, assembling an Ubuntu Core 26 image,
+and testing it in QEMU. For the GNOME image, see
+[docs/building.md](building.md); for the contribution process, see
+[CONTRIBUTING.md](../CONTRIBUTING.md); for a general project overview,
+see the [README](../README.md).
 
-> **Development preview:** This procedure uses a **dangerous** model and unasserted local snaps. Images are for development only, not production or security-sensitive use, and cannot receive normal Snap Store refreshes.
+> **Development preview:** This procedure uses a **dangerous** model and
+> unasserted local snaps. Images are for development only, not production
+> or security-sensitive use, and cannot receive normal Snap Store
+> refreshes.
 
 ## About the KDE Image
 
-The KDE image provides an **Ubuntu Core 26 image with a KDE Plasma 6.8.0 desktop session**, assembled from independently maintained snaps, with the session delivered as a confined snap rather than a traditional mutable installation.
+The KDE image provides an **Ubuntu Core 26 image with a KDE Plasma 6.8.0
+desktop session**, assembled from independently maintained snaps, with
+the session delivered as a confined snap rather than a traditional
+mutable installation.
 
 It differs from the GNOME image in three ways:
 
-- **Display manager.** The KDE image uses SDDM; the GNOME image uses GDM. Each image selects one display manager and its matching session. Installing another desktop session snap onto an existing image does not switch its display manager, and mixed manager/session configurations are not supported.
-- **First boot.** First boot runs the **plasma-setup wizard**, the KDE equivalent of GNOME's `ubuntu-desktop-init`, which creates the user account (name, password, groups) from the SDDM login screen. No credentials are baked into the image and no seed ISO is built or shipped.
-- **Session snaps.** The Plasma session is delivered by three snaps: `plasma-desktop-session` provides the confined Plasma session and the SDDM display manager, `plasma-core26-desktop` provides the Plasma runtime content and theme assets, and `kf6-core26` provides the Qt 6 / KDE Frameworks runtime.
+- **Display manager.** The KDE image uses SDDM; the GNOME image uses
+  GDM. Each image selects one display manager and its matching session.
+  Installing another desktop session snap onto an existing image does
+  not switch its display manager, and mixed manager/session
+  configurations are not supported.
+- **First boot.** First boot runs the **plasma-setup wizard**, the KDE
+  equivalent of GNOME's `ubuntu-desktop-init`, which creates the user
+  account (name, password, groups) from the SDDM login screen. No
+  credentials are baked into the image and no seed ISO is built or
+  shipped.
+- **Session snaps.** The Plasma session is delivered by three snaps:
+  `plasma-desktop-session` provides the confined Plasma session and the
+  SDDM display manager, `plasma-core26-desktop` provides the Plasma
+  runtime content and theme assets, and `kf6-core26` provides the Qt 6 /
+  KDE Frameworks runtime.
 
 ## Download a Prebuilt KDE Image
 
-Visit the [GitHub Releases page](https://github.com/canonical/ubuntu-core-desktop/releases), open the **Ubuntu Core Desktop 26 KDE** release (`kde-latest`), and download:
+Visit the [GitHub Releases
+page](https://github.com/canonical/ubuntu-core-desktop/releases), open
+the **Ubuntu Core Desktop 26 KDE** release (`kde-latest`), and download:
 
 - `ubuntu-core-desktop-kde.img.zst`
 - The corresponding `SHA256SUMS` file
-- Optionally `manifest.txt`: the source commit and the snap versions in this image
+- Optionally `manifest.txt`: the source commit and the snap versions in
+  this image
 
-That release is replaced by every green build on `desktop/26`, so it is never more than a day or two old.
+That release is replaced by every green build on `desktop/26`, so it is
+never more than a day or two old.
 
-GitHub release assets are capped at 2 GiB, and the KDE image (which carries more snaps than the GNOME image) can land just over that. A release may therefore ship the image split into `ubuntu-core-desktop-kde.img.zst.part00`, `.part01`, ... instead of a single `.img.zst`. Reassemble the parts before decompressing, then verify and extract:
+GitHub release assets are capped at 2 GiB, and the KDE image (which
+carries more snaps than the GNOME image) can land just over that. A
+release may therefore ship the image split into
+`ubuntu-core-desktop-kde.img.zst.part00`, `.part01`, ... instead of a
+single `.img.zst`. Reassemble the parts before decompressing, then
+verify and extract:
 
 ```bash
 cat ubuntu-core-desktop-kde.img.zst.part* > ubuntu-core-desktop-kde.img.zst
@@ -32,7 +64,8 @@ sha256sum -c SHA256SUMS
 zstd -T0 -d --sparse ubuntu-core-desktop-kde.img.zst -o pc.img
 ```
 
-The `--sparse` option avoids allocating the full 20 GiB disk image when decompressing.
+The `--sparse` option avoids allocating the full 20 GiB disk image when
+decompressing.
 
 ## Build the KDE Image
 
@@ -115,7 +148,21 @@ files from; the same snap is also included in the image unmodified via
 
 ## Test the Image in QEMU
 
-Create a writable UEFI variable store beside the image, then run QEMU/KVM:
+Run the image with [`run-qemu.sh`](../run-qemu.sh):
+
+```bash
+./run-qemu.sh --vnc          # serve the display over VNC
+./run-qemu.sh --help         # all options (serial socket, MAC, bridge, ...)
+```
+
+The script boots `build/pc.img` with KVM, UEFI/OVMF and VirtIO devices,
+exposes the VM's serial console on a unix socket (connect with
+`nc -U /tmp/ucd-vm-serial.sock`; log in as root with the
+`--root-password` password — see below), and attaches the seed ISO for
+`--user` builds automatically (a no-`--user` build boots the plasma-setup
+wizard from the SDDM login screen instead).
+
+To drive QEMU directly instead, the equivalent command is:
 
 ```bash
 cd ~/ucd-build/ubuntu-core-desktop
@@ -130,11 +177,20 @@ qemu-system-x86_64 \
   -device virtio-net-pci,netdev=net0
 ```
 
-Firmware filenames vary by distribution; use a matching pair and a writable copy of the variable-store file for each VM. If KVM is unavailable, replace `-machine accel=kvm -cpu host` with `-machine accel=tcg`; TCG is slower.
+Firmware filenames vary by distribution; use a matching pair and a
+writable copy of the variable-store file for each VM. If KVM is
+unavailable, replace `-machine accel=kvm -cpu host` with
+`-machine accel=tcg`; TCG is slower.
 
-Allow the initial boot to complete; the system may restart once during initialization. SDDM presents the login screen, and the first-boot plasma-setup wizard creates the user account from there.
+Allow the initial boot to complete; the system may restart once during
+initialization. SDDM presents the login screen, and the first-boot
+plasma-setup wizard creates the user account from there.
 
 ## Current Limitations
 
-- Published and locally built images use a **dangerous-grade model** and include unasserted snaps. They cannot receive normal Snap Store refreshes and must not be used in production or security-sensitive environments.
-- Update and recovery paths (rolling back to a previous image revision) are not yet tested.
+- Published and locally built images use a **dangerous-grade model** and
+  include unasserted snaps. They cannot receive normal Snap Store
+  refreshes and must not be used in production or security-sensitive
+  environments.
+- Update and recovery paths (rolling back to a previous image revision)
+  are not yet tested.

@@ -4,7 +4,8 @@ This guide covers the **GNOME and KDE images**: preparing the development
 host, assembling an Ubuntu Core 26 image from component snaps, and testing
 it in QEMU. For the contribution process, see
 [CONTRIBUTING.md](../CONTRIBUTING.md); to try a prebuilt image, see the
-[README](../README.md); for KDE-specific details see [docs/kde.md](kde.md).
+[README](../README.md); for KDE-specific details see
+[docs/building-kde.md](building-kde.md).
 
 > **Development preview:** This procedure uses a **dangerous** model and
 > unasserted snaps. Images are for development only, not production or
@@ -22,6 +23,13 @@ There are two ways to get an image:
 
 The two modes compose: any subset of components can come from source, and
 the rest from the cache, with no flags to pass.
+
+Two directories matter: `snaps/` is a local cache of the published snaps,
+downloaded automatically (gitignored); `local-sources/` is where you clone
+the source of a component you want to modify — anything cloned there is
+built instead of downloaded, and everything else keeps coming from the
+cache (also gitignored). You only need to think about the second one when
+changing a component.
 
 ## Build Environment
 
@@ -270,10 +278,24 @@ For a faster assembly-only test, skip building anything and let
 
 ## Test the Image in QEMU
 
-Create a writable UEFI variable store beside the image, then run QEMU/KVM:
+Run the image with [`run-qemu.sh`](../run-qemu.sh):
 
 ```bash
-cd ~/ucd-build/ubuntu-core-desktop
+./run-qemu.sh                # windowed when a display exists, headless otherwise
+./run-qemu.sh --vnc          # serve the display over VNC instead
+./run-qemu.sh --help         # all options (serial socket, MAC, bridge, ...)
+```
+
+The script boots `build/pc.img` with KVM, UEFI/OVMF and VirtIO devices,
+exposes the VM's serial console on a unix socket (connect with
+`nc -U /tmp/ucd-vm-serial.sock`; log in as root with the
+`--root-password` password — see below), and attaches the seed ISO for
+`--user` builds automatically (a no-`--user` build boots the first-boot
+wizard instead).
+
+To drive QEMU directly instead, the equivalent command is:
+
+```bash
 cp /usr/share/OVMF/OVMF_VARS_4M.fd build/OVMF_VARS.fd
 qemu-system-x86_64 \
   -machine accel=kvm -cpu host -smp 2 -m 4096 \
@@ -297,6 +319,12 @@ runs the `plasma-setup` wizard from there. Either can be skipped by baking
 an account in at build time (`--user` with `--password`, optionally
 `--autologin`).
 
+CI validates what it publishes: before publishing, the amd64 image jobs
+build a throwaway image with a test account, boot it headless, and
+require the desktop session to come up — a broken snap set blocks the
+publish instead of shipping an image that will not boot. (The arm64 job
+is not gated yet: no KVM on the arm64 runners.)
+
 For changes to `build.sh`, the model, or snap integration, run the relevant
 source-repository checks and review the CI assembly procedure in
 [`.github/workflows/build-image.yaml`](../.github/workflows/build-image.yaml).
@@ -315,14 +343,27 @@ configuration and any failures.
 
 ## Optional Advanced Setup
 
-### Cache Build Dependencies
+### Cache Build Dependencies (pkgproxy)
 
-For repeated builds, an optional `pkgproxy` cache can reduce apt, Snap
-Store, and LXD downloads. Install `pkgproxy` and inspect the setup
-instructions from `pkgproxy.pkgproxyctl setup apt`,
-`pkgproxy.pkgproxyctl setup snap`, and `pkgproxy.pkgproxyctl setup lxd`.
-They produce host-specific configuration and can modify package or client
-settings; review their output before applying changes.
+Any build that runs snapcraft downloads hundreds of megabytes of build
+packages and snaps, and repeats that on every rebuild: building a
+component from source without a cache is slow, and that is expected —
+set the cache up rather than blaming the build system. Install and run
+`pkgproxy` before source-building:
+
+```bash
+sudo snap install pkgproxy
+pkgproxy.pkgproxyctl setup snapcraft | sh    # what snapcraft builds download
+pkgproxy.pkgproxyctl setup lxd-remote | sh   # its build images
+```
+
+`setup snapcraft` covers the apt, Snap Store and Go-module downloads
+snapcraft makes (the per-tool `setup apt`, `setup snap` and `setup go`
+variants do the same for direct apt/snapd/Go use). Run a command without
+the pipe first to see what it changes; the setup commands produce
+host-specific configuration and can modify package or client settings,
+so review their output before applying. `pkgproxyctl stats` shows what
+the cache holds and how much downloading it saved.
 
 ### Sign a Custom Model
 
