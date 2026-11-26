@@ -20,8 +20,9 @@
 # assertions, customized snaps, unsquashed trees, etc.) lives here.
 /build/
 
-# Lockfile created by the private go-run-gnome/go-run-kde wrappers to
-# serialize QEMU runs.
+# Lockfile that serializes QEMU runs: created by run-qemu.sh (and
+# historically by the pre-run-qemu.sh private launch wrappers).
+/.qemu-run.lock
 /.qemu-core-desktop26.lock
 
 # Persistent per-developer files (e.g. the SSH host key passed to

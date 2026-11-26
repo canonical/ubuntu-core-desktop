@@ -218,8 +218,9 @@ nothing to build for them.
   that won't boot. (The arm64 job is not gated yet - no KVM on the arm64
   runners.)
 - **Building a component downloads gigabytes.** If you are building snaps
-  rather than using the cache, install `pkgproxy` first and point apt,
-  snapd and LXD at it (`pkgproxy.pkgproxyctl setup apt|snap|lxd`); see
+  rather than using the cache, install `pkgproxy` first
+  (`pkgproxy.pkgproxyctl setup snapcraft` covers the apt, snap and Go
+  downloads snapcraft makes, `setup lxd-remote` its build images); see
   "Cache Build Dependencies" in `docs/building.md`.
 - **The snaps are rolling.** `desktop-26-latest` in each component repo
   is replaced on every green CI run, so a build is reproducible only

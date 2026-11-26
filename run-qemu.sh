@@ -6,11 +6,13 @@
 #                      [--image PATH] [--mac ADDR] [--bridge NAME]
 #                      [--serial-socket PATH] [--help]
 #
-# The default image is <build-dir>/pc.img. If the build was run without
-# --user, pc.img.nouser exists and no seed is attached: the first-boot
-# wizard runs. If the build was run with --user, seed.iso is attached.
-# If neither marker exists, the build has not been run (or used a
-# different --build-dir).
+# The default image is <build-dir>/pc.img. build.sh bakes --user
+# accounts straight into the image (no seed ISO either way) and ALWAYS
+# drops pc.img.nouser alongside pc.img as the marker that no seed is
+# to be attached; a build without --user boots the first-boot wizard.
+# A seed.iso left over from an older build is attached for
+# compatibility. If neither marker exists, the build has not been run
+# (or used a different --build-dir).
 
 set -e
 
@@ -39,7 +41,7 @@ Options:
   --serial-socket PATH  Unix socket for the VM serial console
                       (default: /tmp/ucd-vm-serial.sock). Connect with:
                         nc -U PATH
-                        socat -,raw,echo=0x1d,escape=0x1d UNIX-CONNECT:PATH
+                        socat -,raw,echo=0,escape=0x1d UNIX-CONNECT:PATH
   -h, --help          Show this help and exit.
 
 Serial console: log in as root with the --root-password password on
@@ -97,12 +99,13 @@ if [[ ! -e $image ]]; then
     usage_error "Image not found: $image (run ./build.sh first, or pass --build-dir/--image)"
 fi
 
-# Seed handling per build.sh's contract: --user builds seed.iso into
-# the build dir; a build without --user drops pc.img.nouser so the
-# first-boot wizard runs instead of any baked-in account.
+# Seed handling per build.sh's contract: no seed ISO either way
+# (--user provisioning is baked into the image), and pc.img.nouser is
+# always dropped as the "attach no seed" marker. Attach a seed.iso only
+# when one is left over from an older build.
 seed_args=()
 if [[ -e ${build_dir}/pc.img.nouser ]]; then
-    echo "${build_dir}/pc.img.nouser present -- booting without a seed (first-boot wizard)"
+    echo "${build_dir}/pc.img.nouser present -- booting without a seed"
 elif [[ -e ${build_dir}/seed.iso ]]; then
     seed_args=(-drive file="${build_dir}/seed.iso",if=virtio,format=raw,media=cdrom)
 elif [[ $image == "${build_dir}/pc.img" ]]; then

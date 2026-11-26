@@ -155,17 +155,18 @@ Run the image with [`run-qemu.sh`](../run-qemu.sh):
 ./run-qemu.sh --help         # all options (serial socket, MAC, bridge, ...)
 ```
 
-The script boots `build/pc.img` with KVM, UEFI/OVMF and VirtIO devices,
-exposes the VM's serial console on a unix socket (connect with
+The script boots `build/pc.img` with KVM, UEFI/OVMF and VirtIO devices
+and exposes the VM's serial console on a unix socket (connect with
 `nc -U /tmp/ucd-vm-serial.sock`; log in as root with the
-`--root-password` password — see below), and attaches the seed ISO for
-`--user` builds automatically (a no-`--user` build boots the plasma-setup
-wizard from the SDDM login screen instead).
+`--root-password` password — see below). No seed ISO is attached
+either way: `build.sh` bakes `--user` accounts straight into the image
+and always drops a `build/pc.img.nouser` marker so boot scripts know
+not to attach one; a build without `--user` boots the `plasma-setup`
+wizard from the SDDM login screen.
 
 To drive QEMU directly instead, the equivalent command is:
 
 ```bash
-cd ~/ucd-build/ubuntu-core-desktop
 cp /usr/share/OVMF/OVMF_VARS_4M.fd build/OVMF_VARS.fd
 qemu-system-x86_64 \
   -machine accel=kvm -cpu host -smp 2 -m 4096 \
