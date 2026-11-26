@@ -66,6 +66,9 @@ so if a source revision fails with a Snapcraft compatibility error, retry
 with `sudo snap install snapcraft --classic --channel=8.x/stable` and
 report the mismatch.
 
+To assemble and run an image in an isolated development environment, see
+[Build in Canonical Workshop](workshop.md).
+
 ## Quick Start: Assemble from Cached Snaps
 
 ```bash

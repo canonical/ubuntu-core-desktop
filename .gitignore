@@ -30,3 +30,7 @@
 # --ssh-authorized-keys) that must survive a `rm -rf build` -- kept on
 # disk locally, never committed.
 /dev/
+
+# Per-machine Workshop instance state. The definitions under .workshop/
+# are source; this lock is created when the environment is launched.
+/.workshop.lock

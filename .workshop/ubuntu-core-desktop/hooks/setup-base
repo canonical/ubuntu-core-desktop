@@ -1,0 +1,27 @@
+#!/bin/bash
+
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update
+apt-get install --yes --no-install-recommends \
+  acl \
+  crudini \
+  dosfstools \
+  dpkg-dev \
+  fakeroot \
+  gdisk \
+  gh \
+  git \
+  mtools \
+  openssl \
+  ovmf \
+  passwd \
+  qemu-system-gui \
+  qemu-system-x86 \
+  squashfs-tools \
+  systemd \
+  zstd
+
+if ! snap list ubuntu-image >/dev/null 2>&1; then
+  snap install ubuntu-image --classic
+fi

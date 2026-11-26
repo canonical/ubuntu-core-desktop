@@ -1,0 +1,7 @@
+name: ubuntu-core-desktop
+plugs:
+  desktop:
+    interface: desktop
+  kvm:
+    interface: custom-device
+    subsystem: misc

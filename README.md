@@ -86,6 +86,12 @@ The image does not include a preconfigured username or password; account creatio
 
 To build an image from source, test changes, or contribute to the project, see [`CONTRIBUTING.md`](CONTRIBUTING.md) for the documented GNOME build and QEMU test procedure.
 
+For an isolated, reproducible image assembly environment, the repository also
+includes a [Canonical Workshop definition](docs/workshop.md).
+It installs the image tools, provides GNOME and KDE build actions, and can run
+the resulting image in graphical QEMU without installing those dependencies on
+the host.
+
 ## Repository layout
 
 This repository is responsible for image assembly. Most snap payloads are maintained in separate repositories.
