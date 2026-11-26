@@ -54,6 +54,32 @@ is its permanent, immutable identifier across all states.
 - Keep the wording plain; these files are read by other people and by
   agents, so write conclusions and evidence so they stand on their own.
 
+## Before Creating an Issue: Survey Existing Ones
+
+Before fixing a newly discovered bug or filing a new issue, check
+whether the project already knows about it:
+
+- Search all of `issues/` for symptom keywords, component names, and
+  error strings (`grep -ri "<keyword>" issues/`). This includes
+  `done/` — prior root-cause work lives there. For a quick overview,
+  list the directories (`ls issues/open issues/waiting issues/done`);
+  filenames are descriptive, so a listing plus a grep is usually
+  enough to find what exists.
+- Check `open/` first (someone may already track it — work within
+  that file rather than opening a duplicate), then `waiting/` (the
+  fix may exist but be blocked upstream, which changes your
+  approach), then `done/`.
+- Read the resolutions of any `done/` hits. Done items contain
+  "do not re-derive" records, reusable diagnostic methods, and
+  warnings about fixes that were later reverted or superseded. Your
+  "new" bug may be a regression of such a fix — or a repeat of a
+  known-dead approach.
+- If an open issue covers your finding, append your findings to that
+  file instead of creating a new one.
+- If you create a new issue, reference related issues by bare
+  filename (including done ones) so the next reader gets the full
+  context.
+
 ## New Issue Requirements
 
 Every issue (open, waiting, or done) includes an "Impact / Priority"

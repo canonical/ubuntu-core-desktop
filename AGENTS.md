@@ -1,7 +1,9 @@
 Before doing ANY other work, read docs/README.md (the documentation
 index) and follow its reading rules: read only the documents your task
 needs, and keep the docs current when you find them inaccurate or when
-you have findings useful to future agents.
+you have findings useful to future agents. Before assuming a bug is
+new, survey issues/ (grep, including done/) — see
+issues/README.md.
 
 # Known tool trap: QEMU screendump to PPM is corrupt
 

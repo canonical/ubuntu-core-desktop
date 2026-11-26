@@ -36,8 +36,10 @@ Each entry says what it covers and when to read it. Most tasks need
 at most one or two of these.
 
 - issue-tracking-system.md — how issues/ works: states, naming,
-  Impact/Priority and resolution-note requirements. Read before
-  creating or moving any issue file.
+  Impact/Priority and resolution-note requirements, and the survey
+  rule (check existing issues before assuming a bug is new). Read
+  before creating, investigating, or moving any issue file;
+  issues/README.md is the short version.
 - build-tools.md — the image build and component-snap build
   machinery (build tiers, VM run/test tooling and networking, image
   sizing, fakeroot, snapcraft caching, CI housekeeping). Read when
