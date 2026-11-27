@@ -70,7 +70,7 @@ apparmor_parser check; the misleading "(diagnostics ssh failed)" line
 is gone (it was `systemctl is-active` exiting 1 while seeding
 activates).
 
-## Done (2026-11-27 later): full mechanism verified, CI capture + local experiments
+## Done (2026-11-27 later): mechanism verified, CI capture + experiments
 
 The first post-fix CI park (run 46008820280) triggered the dump and
 answered open questions 1-3:
@@ -154,3 +154,42 @@ the refresh back) is filed separately for snapd maintainers; see
 - Do not retry the workflow run in a loop as a workaround: the same
   transient error can recur, and each failed attempt costs 35 min.
   The gate's one reboot is the cheap, targeted retry.
+
+## Resolution (2026-11-27)
+
+Fixed at the base level, verified in a real boot, and shipped upstream
+as a proposal:
+
+- canonical/core-base-desktop commit `baac940` (desktop/26): drop-ins
+  ordering `ssh.service` and `sshd@.service` after
+  `snapd.seeded.service`, so no sshd session can exist during
+  seeding - the race door is closed structurally. `ssh.socket` is
+  deliberately NOT ordered the same way: that creates an ordering
+  cycle (basic.target -> sockets.target -> ssh.socket ->
+  snapd.seeded -> basic.target) which systemd resolves by dropping
+  the snapd.seeded edge, killing ssh.socket for the whole boot -
+  caught and verified in the first validation boot. Also pins chisel
+  and bypasses pkgproxy for the `go install` (its Go module cache
+  only covers module roots; the subpath @latest resolution 403s on a
+  cold cache).
+- canonical/core-base-desktop CI rebuilt and published the fixed
+  desktop-variant base to `desktop-26-latest` (16:42Z).
+- `ubuntu-core-desktop` commits `47d16d5` (gate: park detection +
+  reboot-resume + full `snap change`/journal dumps) and `474ece6`
+  (SSH-wait budget 10->30 min since the SSH wait now absorbs seeding;
+  detector treats queued Do/Undo as busy; dump adds logind and
+  user@1000 journals).
+- Validation: image rebuilt on the fixed base, booted with an SSH
+  storm (~1 login/3 s) across the whole seed window - 0 ordering
+  cycles, 0 service-control errors, seeding Done, post-seed SSH OK.
+  The unpatched image under the same storm reproduced the captured
+  seed errors.
+- Upstream proposal: canonical/core-base#494 (closes #493); the
+  daemon-level race is filed for snapd maintainers as Launchpad bug
+  #2178247 (GitHub issues are disabled on canonical/snapd) - tracked
+  in `20261127-snapd-user-service-session-agent-race.md` (waiting).
+
+End-to-end CI confirmation is the only residual: the first
+build-image run consuming the fixed base (published 16:42Z) is the
+final check; the gate's reboot-resume path keeps CI green even if
+some other transient error recurs.

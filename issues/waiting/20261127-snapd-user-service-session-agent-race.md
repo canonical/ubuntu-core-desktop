@@ -1,8 +1,19 @@
+---
+upstream:
+  - https://github.com/canonical/core-base/pull/494 (closes canonical/core-base#493)
+  - https://bugs.launchpad.net/snapd/+bug/2178247
+waiting_since: 2026-11-27
+---
+
 # snapd: user-scope service ops race the session agent; failures error whole changes
 
 Filed for snapd maintainers to evaluate; we are not working on this.
 Impact on our project and reproduction evidence below - the fix choice
-is theirs.
+is theirs. The base-side half of the exposure is already fixed in our
+stack (canonical/core-base-desktop drop-ins ordering ssh after
+snapd.seeded) and proposed upstream (core-base#494); this file stays
+open for the daemon-level race, which covers unfixed bases and the
+refresh flavour on running systems.
 
 ## The mechanism
 
