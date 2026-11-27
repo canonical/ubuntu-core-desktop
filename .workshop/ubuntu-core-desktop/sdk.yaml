@@ -2,6 +2,8 @@ name: ubuntu-core-desktop
 plugs:
   desktop:
     interface: desktop
+  gpu:
+    interface: gpu
   kvm:
     interface: custom-device
     subsystem: misc

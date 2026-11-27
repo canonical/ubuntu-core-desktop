@@ -1,7 +1,7 @@
 #!/bin/bash
 
 missing=()
-for command in fakeroot gh mksquashfs qemu-system-x86_64 ubuntu-image unsquashfs; do
+for command in fakeroot gh mksquashfs qemu-system-x86_64 unsquashfs ubuntu-image; do
   command -v "${command}" >/dev/null 2>&1 || missing+=("${command}")
 done
 
@@ -15,22 +15,26 @@ do
   [[ -e ${path} ]] || missing+=("${path}")
 done
 
-firmware=0
-for path in \
-  /usr/share/OVMF/OVMF_CODE_4M.fd \
-  /usr/share/OVMF/OVMF_CODE.fd \
-  /usr/share/ovmf/OVMF.fd
-do
-  [[ -e ${path} ]] && firmware=1
-done
-[[ ${firmware} == 1 ]] || missing+=("OVMF firmware")
+[[ -e /usr/share/ovmf/OVMF.fd ]] || missing+=("/usr/share/ovmf/OVMF.fd")
 
-if ! qemu-system-x86_64 -display help 2>&1 | grep -qx gtk; then
-  missing+=("QEMU GTK display backend")
+if ! qemu-system-x86_64 -display help 2>&1 | grep -qx sdl; then
+  missing+=("QEMU SDL display backend")
 fi
 
 if (( ${#missing[@]} > 0 )); then
   workshopctl set-health error "missing required build files or tools: ${missing[*]}"
-else
-  workshopctl set-health okay
+  exit 0
 fi
+
+# Manual grants: report but do not fail the health check when these are
+# missing - the build works without them, only the graphical QEMU run
+# is affected (slowly, or not at all).
+warnings=()
+[[ -c /dev/kvm ]] || warnings+=("/dev/kvm (workshop connect ...:kvm :custom-device)")
+compgen -G '/dev/dri/renderD*' >/dev/null || warnings+=("/dev/dri (gpu interface plug)")
+if (( ${#warnings[@]} > 0 )); then
+  echo "Missing optional devices: ${warnings[*]}" >&2
+  echo "Image builds work without them; graphical QEMU runs need both." >&2
+fi
+
+workshopctl set-health okay

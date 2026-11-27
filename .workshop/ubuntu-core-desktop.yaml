@@ -2,6 +2,20 @@ name: ubuntu-core-desktop
 base: ubuntu@26.04
 sdks:
   - name: project-ubuntu-core-desktop
+    # Service-side half of the VNC tunnel: "run-qemu --vnc" serves the
+    # display on 5901 inside the container; the system-SDK plug listens
+    # on the host on the same port and forwards here. Loopback endpoints
+    # auto-connect at launch, so VNC is reachable from the host as
+    # localhost:5901 out of the box.
+    slots:
+      vnc:
+        interface: tunnel
+        endpoint: localhost:5901
+  - name: system
+    plugs:
+      vnc:
+        interface: tunnel
+        endpoint: localhost:5901
 actions:
   build-gnome: |
     ./build.sh --desktop gnome \
