@@ -69,6 +69,13 @@ Three tiers of build, slowest/most-complete to fastest/narrowest:
   `ssh-keygen -t ed25519 -N '' -f dev/ssh_host_ed25519_key`; keep
   it outside the `build/` tree so it survives `rm -rf build`.
   `PermitRootLogin yes` is appended to sshd_config either way.
+- SSH readiness is gated on seeding: the base orders `ssh.socket`,
+  `ssh.service` and `sshd@.service` after `snapd.seeded`, so port 22
+  refuses connections until first-boot seeding completes. "ssh
+  connects" is a reliable "the system is ready" signal (this also
+  prevents the session-agent race that used to park seeding - see
+  `20261127-seed-change-errors-then-parks-waiting-for-reboot.md`);
+  wait loops for SSH must allow the full seeding time.
 - Other optional flags: repeatable `--snap <path>` for extra
   unmodified snaps, `--model <path>` (defaults to the gnome/kde
   dangerous model JSON in the repo root), `--autologin` (requires
