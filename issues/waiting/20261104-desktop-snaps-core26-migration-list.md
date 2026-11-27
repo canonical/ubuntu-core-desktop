@@ -1,3 +1,21 @@
+---
+upstream:
+  - https://github.com/canonical/firmware-updater/pull/445
+  - https://github.com/ubuntu/app-center/pull/2280
+  - https://github.com/canonical/desktop-security-center/pull/288
+  - https://github.com/canonical/prompting-client/pull/399
+  - https://github.com/snapcore/snapd-desktop-integration/pull/175
+  - https://github.com/canonical/snap-tpmctl/pull/88
+  - https://github.com/canonical/authd/pull/2188
+  - https://github.com/canonical/ubuntu-desktop-provision/pull/1613
+  - https://github.com/canonical/ubuntu-desktop-provision/pull/1614
+  - https://github.com/canonical/ubuntu-desktop-provision/pull/1615
+  - https://github.com/canonical/gnome-sdk/issues/385
+  - https://github.com/canonical/gnome-sdk/issues/386
+  - https://github.com/canonical/gnome-sdk/issues/387
+waiting_since: 2026-11-27
+---
+
 # Update all regular Ubuntu Desktop snaps from core24 to core26 (2604 content)
 
 ## Impact / Priority
@@ -464,3 +482,23 @@ target repo / ref:
   ~desktop-snappers/gnome-text-editor/+git/gnome-text-editor stable
 - simple-scan -> ~desktop-snappers/simple-scan/+git/simple-scan stable
 - thunderbird -> ~desktop-snappers/thunderbird/+git/snap stable
+
+## State (2026-11-27): local work done, waiting upstream
+
+Every in-scope snap has been migrated, built, VM-tested and proposed
+(see `20261104-update-all-desktop-snaps-to-core26.md` for the summary).
+What remains is other people's review, so this file moves to
+`waiting/`:
+
+- 10 GitHub PRs, all OPEN (list in the frontmatter above: firmware-
+  updater, app-center, desktop-security-center, prompting-client,
+  snapd-desktop-integration, snap-tpmctl, authd, and the three
+  ubuntu-desktop-provision snaps).
+- 13 Launchpad merge proposals, all `Needs review` (IDs 514115-514131
+  in the 2026-11-05 entry above; thunderbird's moved to GitHub, see
+  that entry).
+- 3 gnome-sdk bugs filed (the SDK-side defects found on the way are
+  part of that tracker, not ours to fix here).
+
+Re-check on: any upstream review comment or CI failure -> move back to
+`issues/open/` and address; all merged -> move to `done/`.

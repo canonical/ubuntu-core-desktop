@@ -80,3 +80,21 @@ real snapcraft.yaml, so the gap wasn't caught.
 - Cross-reference with `20260915-fix-github-ci.md`, which also tracks
   #4850 (there in the context of switching snapcraft-channel from edge
   back to stable) - update both once resolved.
+
+## Re-checked (2026-11-27): still not fixed upstream, workaround documented
+
+Confirmed against snapcraft 9.2.2 (rev 19607, latest/candidate,
+`/snap/snapcraft/current`) and against `canonical/snapcraft` main as of
+2026-10-01: `snapcraft/const.py`'s `StableBase` still lists only
+core22/core24/core26, and `snapcraft/models/project.py` still declares
+the per-base `base: Literal["core26"]` plus the project union with no
+`*-desktop` variant. Only `_providers_base()` strips the suffix, so the
+schema rejection described above is unchanged. The TODO in this file is
+still the accurate next step; nothing has been submitted upstream.
+
+Until then the workaround is written down for the three affected repos
+(accountsservice-snap, provd-snap, plasma-desktop-session): swap
+`base: core26` for the snapcraft call, pack, then patch the built
+snap's `meta/snap.yaml` base back to `core26-desktop` - see the
+"Build/CI notes" section of `docs/core-base-desktop.md`. Do not
+rediscover it.

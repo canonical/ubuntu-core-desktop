@@ -101,3 +101,31 @@ from getting the confined session, and both currently present:
    document as a known limitation) whether autologin can be made to
    honour the confined session too, given GDM's current
    `gdm-autologin`-execs-`gnome-session`-directly behaviour.
+
+## Resolution (2026-11-27): every login is now the confined session
+
+The gap was real when written: the confined session was opt-in through
+AccountsService's `Session=` key, which neither persisted across a
+reboot nor appeared in any UI. The architecture has since inverted
+that, so there is nothing left for a user to select or keep.
+
+- GNOME, fat-base path: `build.sh` bakes a `gnome-session` shim
+  because GDM's Wayland launcher execs the literal `gnome-session` on
+  PATH and ignores both the .desktop entry's `Exec=` and
+  AccountsService's `Session=` key. The shim redirects every real user
+  to `core-desktop-session-wrapper.sh`, i.e. into the confined session.
+- GNOME, thin desktop/26 path: the base's gdm drop-in re-homes the
+  session launch to `gnome-content-launch --session-dispatch`, which
+  dispatches into the session snap. Verified live (confined
+  `gnome-shell` on seat0, password login and wizard-continued session)
+  in `20261110-image-login-findings-f1-f2-f4.md`.
+
+So no real user can land in the plain, unconfined `gnome-session` any
+more, which was this file's core complaint (next-step items 1 and 3).
+The part of the intent that is still real - letting a user *choose*
+between desktop sessions, including the greeter gear icon - belongs to
+`20260922-multiple-desktop-session-support.md`, so it is tracked, not
+dropped. Next-step item 2 (`Session=` not persisting) is moot for the
+same reason: nothing reads that key on the session-launch path.
+
+Closing as superseded by the forced-dispatch design.

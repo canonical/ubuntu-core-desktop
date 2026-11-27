@@ -107,3 +107,28 @@ shortest path.
   any re-verification needs helper forensics)
 - upstream: canonical/core-base PR #485 (gating), #481 (landed),
   canonical/chisel PR #338 (courtesy)
+
+## Resolution (2026-11-27): already done, by a different route
+
+The trigger this file waits for never fired as written; the workaround
+was removed when the base-swap landed instead. Checked in the tree:
+
+- `build.sh` no longer contains the "TEMPORARY WORKAROUND" block, the
+  `fixed-core26.snap` download/unsquashfs/chown/mksquashfs sequence, or
+  the `--snap fixed-core26.snap` input (grep for any of those markers
+  returns nothing). There is no per-snap refresh hold for core26
+  either.
+- Helper correctness now lives one layer down, in the base we build:
+  `core-base-desktop/hooks/010-fixup-permissions.chroot` does
+  `chown root:shadow` and `chmod 2755` on both `usr/sbin/unix_chkpwd`
+  and `usr/sbin/pam_extrausers_chkpwd`, so the produced base snap is
+  correct by construction and needs no image-side patch.
+- The silent-regression hazard in the Impact section (a store refresh
+  replacing a locally repinned core26 with a rev that has the chisel
+  ownership bug) went away with the base swap: the image no longer
+  repacks a store core26 and no longer pins it to a store revision, it
+  consumes `core26-desktop-variant.snap` built from our own base repo.
+
+Nothing is left to do. If the chisel ownership bug ever reappears in
+the store's core26, the guard to look at is the core-base hook above,
+not build.sh.

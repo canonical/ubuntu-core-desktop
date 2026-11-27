@@ -75,3 +75,29 @@ times):
   desktop-provision cleanly on each startup, rather than assuming the
   directory it left behind can be reused by a differently-uid'd
   instance next time.
+
+## Update (2026-11-27): path and pre-creation changed; ownership case open
+
+The directory moved and provd is now pre-created, so parts of the
+diagnosis above are out of date but the bug is not clearly gone:
+
+- The socket directory is no longer `/run/gnome-initial-setup/
+  desktop-provision`: it is `%h/desktop-provision` under the wizard
+  session home (`/run/gdm3/home/gnome-initial-setup/desktop-provision`
+  on this GDM), per the base's
+  `snap.provd.provd.service.d/70-wizard-only.conf`.
+- That same drop-in adds `ExecStartPre=/usr/bin/mkdir -p
+  %h/desktop-provision` (core-base-desktop commit 2770945), which fixes
+  the "bind fails with ENOENT because provd starts before anything
+  creates the dir" class - not this file's failure.
+- `mkdir -p` does NOT fix the reported failure: a dir left behind by the
+  previous session's uid with mode 0755 still yields EACCES when the new
+  uid binds in it, and `mkdir -p` silently succeeds on an existing dir.
+- Open question to settle first: whether GDM wipes `/run/gdm3/home/...`
+  between initial-setup sessions on this image. If it does, this bug is
+  gone; if it does not, the stale-ownership failure should still
+  reproduce on the next GDM restart and provd needs the ownership/mode
+  fix listed above (1777 or a uid-namespaced path).
+
+Do not re-derive the old journal; reproduce on the current image and
+record which uid owns the dir before the failing restart.
