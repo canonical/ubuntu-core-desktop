@@ -23,14 +23,15 @@ Three tiers of build, slowest/most-complete to fastest/narrowest:
    than the full tier-1 rebuild.
 3. Rebuilding/booting just the VM image (once the snaps it needs are
    already built): `./build.sh --desktop gnome` (or `--desktop kde`),
-   then boot the image under QEMU (below). Resolve every input snap
-   (session snap, content snaps, first-boot wizard snap) directly
-   from its source repo's build output by latest mtime — never from
-   a stale local copy. For the GNOME/KDE session snap specifically,
-   also check the built snap's embedded git revision against that
-   repo's current HEAD and refuse to proceed (rerun that repo's
-   build first) if they don't match, so a stale session snap can't
-   silently get baked into the image.
+   then boot the image under QEMU (below). Every input snap (session
+   snap, content snaps, first-boot wizard snap) comes from the
+   `snaps/` cache: `build.sh` runs `build-snaps.sh` first, which
+   builds any component cloned under `local-sources/` and copies the
+   result into the cache, and downloads everything else from the
+   component's `desktop-26-latest` GitHub release (see
+   docs/building.md and local-sources/README.md). Explicit
+   `--snap`/`--base-snap`/... flags remain available for one-off
+   overrides.
 
 `build.sh --help` documents the current flags in full; notable ones:
 
@@ -197,8 +198,10 @@ core24 KDE reference build (different repo,
   diagnosing boot failures (see boot-diagnostics.md). A
   no-`--root-password` build has no root password at all (the base's
   locked shadow entry `root:*`); it relies entirely on the first-boot
-  wizard. Nouser builds also have no baked SSH host key (clear stale
-  `known_hosts` entries each rebuild).
+  wizard. Whether an image has a baked SSH host key depends only on
+  `--ssh-host-key`, not on nouser: builds without it (e.g. the
+  published CI images) get a fresh host key per build — clear stale
+  `known_hosts` entries before sshing to a rebuilt image.
 - VNC display for GUI diagnosis: `run-qemu.sh --vnc` serves the
   display on localhost (display `:1` by default, `--vnc-display N` to
   change), typically with no password. Use it to watch a boot or the
@@ -281,14 +284,14 @@ Snapcraft caches the computed version string in part state. If a
 snap's version comes from a part's override-build (e.g. git
 rev-parse HEAD) or otherwise depends on repo state that snapcraft
 does not fingerprint, a plain `snapcraft pack` after a commit
-repacks with the OLD `<date>+git<rev>` name. An image build that
-checks the session snap's embedded revision against the repo's
-HEAD (as recommended above) then rejects the snap as "not built
-from HEAD", blocking every image build.
-`snapcraft clean <part-that-sets-the-version>` before packing
-fixes it (only that part — heavy parts keep their cache). Same
-class: a metadata/layout-only change repacks WITHOUT refreshing
-the version string.
+repacks with the OLD `<date>+git<rev>` name. `build-snap.sh`
+sidesteps this by running a full `snapcraft clean` after every
+build (success or failure), so its next build always re-stamps;
+when packing a component repo by hand instead, `snapcraft clean
+<part-that-sets-the-version>` before packing fixes it (only that
+part — heavy parts keep their cache). Same class: a
+metadata/layout-only change repacks WITHOUT refreshing the version
+string.
 
 ## pkgproxy + snapcraft/LXD builds: no generic http_proxy
 
