@@ -199,7 +199,12 @@ jobs:
               -serial file:gate-serial.log &
             qemu=$!
             echo "==> waiting for the gate image to accept SSH"
-            for _ in $(seq 1 60); do
+            # With ssh ordered after snapd.seeded (core-base-desktop
+            # 10-seed-order.conf), the SSH wait now absorbs the whole
+            # seeding time: connections are refused until seeding is
+            # done, and the first successful login is post-seed. Allow
+            # 30 min for that, matching the old seeded-wait budget.
+            for _ in $(seq 1 180); do
               if sshg true 2>/dev/null; then return 0; fi
               sleep 10
             done
@@ -217,7 +222,7 @@ jobs:
           # a second park, or one found too late to reboot, fails at once.
           seed_stalled() {
             sshg 'snap changes 2>/dev/null | grep -q " Error " &&
-                  ! snap changes 2>/dev/null | grep -q " Doing "' \
+                  ! snap changes 2>/dev/null | grep -qE " (Do|Doing|Undo|Undoing) "' \
               >/dev/null 2>&1
           }
           dump_seed_diagnostics() {
@@ -227,6 +232,9 @@ jobs:
                 echo "--- snap change $c:"; snap change "$c" 2>&1 | tail -30
               done
               echo "--- snapd journal:"; sudo journalctl -u snapd -n 200 --no-pager 2>&1 | tail -80
+              echo "--- session agent journals:"
+              sudo journalctl -u systemd-logind -n 60 --no-pager 2>&1 | tail -30
+              sudo journalctl -u 'user@1000.service' -n 60 --no-pager 2>&1 | tail -30
               echo "--- oom:"; sudo dmesg 2>/dev/null | grep -iE "out of memory|oom-kill" | tail -5
               echo "--- parser:"; ps -eo pid,etime,args 2>/dev/null | grep -m1 "[a]pparmor_parser" | cut -c1-140
               echo "--- seeded: $(systemctl is-active snapd.seeded 2>&1)"

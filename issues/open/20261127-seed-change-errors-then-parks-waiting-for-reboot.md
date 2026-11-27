@@ -70,23 +70,80 @@ apparmor_parser check; the misleading "(diagnostics ssh failed)" line
 is gone (it was `systemctl is-active` exiting 1 while seeding
 activates).
 
-## Open questions
+## Done (2026-11-27 later): full mechanism verified, CI capture + local experiments
 
-1. The error text itself. The next parked run will show
-   `snap change 1`; until then candidates include a transient
-   apparmor_parser failure under runner I/O pressure and a pipewire
-   interface-setup error. Note the gate fix is what surfaces it.
-2. Does the resume reboot actually recover (the theory behind the
-   Wait mechanism), or does seeding error again deterministically?
-   The first parked run after 47d16d5 answers this from the log.
-3. Is "park in Wait after a seed error" intended snapd behaviour? If
-   the reboot resume works, it is defensible (matches classic
-   install-mode recovery); if it re-errors every boot, the error text
-   decides where to fix. Our snapd fork lives in
-   ubuntu-core-desktop-snapd; upstreaming path in
-   docs/upstream-contributions.md.
-4. Real-hardware impact (see Impact above): needs a reproduced first
-   boot, or the snapd journal from an affected machine.
+The first post-fix CI park (run 46008820280) triggered the dump and
+answered open questions 1-3:
+
+1. The seed error is NOT an apparmor_parser kill. `snap change 1`
+   shows: `ERROR Post "http://1000/v1/service-control": read unix
+   @->/run/user/1000/snapd-session-agent.socket: read: connection
+   reset by peer` (task "Make snap "ubuntu-desktop-a11y" available"),
+   and the resumed change re-failed the same family: `Start snap
+   "ubuntu-desktop-a11y" services failed: ... connect: connection
+   refused`. Earlier field failures had their undone clusters next to
+   pipewire's user services - same trigger, previously invisible.
+2. The reboot resume works: change 3 flipped Wait->Do and ran, but
+   re-errored (agent socket unavailable again) and was queued for
+   undo; the gate failed fast with evidence. Detector refinement:
+   queued states (Do/Undo) must count as busy.
+3. The park mechanism: the retry change is built by the normal
+   install machinery, whose gadget link-snap is a Do restart boundary
+   (`setDefaultRestartBoundaries`, snapstate/reboot.go); when it
+   completes, doLinkSnap requests a system restart, and CoreDesktop
+   snapd never reboots itself - processRestartForChange
+   (overlord/restart/restart.go) notifies the desktop session instead
+   and logs "Postponing restart until a manual system restart allows
+   to continue". No session exists mid-seed, so the park is permanent.
+   First-seed changes are built by populateStateFromSeedImpl with no
+   such boundary, which is why healthy seeds never park.
+
+Root cause (why the agent socket dies): snapd manages user-scope snap
+services through per-user session agents, discovered by globbing
+/run/user/*/snapd-session-agent.socket (clientutil/session.go). The
+agent is a systemd --user unit that exists only while the user has a
+session. During first-boot seeding the gate's own SSH poll loop
+creates the only sessions: a <1 s login every 10 s. When a
+service-control POST lands while the last poll session closes, the
+user manager stops (logind GCs it; KillUserProcesses only governs
+session scopes, not this) and the socket dies mid-request (reset), or
+a stale socket file answers nothing (refused).
+
+Verified by a three-phase experiment on a local image (only the SSH
+pattern varied):
+
+- no SSH at all: seeds clean (empty glob -> snapd skips user ops);
+- SSH storm, overlapping logins every ~1 s: seeds clean (a session
+  always exists, the agent never goes away);
+- one held-open ControlMaster session: seeds clean;
+- sparse poll (one short login every ~10 s, the CI rhythm): fails
+  with exactly the captured reset/refused errors.
+
+So the trigger is not load or memory (systemd-oomd is not in the
+image; snapd's parser call has no timeout; snapd.service has
+KillMode=process and no memcg limits; no kernel OOM anywhere) - it is
+the agentless GAP between sparse SSH polls.
+
+Fix (landed): core-base-desktop now ships drop-ins ordering
+ssh.service, ssh.socket and sshd@.service after snapd.seeded
+(static/etc/systemd/system/*.d/10-seed-order.conf), so port 22 only
+answers once seeding is done; dev and wizard images keep SSH fully
+enabled, and "ssh connects" becomes a truthful readiness signal. The
+CI gate SSH-wait budget was raised to 30 min to absorb seeding, the
+park detector treats queued changes as busy, and the dump gained the
+logind/user@1000 journal tails (the teardown actor's own record).
+
+Upstream: stock Ubuntu Core with a system-user assertion (SSH keys)
+is exposed the same way - assertions are auto-imported during seeding
+by design, with ssh.socket already listening - and any agent-driven
+first boot (Workshop: enable SSH, connect the moment the host
+answers) hits this. The daemon-level race (a user-scope service error
+failing the whole change, and the refresh-flavour of the same race on
+running systems, where a transient session dying mid-refresh rolls
+the refresh back) is filed separately for snapd maintainers; see
+`20261127-snapd-user-service-session-agent-race.md`.
+
+## Open questions
 
 ## Notes
 
