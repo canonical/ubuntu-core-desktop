@@ -924,17 +924,20 @@ time. tmpfiles `C` preserves symlinks inside the copied tree, so the
 factory copy of etc/gdm3 keeps its custom.conf ->
 ../writable/gdm3/custom.conf symlink working through the bind.
 
-STILL OPEN even with the mount: accounts-daemon runs SNAP-CONFINED on
-current images (snap.accountsservice.accounts-daemon — the
-accountsservice snap is in the model; an older base tree's unconfined
-/usr/libexec/accounts-daemon is stale evidence), and its profile
-grants only `r` on the literal /etc/gdm3/custom.conf — a read through
-the /etc/writable symlink never matches, because AppArmor mediates
-the RESOLVED path — and it has no write grants at all. The wizard then
-fails with gRPC INTERNAL "failed to set autologin: failed to change
-automatic login: Permission denied". The full fix = the core-base
-mount + these grants in the accountsservice snap profile
-(live-verified with `apparmor_parser -r`, then reverted):
+Landed 2026-11-27 (the last missing piece after the core-base mount):
+the grants live in the SNAPD FORK's builtin accountsservice interface
+(ubuntu-core-desktop-snapd#46, interfaces/builtin/accountsservice.go),
+not the accountsservice-snap packaging. accounts-daemon runs
+SNAP-CONFINED on current images (snap.accountsservice.accounts-daemon
+— the accountsservice snap is in the model; an older base tree's
+unconfined /usr/libexec/accounts-daemon is stale evidence). Without
+the grants the profile allowed only `r` on the literal
+/etc/gdm3/custom.conf — a read through the /etc/writable symlink
+never matches, because AppArmor mediates the RESOLVED path — and had
+no write grants at all, so the wizard failed with gRPC INTERNAL
+"failed to set autologin: failed to change automatic login:
+Permission denied". The grants (live-verified with
+`apparmor_parser -r` before landing):
 
     /etc/writable/gdm3/custom.conf r,
     /etc/gdm3/ rw,
