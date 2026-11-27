@@ -169,9 +169,11 @@ own directory + rename over the target), which cannot go through the
 /etc/writable symlink indirection — on a read-only squashfs
 /etc/gdm3 it fails EROFS and the wizard's autologin choice never
 lands. The full runtime chain (who writes it, GDM consuming autologin
-only from custom.conf keys, the still-missing AppArmor grants for the
-snap-confined accounts-daemon, and the /etc/writable copy going stale
-after the wizard-phase write) is in gdm-graphical-session.md.
+only from custom.conf keys, the AppArmor grants for the snap-confined
+accounts-daemon — landed in the snapd fork's builtin accountsservice
+interface, canonical/ubuntu-core-desktop-snapd#46 — and the
+/etc/writable copy going stale after the wizard-phase write) is in
+gdm-graphical-session.md.
 
 Packaging placement rules for the fix (PR core-base-desktop#92, mount
 + seeding live-verified 2026-11-23): bind
