@@ -35,6 +35,14 @@ On GitHub-hosted runners (KVM confirmed available, 86 GB free disk, so
 neither disk nor TCG is the cause) the same step takes 20+ min. The
 spread is not explained yet - see "to investigate".
 
+Correction 2026-11-27: the two 30-minute gate failures after the
+`-smp 4` fix (f81fb81) were NOT this. In both dumps no
+apparmor_parser was running at all: the seed change errored ~3 min in
+and snapd parked a retry change in Wait, which the gate watched for
+the remaining 27 minutes. That failure mode and the gate fix are in
+`20261127-seed-change-errors-then-parks-waiting-for-reboot.md`. The
+runner-vs-local compile-time gap recorded below remains unexplained.
+
 Why it is single-threaded:
 
 snapd does not hardcode -j1: numberOfJobsParam() (sandbox/apparmor/

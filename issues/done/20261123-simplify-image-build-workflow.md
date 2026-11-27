@@ -236,6 +236,14 @@ Fixes:
   time is now ~5 min (seeding ~3 min + session ~80s). It also builds
   the gate image with cache=unsafe and runs before the publishable
   image, so only one 20G image exists at a time.
+
+  Update 2026-11-27: the next two 30-minute failures were a different
+  failure mode - the seed change errored ~3 min in, snapd parked a
+  retry change in Wait ("resume after reboot"), and the gate watched
+  that park for the rest of its budget with no apparmor_parser running.
+  The gate now detects the park, dumps the evidence, and reboots once
+  to let snapd resume (commit 47d16d5); details in
+  `20261127-seed-change-errors-then-parks-waiting-for-reboot.md`.
 - kf6-core26 dispatches build-snap on the two Plasma repos after
   publishing (needs a fine-grained PAT secret REBUILD_TOKEN; warns and
   skips without it), and all three KDE repos now rebuild daily.
