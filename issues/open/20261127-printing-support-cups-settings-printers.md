@@ -63,11 +63,52 @@ What does already exist (so this is mostly wiring, not new packaging):
   `core-base-desktop/hooks/020-extra-files.chroot`, which exists to stop
   the `cups` interface creating writable mimics.
 
+## Approach: emulate the printer, then one physical pass
+
+Do the implementation and as much verification as possible against a
+software printer, and only take the result to real hardware once the
+emulated matrix is green. The emulator is CUPS's own IPP Everywhere
+printer application, `ippeveprinter`:
+
+- It is already inside the cups snap as an app (`ippeveprinter`, with
+  `network`, `network-bind`, `avahi-control`, `home` and `raw-usb`
+  plugs), so it runs on the image under test with no extra packaging.
+  The host has it too (`cups-ipp-utils`), which covers the
+  cross-network case.
+- It advertises itself over DNS-SD, serves IPP Everywhere, and writes
+  every received job to a spool directory (`-k`), so discovery,
+  driverless model generation, job submission and the document content
+  itself are all observable and assertable in CI.
+- Several instances on different ports emulate several printers
+  (plain, duplex, authenticated, or one loaded from a specific PPD).
+
+What it cannot emulate, and which therefore stays a hardware check:
+
+- USB enumeration and hotplug. There is no usable USB-printer emulator
+  here: `umockdev` fakes libusb only through LD_PRELOAD, which cannot
+  reach a confined snap daemon; `ipp-usb` converts a real USB printer
+  to IPP (the opposite direction); and USB/IP or QEMU `usb-host` both
+  need a real device at the far end. A UDC-capable board presenting a
+  printer-class gadget (`g_printer`/`raw-gadget`) is the only true
+  emulation, and is not worth building unless the USB path turns out
+  to hold the bugs.
+- Legacy PPD-only printers: `-P <ppd>` advertises that model's
+  attributes, but does not prove the image ships the right driver and
+  ghostscript chain for it.
+- Hardware faults: out of paper, jams, sleep/wake, colour accuracy.
+
+So: implement and verify against the emulator, get all of Stage 1 below
+green, and only then run Stage 2 once on a real printer - a network
+AirPrint printer is enough to close it, with USB covered too if one is
+available.
+
 ## Task
 
 Make printing work end to end for a GNOME Core Desktop user: Settings >
 Printers lists, adds, configures and removes printers, and applications
-can print to them.
+can print to them. Build it against the emulator described in
+"Approach" and "Test rig": the only part that may wait for hardware is
+the final physical pass.
 
 Decisions to take first (record them in this file when decided):
 
@@ -100,7 +141,10 @@ Decisions to take first (record them in this file when decided):
    runtime retry loop (gadget connections only apply at seed/remodel
    time - see
    `20260915-app-center-installed-snaps-need-desktop-interface-connections.md`
-   for why that matters for runtime-installed apps).
+   for why that matters for runtime-installed apps). Include
+   `cups:avahi-control -> avahi:avahi-control`: without it cupsd (and
+   the emulator) cannot advertise over DNS-SD, so discovery and
+   `lpinfo -v` show nothing and only manual URIs work.
 2. Extend `gnome-control-center`'s plugs in the session snap
    (`cups-control`, `polkit-agent`, and `network` if clients are to use
    TCP), and add `cups-pk-helper` + its polkit policy to
@@ -123,15 +167,62 @@ Decisions to take first (record them in this file when decided):
    `gdm-graphical-session.md` or a new short doc): which snap provides
    cupsd, which socket/port clients use, which interface is connected
    where, and how to debug a stuck queue.
+7. Land the emulator rig as a script (e.g. `tools/print-test.sh`):
+   start `ippeveprinter`, print a known document through the image,
+   assert the spool file, tear down. Keep it runnable by hand on a test
+   VM too, since it is how most of this issue gets implemented.
+
+## Test rig: ippeveprinter
+
+On the image under test, inside the cups snap (no hardware, no
+networking):
+
+    sudo snap run cups.ippeveprinter -p 8631 -k -2 \
+        -d /var/snap/cups/common/spooltest \
+        -m "UCD Test Duplex" -l "Lab" -M "OpenPrinting" \
+        "UCD Test Duplex"
+
+(`-2` = reports duplex support; `-k` keeps the received files; `-d`
+selects the spool directory.)
+
+From the host, to exercise the network path (bridged/macvtap networking
+in the VM - multicast does not cross QEMU user-mode NAT):
+
+    ippeveprinter -p 8631 -k -2 -d /var/tmp/printspool \
+        "UCD Test Duplex"
+
+How to use it:
+
+- Discovery: `ippfind` and `avahi-browse -rt _ipp._tcp` on the host, and
+  `sudo snap run cups.ippfind` on the image, must list the service.
+  This is what the Printers panel's device list is fed from. Inside the
+  image the emulator needs the same `avahi-control` connection that
+  cupsd uses (`snap connections cups`); without it it still serves IPP
+  but is not discovered.
+- Job proof: after printing, the spool directory holds the received
+  document (PDF by default). Assert on it - file exists, expected page
+  count, and a text or render match (`pdftotext`, or `pdftoppm -png` to
+  look at it).
+- More printers: further instances on 8632/8633 for a single-sided one,
+  an `-A` authenticated one, and one loaded from a specific PPD with
+  `-P /path/to/model.ppd`.
+- CI: run the same command, print through the image, assert the spool
+  file. This is the regression gate for printing; do not substitute the
+  `file:` backend for it, which skips IPP and the driverless model path
+  entirely.
 
 ## Verification
 
-Run on a freshly built image, not a live-patched one, and record the
-commands and their output in this file. A physical printer is
-preferred; the no-hardware path in step G is mandatory too, because it
-is what CI can run.
+Two stages. Stage 1 is everything that can be done with the simulated
+printer and must be fully green before Stage 2 starts; Stage 2 is the
+single physical pass that repeats the same flows against real hardware.
+Run both on a freshly built image (not a live-patched one) and record
+the commands and output in this file. Stage 1 sections are tagged
+`[emulated]`, Stage 2 `[hardware]`.
 
 ### A. Prerequisites: the daemon is up and the session can reach it
+
+Applies to both stages.
 
 1. `snap list cups avahi` and `snap connections | grep -i cups` -
    cupsd's system daemon is active, and every intended plug
@@ -155,43 +246,71 @@ is what CI can run.
    the helper/policy from "Current state" is still missing, and no
    printer can be added or modified from the GUI regardless of cupsd.
 
-### B. Add a network (IPP/AirPrint) printer
+### B. Add a printer over IPP [emulated]
 
-1. Put the printer on the same network as the VM (bridged/macvtap, not
-   user-mode NAT - multicast discovery does not cross user-mode
-   networking; see `docs/build-tools.md` QEMU networking notes).
-2. Settings > Printers > Add Printer. Expected: the printer appears in
-   the discovered device list by itself (this is the avahi/cups-browsed
-   path). If it does not, note that as a failed discovery check but
-   continue.
-3. Add it by URI as the fallback path: enter
-   `ipp://<printer-ip>/ipp/print` (or the URI the printer reports).
-   Expected: the panel finds a driver automatically (driverless/IPP
-   Everywhere) and adds the queue without asking for a PPD file.
+1. Start the emulator per "Test rig" above - on the image itself, or on
+   a bridged host. For the discovery checks it must be reachable from
+   the image over the network.
+2. Settings > Printers > Add Printer. Expected: the emulated printer
+   appears in the discovered device list by itself (this is the
+   avahi/cups-browsed path). If it does not, record that as a failed
+   discovery check but continue.
+3. Add it by URI as the fallback path:
+   `ipp://<emulator-host>:8631/ipp/print`. Expected: the panel finds a
+   driver automatically (driverless/IPP Everywhere) and adds the queue
+   without asking for a PPD file - this is the same code path a real
+   AirPrint printer uses.
 4. Confirm the queue exists and is accepting work:
    `cups.lpstat -t` lists `<printer>` and shows "accepting requests",
    `cups.lpinfo -v` lists the `ipp://` device.
 5. Print the panel's own test page (printer menu > Print Test Page).
-   Expected: paper comes out, and the queue shows a completed job.
+   Expected: a job file appears in the emulator's spool directory and
+   the queue shows a completed job.
+6. Repeat with the second emulated instance (single-sided) and confirm
+   the two queues are listed separately and the panel shows each
+   printer's own options (duplex present only on the first).
 
-### C. Add a USB printer
+### C. Physical pass: real printer [hardware]
 
-1. Boot the image, log in, then plug the printer in (hotplug is the
+Run this once, after every Stage 1 section is green. A network
+AirPrint printer closes this step on its own; do the USB part too if a
+USB printer is available, since USB enumeration cannot be emulated
+(see "Approach").
+
+Network (AirPrint) printer:
+
+1. Put the printer on the same network as the VM (bridged/macvtap, not
+   user-mode NAT - multicast discovery does not cross user-mode
+   networking; see `docs/build-tools.md` QEMU networking notes).
+2. Settings > Printers > Add Printer. Expected: the real printer is
+   discovered by name, and adding it needs no PPD, exactly as with the
+   emulator in step B.
+3. Print the panel's test page: paper comes out. Then print from one
+   application (D) and confirm the same.
+
+USB printer:
+
+4. Boot the image, log in, then plug the printer in (hotplug is the
    case that matters; also test a printer already attached at boot).
-2. `lsusb` shows the printer; `dmesg | tail` shows it enumerating.
-3. `cups.lpinfo -v` lists a `usb://<vendor>/<model>` device; Settings >
+5. `lsusb` shows the printer; `dmesg | tail` shows it enumerating.
+6. `cups.lpinfo -v` lists a `usb://<vendor>/<model>` device; Settings >
    Printers shows it in the discovered list.
-4. Add it, then print the test page. Expected: output on paper, job
+7. Add it, then print the test page. Expected: output on paper, job
    completes.
-5. Unplug and replug while the panel is open: the panel must not crash
+8. Unplug and replug while the panel is open: the panel must not crash
    or hang, and the queue must go to "unplugged/stopped" rather than
    silently vanishing.
 
-### D. Print from applications
+Anything that fails here but passed in Stage 1 is a hardware-only
+defect: record it and keep this section open until it is fixed and
+re-run.
+
+### D. Print from applications [emulated]
 
 1. GTK3 app: open a document, Ctrl+P. Expected: the print dialog lists
-   the added printer, paper size/duplex options are populated, and
-   printing produces output on paper.
+   the emulated printer, the options from its attributes (duplex on the
+   `-2` instance) are populated, and the job lands in the spool
+   directory as a valid PDF.
 2. GTK4 app: same check. (This is the one that proves the "no
    printbackends directory" question above is a non-issue.)
 3. A non-GTK app that prints (LibreOffice or any Qt app present in the
@@ -204,7 +323,7 @@ is what CI can run.
    `snap connect <app>:cups cups:cups-host` changes it. Whatever the
    answer, it must match the decision in work item 5.
 
-### E. Queue and job management in Settings > Printers
+### E. Queue and job management in Settings > Printers [emulated]
 
 1. The printer's detail page shows state (idle/processing/stopped),
    location, model/driver, and its job list.
@@ -220,11 +339,12 @@ is what CI can run.
    -t`, and Settings > Printers goes back to the empty state.
 6. Add, then re-add the same printer: no duplicate queue is created.
 
-### F. Persistence, reboot and multi-user
+### F. Persistence, reboot and multi-user [emulated]
 
-1. Reboot with the queue configured: the printer is still there, still
-   the default, and still prints. (Nothing in the chain may live in a
-   tmpfs or a per-boot directory.)
+1. Reboot with the queue configured (emulator restarted, same port and
+   name): the printer is still there, still the default, and still
+   prints. (Nothing in the chain may live in a tmpfs or a per-boot
+   directory.)
 2. Log in as a second local user: the queue is visible (queues are
    system-wide), and that user can print without re-adding it.
 3. Log the second user out and back in while a job is queued: the job
@@ -233,20 +353,24 @@ is what CI can run.
    refreshed between those steps), i.e. queue state lives in
    `$SNAP_COMMON`, not in the snap revision.
 
-### G. No-hardware path (mandatory, this is the CI-runnable check)
+### G. Job-content assertion and CI gate [emulated]
 
-1. Add a queue that writes to a file instead of a device:
-   `cups.lpadmin -p ucd-test -E`
-   `-v file:/var/snap/cups/common/ucd-test.out -m raw`
-   (or through the panel if it accepts a manual `file:` URI), then
-   `cups.lpstat -t` shows `ucd-test`.
-2. `echo hello | cups.lp -d ucd-test` and confirm
-   `/var/snap/cups/common/ucd-test.out` appears and contains
-   "hello". This proves the client -> cupsd -> filter -> backend chain
-   including confinement and the socket/port choice, without hardware.
-3. Do the same through a GUI app (print the app's document to
-   `ucd-test`) and confirm the file grows.
-4. Remove the queue afterwards.
+This is the check CI runs; it must fail if printing regresses.
+
+1. Print a known document to the emulated queue from an app and from
+   `cups.lp`, then assert on the spool file: it exists, has the
+   expected page count, and its text or rendered image matches what was
+   sent (`pdftotext`, or `pdftoppm -png` and compare).
+2. Assert the *absence* of the failure signatures instead of only a
+   non-zero exit: no `apparmor="DENIED"` for the session/cups profiles
+   in `journalctl -b`, no "Unable to connect to server" in the panel
+   log, no job stuck in `cups.lpstat -o`.
+3. Sanity-check the raw chain once, without IPP: a queue writing
+   straight to a file (`cups.lpadmin -p ucd-test -E -v
+   file:/var/snap/cups/common/ucd-test.out -m raw`, then `echo hello |
+   cups.lp -d ucd-test`) must produce that file. This skips IPP and
+   driverless, so it is a sanity check only - step 1 is the real gate.
+4. Remove the test queues afterwards.
 
 ### H. Evidence to collect when any step fails
 
@@ -263,11 +387,18 @@ is what CI can run.
 
 ## Definition of done
 
-Steps A-G pass on a freshly built image with a real printer (network and
-USB) and with the no-hardware queue, the decisions in "Task" are
-recorded here, and the wiring is documented in `docs/`. Steps that
-cannot be run for lack of hardware must be marked explicitly as
-untested rather than assumed.
+- Stage 1 (A-G, `[emulated]`) is fully green on a freshly built image
+  against the `ippeveprinter` rig, with the commands and spool-file
+  assertions recorded in this file.
+- Stage 2 (C's `[hardware]` half) has been run once on a physical
+  printer - a network AirPrint printer is sufficient; USB is covered
+  too where hardware allows - and prints successfully end to end.
+- The decisions in "Task" are recorded here, the wiring is documented
+  in `docs/`, and the emulator rig plus its assertion is reachable in
+  one command (work item 7) so CI can keep printing working.
+- Anything not run (legacy PPD/driverless-less printers, hardware
+  faults, USB if no device was available) is marked explicitly as
+  untested rather than assumed to work.
 
 ## References
 
