@@ -1,117 +1,24 @@
 #!/bin/bash
 
+# Boot build/pc.img via the repo's run-qemu.sh from inside the
+# Workshop container. The container has no host bridge and no
+# /dev/net/tun, so user-mode networking is required there; everything
+# else (flock, seed handling, VNC, serial unix socket, audio gating)
+# comes from run-qemu.sh itself.
+
 set -euo pipefail
 
-usage() {
-  cat <<'EOF'
-Usage: workshop run ubuntu-core-desktop -- run-qemu [options] [-- QEMU_OPTIONS]
-
-Boot build/pc.img in graphical QEMU.
-
-Options:
-  --accel auto|kvm|tcg  Select acceleration (default: auto).
-  --reset-firmware      Replace the writable UEFI variables file.
-  -h, --help            Show this help.
-
-Arguments after -- are appended to the QEMU command.
-EOF
-}
-
-accel=auto
-reset_firmware=0
-qemu_args=()
-while (( $# > 0 )); do
-  case "$1" in
-    --accel)
-      [[ $# -ge 2 ]] || { echo "--accel requires a value" >&2; exit 2; }
-      accel=$2
-      shift 2
-      ;;
-    --reset-firmware)
-      reset_firmware=1
-      shift
-      ;;
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    --)
-      shift
-      qemu_args+=("$@")
-      break
-      ;;
-    *)
-      echo "Unknown option: $1" >&2
-      usage >&2
-      exit 2
-      ;;
-  esac
-done
-
-case "${accel}" in
-  auto|kvm|tcg) ;;
-  *) echo "Invalid acceleration '${accel}' (expected auto, kvm, or tcg)." >&2; exit 2 ;;
-esac
-
-image=build/pc.img
-vars=build/OVMF_VARS.fd
-if [[ ! -f ${image} ]]; then
-  echo "Image not found: ${image}" >&2
-  echo "Run the build-gnome or build-kde Workshop action first." >&2
-  exit 1
-fi
-
-code=""
-vars_template=""
-for pair in \
-  "/usr/share/OVMF/OVMF_CODE_4M.fd:/usr/share/OVMF/OVMF_VARS_4M.fd" \
-  "/usr/share/OVMF/OVMF_CODE.fd:/usr/share/OVMF/OVMF_VARS.fd"
-do
-  candidate_code=${pair%%:*}
-  candidate_vars=${pair#*:}
-  if [[ -f ${candidate_code} && -f ${candidate_vars} ]]; then
-    code=${candidate_code}
-    vars_template=${candidate_vars}
-    break
-  fi
-done
-if [[ -z ${code} ]]; then
-  echo "No matching OVMF code and variables firmware pair found." >&2
-  exit 1
-fi
-
-if [[ ${reset_firmware} == 1 || ! -f ${vars} ]]; then
-  cp "${vars_template}" "${vars}"
-fi
-
+# The custom-device interface preserves the host device's numeric
+# group, which may resolve to an unrelated group inside the container.
+# qemu needs read/write on /dev/kvm; fix the ACL when the device is
+# present but not writable. Tolerate failure: passwordless sudo is
+# provided by the workshop image, but if it is not, tell the user how
+# to work around it rather than failing here.
 if [[ -c /dev/kvm && ( ! -r /dev/kvm || ! -w /dev/kvm ) ]]; then
-  # The custom-device interface preserves the host device's numeric group,
-  # which may resolve to an unrelated group inside the Workshop container.
-  sudo -n setfacl -m "u:$(id -u):rw" /dev/kvm
-fi
-
-if [[ ${accel} == auto ]]; then
-  if [[ -c /dev/kvm && -r /dev/kvm && -w /dev/kvm ]]; then
-    accel=kvm
-  else
-    accel=tcg
-    echo "KVM is unavailable; using slower TCG emulation." >&2
+  if ! sudo -n setfacl -m "u:$(id -u):rw" /dev/kvm 2>/dev/null; then
+    echo "Warning: cannot adjust the ACL on /dev/kvm; if QEMU fails to" >&2
+    echo "open it, rerun this action as root: workshop run --uid 0 ..." >&2
   fi
 fi
 
-machine_args=(-machine "accel=${accel}")
-if [[ ${accel} == kvm ]]; then
-  machine_args+=(-cpu host)
-fi
-
-exec qemu-system-x86_64 \
-  "${machine_args[@]}" \
-  -smp 2 \
-  -m 4096 \
-  -display gtk,gl=off \
-  -drive "if=pflash,format=raw,unit=0,readonly=on,file=${code}" \
-  -drive "if=pflash,format=raw,unit=1,file=${vars}" \
-  -drive "file=${image},format=raw,if=virtio,cache=none" \
-  -netdev user,id=net0 \
-  -device virtio-net-pci,netdev=net0 \
-  "${qemu_args[@]}"
+exec ./run-qemu.sh --net user --serial-socket build/serial.sock "$@"
