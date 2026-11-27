@@ -11,6 +11,10 @@ spinner. 100% reproducible on every fresh nouser image built from
 desktop/26 tips. This is the gap the PR92 verification comment
 (core-base-desktop#92, issuecomment-7103678800) already surfaced: the
 mount is necessary but the accountsservice profile grants were missing.
+The prior live verification (grants loaded with `apparmor_parser -r`,
+then reverted) is recorded in
+`20261123-accountsservice-snap-gdm3-apparmor-grants.md`, which this
+record supersedes for the grants part.
 
 ## Root cause (from the VM journal)
 
@@ -32,8 +36,13 @@ the write still failed until the temp-file create was granted too:
 
 ## Fix (snapd fork, desktop/26)
 
-ubuntu-core-desktop-snapd PR #46 grants the live-verified set from the
-PR92 verification comment:
+Landed as canonical/ubuntu-core-desktop-snapd#46 (merged 2026-11-27):
+a patch to the snapd fork's builtin accountsservice interface
+(interfaces/builtin/accountsservice.go) grants the live-verified set
+from the PR92 verification comment — NOT the accountsservice-snap
+packaging as the original plan in
+`20261123-accountsservice-snap-gdm3-apparmor-grants.md` expected, so
+grant edits for this daemon now belong in the snapd fork:
 
     /etc/writable/gdm3/custom.conf r,
     /etc/gdm3/ rw,
@@ -53,3 +62,11 @@ PRISTINE upstream base (symlink kept, no base change):
 build/policy-test. Wizard completes with "Require my password to log
 in" unchecked (autologin requested), account created, GDM autologs the
 new user. snapd interface suite passes.
+
+## Related
+
+`20261123-provd-deleteuser-rollback-signature.md` tracks the still-open
+CreateUser rollback defect (DeleteUser called with the wrong D-Bus
+signature): the grants fix removes today's trigger for it (the
+autologin save failure), but the rollback path stays reachable on any
+other mid-flow failure.
