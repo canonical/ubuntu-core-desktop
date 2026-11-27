@@ -26,6 +26,8 @@ How much to read depends on the job:
   stays accurate; copied into Mattermost when needed). Start here.
 - building.md — build an Ubuntu Core Desktop image from cached snaps
   (default, fast) or from source; test it in QEMU.
+- workshop.md — the same builds and QEMU runs inside a Canonical
+  Workshop container, with the host-resource grants they need.
 - building-kde.md — the KDE image: prebuilt releases and KDE-specific
   build notes. GNOME builders can skip it.
 - models.md — model assertions and signing keys used by the builds.
