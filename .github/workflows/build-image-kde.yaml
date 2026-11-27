@@ -190,23 +190,62 @@ jobs:
             return 1
           }
 
+          # A failed seed change parks in Wait status: snapd's resume path
+          # for it is a reboot, and nothing else clears the park. The gate
+          # used to watch that park for the whole 30-minute budget
+          # (2026-11-27: the seed change errored ~3 min in, then sat in Wait
+          # for 27 min with no apparmor_parser running). So detect the park,
+          # dump the evidence, and reboot once so snapd resumes the change;
+          # a second park, or one found too late to reboot, fails at once.
+          seed_stalled() {
+            sshg 'snap changes 2>/dev/null | grep -q " Error " &&
+                  ! snap changes 2>/dev/null | grep -q " Doing "' \
+              >/dev/null 2>&1
+          }
+          dump_seed_diagnostics() {
+            sshg sh -s <<'DIAG' >&2 || echo "(diagnostics ssh failed)" >&2
+              echo "--- changes:"; snap changes 2>&1 | head -8
+              for c in $(snap changes 2>/dev/null | awk '$2=="Error" || $2=="Wait" {print $1}' | head -4); do
+                echo "--- snap change $c:"; snap change "$c" 2>&1 | tail -30
+              done
+              echo "--- snapd journal:"; sudo journalctl -u snapd -n 200 --no-pager 2>&1 | tail -80
+              echo "--- oom:"; sudo dmesg 2>/dev/null | grep -iE "out of memory|oom-kill" | tail -5
+              echo "--- parser:"; ps -eo pid,etime,args 2>/dev/null | grep -m1 "[a]pparmor_parser" | cut -c1-140
+              echo "--- seeded: $(systemctl is-active snapd.seeded 2>&1)"
+          DIAG
+          }
+
           echo "==> cold boot: waiting for snap seeding"
           boot_vm || exit 1
           seeded=0
-          for i in $(seq 1 180); do
+          resumed=0
+          dumped=0
+          i=0
+          while [ "$i" -lt 180 ]; do
+            i=$((i + 1))
             if sshg 'systemctl is-active --quiet snapd.seeded'; then seeded=1; break; fi
             if [ $((i % 6)) -eq 0 ]; then
               echo "+$((i * 10))s: seeded=$(sshg 'systemctl is-active snapd.seeded' 2>/dev/null || echo unreachable)"
             fi
+            # Park check every 2 min. While the guest reboots the status
+            # line prints "unreachable" and the loop keeps polling.
+            if [ $((i % 12)) -eq 0 ] && seed_stalled; then
+              echo "==> seed change errored and snapd parked it (no task running)"
+              dump_seed_diagnostics
+              dumped=1
+              if [ "$resumed" -eq 1 ] || [ "$i" -ge 150 ]; then
+                echo "::error::seed change errored and snapd left it parked (resumed=$resumed, iteration $i/180)" >&2
+                break
+              fi
+              resumed=1
+              echo "::warning::rebooting the gate guest so snapd resumes the parked seed change"
+              (sshg 'sudo systemctl reboot' >/dev/null 2>&1 &)
+            fi
             sleep 10
           done
           if [ "$seeded" != 1 ]; then
+            [ "$dumped" -eq 1 ] || dump_seed_diagnostics
             echo "::error::snap seeding did not finish within 30 minutes" >&2
-            sshg 'echo "--- changes:"; snap changes 2>&1 | head -5;
-                  echo "--- last tasks:"; snap tasks 1 2>&1 | sed -n "1,/^$/p" | tail -5;
-                  echo "--- parser:"; ps -eo pid,etime,args 2>/dev/null | grep -m1 "[a]pparmor_parser" | cut -c1-140;
-                  echo "--- seeded:"; systemctl is-active snapd.seeded' >&2 \
-                || echo "(diagnostics ssh failed)" >&2
             exit 1
           fi
           echo "==> seeded; rebooting for the session check"
