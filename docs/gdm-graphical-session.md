@@ -110,6 +110,18 @@ Open / unresolved issues (as of last investigation):
   portal-mediated codepath by diffing `/proc/<pid>/environ` for
   `SNAP*`/`XDG_RUNTIME_DIR` before/after, rather than assuming an
   AppArmor denial.
+  That ordering fix was only half the story: the same ~25s black screen
+  returned via a second D-Bus cycle. GLib's memory monitor is
+  portal-backed once the process looks sandboxed, so
+  `g_memory_monitor_dup_default()` synchronously activates
+  `org.freedesktop.portal.Desktop` during `gnome-shell` startup, while
+  `xdg-desktop-portal-gnome` waits for Mutter's
+  `org.gnome.Mutter.ServiceChannel` (it must not start earlier, or it
+  exposes settings-only portals). Fix: run exactly those two
+  executables with `GIO_USE_MEMORY_MONITOR=poll` (`scripts/run.sh` in
+  `ubuntu-desktop-session-snap`), keeping the Mutter wait.
+  `GIO_USE_PORTAL=0` does NOT work for confined snap processes - GLib
+  decides from the connected `desktop` plug, not the env var.
   Still open, likely-independent smaller gaps (not fixed by the above):
   - `run-session.sh`'s `$HOME/.hidden` step is resolved/moot as of
     2026-09-18: the script only appends to it (`>>`), not `mknod`, and

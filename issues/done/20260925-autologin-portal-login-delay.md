@@ -161,3 +161,46 @@ The portal was requested at 232.995 and reached `Started` at 233.419.
 The 25-27-second black-screen delay was not reproduced in this run.
 This was not paired with a manual-login boot, so the issue remains open
 pending the comparison above and confirmation on another fresh boot.
+
+## Resolution (2026-11-27): superseded, fixed at the root cause
+
+The remaining cause was found and fixed three days after the update
+above, and is recorded in
+`20260930-fix-delay-gdm-mutter-screenshot-portal.md`; this file was
+simply never closed.
+
+Root cause: the screenshot-portal work (`ubuntu-desktop-session-snap`
+commit 1a45863) added a command-chain wait for
+`org.gnome.Mutter.ServiceChannel` before launching
+`xdg-desktop-portal-gnome`, so the backend could not start until GNOME
+Shell finished its early initialization. Shell, in turn, synchronously
+activated `org.freedesktop.portal.Desktop` at startup because GLib's
+`g_memory_monitor_dup_default()` chose the portal-backed memory
+monitor (GLib only takes that path when it detects a sandbox, i.e. only
+for the confined session). Shell waited for the portal name while the
+backend waited for Shell's Mutter channel; dbus-daemon's ~25s
+`service_start_timeout` broke the cycle, which is the black screen.
+
+Fix: `scripts/run.sh` in `ubuntu-desktop-session-snap` exports
+`GIO_USE_MEMORY_MONITOR=poll` for `gnome-shell` and
+`xdg-desktop-portal-gnome` only (commit 0e9e944 "Avoid portal memory
+monitor startup cycle"), keeping the Mutter-channel wait. That commit
+is still what the tree carries today (verified on load: the export is
+scoped to exactly those two executables).
+
+Why the manual/autologin comparison in "Next steps" was never needed:
+the cycle is in the D-Bus activation order, not in the session launch
+path, so it applied to every confined GNOME login (the 09-24 unit
+ordering fix had only removed one of its two legs). Autologin was just
+the configuration in use when it was first noticed. The final
+deciding evidence is an autologin boot, not a comparison: the
+2026-09-27 entry in this file (portal `Started` 0.424s after the
+request, Shell `Started` ~1.8s after the PAM session opened), and the
+later end-to-end autologin verification in
+`20261112-fix-autologin-regression.md` reached a confined session with
+no delay reported. A grep of `issues/` for
+"portal is not running" / "Timeout was reached" turns up no later
+report of this pattern (the 2026-11-20 first-boot delay is a different
+cause: gvfsd activation and first-boot seeding).
+
+No further work on this file; kept for the diagnostic history.
