@@ -115,6 +115,7 @@ jobs:
           df -h /
 
           ./build.sh \
+            --no-pkgproxy \
             --desktop kde \
             --model-account-key ci/account-key.assert \
             --base-snap snaps/core26-desktop-variant.snap \
@@ -272,6 +273,7 @@ jobs:
         run: |
           du --version | head -1
           ./build.sh \
+            --no-pkgproxy \
             --desktop kde \
             --model-account-key ci/account-key.assert \
             --base-snap snaps/core26-desktop-variant.snap \
