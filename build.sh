@@ -81,6 +81,10 @@ Optional:
                               fill in defaults: every snap path must be
                               passed explicitly (the CI image workflows
                               do this).
+  --no-pkgproxy               Skip the pkgproxy (localhost:3142)
+                              reachability probe and its warning about
+                              re-downloading the store snaps from the
+                              model on every build.
   --base-snap <path>          Core base snap to customize (default:
                               <snaps-dir>/core26-desktop-variant.snap,
                               the desktop variant from
@@ -1326,6 +1330,7 @@ image_size="20G"
 minimal=0
 snaps_dir="snaps"
 build_snaps=1
+no_pkgproxy=0
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -1353,6 +1358,7 @@ while [[ $# -gt 0 ]]; do
         --image-size) image_size="$2"; shift 2 ;;
         --snaps-dir) snaps_dir="$2"; shift 2 ;;
         --no-build-snaps) build_snaps=0; shift ;;
+        --no-pkgproxy) no_pkgproxy=1; shift ;;
         --minimal) minimal=1; shift ;;
         --snap) extra_snaps+=("$2"); shift 2 ;;
         *)
@@ -1573,6 +1579,40 @@ for f in "${model_account_key}" "${base_snap}" "${gadget_snap}" "${snapd_snap}" 
         exit 1
     fi
 done
+
+# ubuntu-image resolves the store snaps in the model (pc-kernel, the
+# core26/core24/bare bases, mesa-2404, network-manager, ...) from the
+# Snap Store on EVERY image build - the snaps/ cache only covers the
+# component snaps. A locally running pkgproxy (https://github.com/
+# zygoon/pkgproxy) caches those; when it is not reachable, say so
+# prominently BEFORE the multi-gigabyte downloads, with a pause on a
+# terminal so the warning cannot scroll away unnoticed. Strictly
+# informational: --no-pkgproxy silences it (CI), and a build without
+# the proxy still completes.
+if [[ ${no_pkgproxy} == 0 && -z ${FAKEROOTKEY:-} ]]; then
+    if timeout 2 bash -c '</dev/tcp/127.0.0.1/3142' 2>/dev/null; then
+        :
+    else
+        cat >&2 <<'EOF'
+
+*** pkgproxy not reachable on localhost:3142 ***
+
+This build will download ~1GB+ of snaps from the Snap Store
+(pc-kernel, core26/core24/bare, mesa-2404, network-manager, ...),
+and will do so again on EVERY image build.
+
+Fix: start pkgproxy on the host (snap install pkgproxy), or from a
+Workshop container connect its tunnel first (see docs/workshop.md,
+"Optional: reuse the host pkgproxy"). Or pass --no-pkgproxy to
+acknowledge the downloads and silence this warning.
+
+EOF
+        if [[ -t 0 ]]; then
+            echo "Continuing in 10s - Ctrl-C to abort and fix." >&2
+            sleep 10
+        fi
+    fi
+fi
 
 if [[ -z ${FAKEROOTKEY:-} ]]; then
     exec fakeroot -- "$0" "${orig_args[@]}"
