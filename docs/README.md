@@ -35,6 +35,13 @@ How much to read depends on the job:
 Each entry says what it covers and when to read it. Most tasks need
 at most one or two of these.
 
+- architecture/ — the 28.04 MVP target architecture as a diagram
+  (composition matrix of layers × platforms/personas, and an
+  interface map of who exposes and who plugs each snap interface).
+  This describes the 28.04 target, not the current 26 system:
+  red/"(new)" interfaces do not exist yet. Read when reasoning
+  about where a component or interface belongs. See
+  architecture/README.md before editing or re-exporting it.
 - issue-tracking-system.md — how issues/ works: states, naming,
   Impact/Priority and resolution-note requirements, and the survey
   rule (check existing issues before assuming a bug is new). Read
