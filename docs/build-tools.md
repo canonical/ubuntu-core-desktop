@@ -344,3 +344,12 @@ base instance in that state — snapcraft reuses it.
 - New/renamed workflow files only get `workflow_dispatch`
   registered from the default branch — debugging a workflow on a
   side branch needs an `on: push: branches:` trigger instead.
+
+## Canonical Workshop (.workshop/ definition)
+
+- `workshop launch` needs a zfs-capable kernel: workshop hardcodes
+  the zfs LXD storage driver (btrfs only on WSL), so on a custom
+  kernel without the zfs module it fails at launch with "suitable
+  storage backend not found: error loading \"zfs\" module".
+  Installing zfs-dkms fixes it where kernel headers/Module.symvers
+  are available; otherwise use a stock kernel. LXD must be 6.10+.
